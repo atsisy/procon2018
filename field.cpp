@@ -86,3 +86,7 @@ u64 Field::score()
          */
         return 0;
 }
+
+void Field::Draw() {
+	
+}

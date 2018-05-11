@@ -87,8 +87,8 @@ class FieldBuilder;
 class Field {
 
         /*
-         * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
-         */
+    * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
+    */
         friend FieldBuilder;
         
 private:
@@ -101,8 +101,8 @@ private:
         std::vector<Panel> field;
 
         /*
-         * フィールド上の得点を計算するメソッド
-         */
+    * フィールド上の得点を計算するメソッド
+    */
         // 自分のパネルが置かれている部分の合計得点
         u64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
@@ -111,12 +111,16 @@ private:
         u64 calc_sumpanel_score();
 
 public:
+		
         Field();
 
         // フィールド情報のアクセサメソッド
         Panel at(u8 x, u8 y);
-
+		
         u64 score();
+        
+        // フィールドの描画
+        void Draw();
 };
 
 class FieldBuilder {
