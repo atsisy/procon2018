@@ -129,9 +129,9 @@ private:
 
 public:
         /*
-         * コンストラクタ
-         * フィールドの幅と高さを受け取る
-         */
+    * コンストラクタ
+    * フィールドの幅と高さを受け取る
+    */
         FieldBuilder(u8 width, u8 height);
 
 #ifdef __DEBUG_MODE

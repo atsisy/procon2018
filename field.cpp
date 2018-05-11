@@ -88,5 +88,5 @@ u64 Field::score()
 }
 
 void Field::Draw() {
-	
+	for(
 }
