@@ -118,9 +118,6 @@ public:
         Panel at(u8 x, u8 y);
 		
         u64 score();
-        
-        // フィールドの描画
-        void Draw();
 };
 
 class FieldBuilder {
