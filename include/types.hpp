@@ -100,11 +100,23 @@ private:
         
         std::vector<Panel> field;
 
+        /*
+         * フィールド上の得点を計算するメソッド
+         */
+        // 自分のパネルが置かれている部分の合計得点
+        u64 calc_mypanels_score();
+        // 敵のパネルが置かれている部分の合計得点
+        u64 calc_enemypanels_score();
+        // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
+        u64 calc_sumpanel_score();
+
 public:
         Field();
 
         // フィールド情報のアクセサメソッド
         Panel at(u8 x, u8 y);
+
+        u64 score();
 };
 
 class FieldBuilder {
