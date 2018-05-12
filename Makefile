@@ -1,7 +1,7 @@
 BINDIR = ./bin.d
 DST = ./dst.d
 INCLUDE = ./include
-OBJS = $(DST)/field.o $(DST)/main.o
+OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/main.o
 HEADERS = $(INCLUDE)/types.hpp
 CC = g++
 LD = g++

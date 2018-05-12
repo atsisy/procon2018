@@ -18,9 +18,30 @@ Field::Field()
  * 返り値
  * (x, y)のパネル
  */
-Panel Field::at(u8 x, u8 y)
+Panel Field::at(u8 x, u8 y) const
 {
         return field.at(x + (y << this->ac_shift_offset));
+}
+
+/*
+ * make_atメソッド　フィールドの特定のパネルのメタ情報を変更するメソッド
+ * 引数
+ * u8 x: フィールドのx座標
+ * u8 y: フィールドのy座標
+ * u8 attribute: これに変更する
+ *　　　MINE_ATTR: 自分のパネルに変更
+ *　　　ENEMY_ATTR: 敵のパネルに変更
+ * 返り値
+ * なし
+ */
+void Field::make_at(u8 x, u8 y, u8 attribute)
+{
+        switch(attribute){
+        case MINE_ATTR:
+                field.at(x + (y << this->ac_shift_offset)).make_mine();
+        case ENEMY_ATTR:
+                field.at(x + (y << this->ac_shift_offset)).make_enemy();
+        }
 }
 
 FieldBuilder::FieldBuilder(u8 width, u8 height)

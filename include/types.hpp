@@ -19,6 +19,12 @@ using i32 = std::int_fast32_t;
 using u64 = std::uint_fast64_t;
 using i64 = std::int_fast64_t;
 
+
+constexpr u8 MINE_ATTR = 0b01;
+constexpr u8 ENEMY_ATTR = 0b10;
+
+constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
+
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
@@ -40,12 +46,12 @@ public:
 
         bool is_my_panel()
         {
-                return meta_info & 0b01;
+                return meta_info & MINE_ATTR;
         }
 
         bool is_enemy_panel()
         {
-                return meta_info & 0b10;
+                return meta_info & ENEMY_ATTR;
         }
 
         bool is_not_pure_panel()
@@ -60,12 +66,12 @@ public:
 
         void make_mine()
         {
-                meta_info |= 0b01;
+                meta_info |= MINE_ATTR;
         }
 
         void make_enemy()
         {
-                meta_info |= 0b10;
+                meta_info |= ENEMY_ATTR;
         }
 
         void clear_meta()
@@ -81,6 +87,7 @@ public:
 };
 
 class FieldBuilder;
+class Agent;
 
 /*
  * Fieldクラス
@@ -92,6 +99,7 @@ class Field {
          * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
          */
         friend FieldBuilder;
+        friend Agent;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -112,11 +120,20 @@ private:
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
         u64 calc_sumpanel_score();
 
+        /*
+         * change_atメソッド フィールド情報のアクセサメソッド
+         * このメソッドは、fieldメンバを変更することができる
+         */
+        void make_at(u8 x, u8 y, u8 attribute);
+
 public:
         Field();
 
-        // フィールド情報のアクセサメソッド
-        Panel at(u8 x, u8 y);
+        /*
+         * atメソッド フィールド情報のアクセサメソッド
+         * このメソッドは、fieldメンバを変更することはできない
+         */
+        Panel at(u8 x, u8 y) const;
 
         u64 score();
 };
@@ -144,7 +161,7 @@ public:
 
 enum Direction {
         UP = 0,
-        RUP= 1,
+        RUP = 1,
         RIGHT = 2,
         RDOWN = 3,
         DOWN = 4,
@@ -153,11 +170,6 @@ enum Direction {
         LUP = 7,
         STOP = 8
 };
-
-
-constexpr u8 MY_AGENT    = 0b00000001;
-constexpr u8 ENEMY_AGENT = 0b00000010;
-
 
 template <typename Head, typename ... Tail>
 constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
@@ -173,10 +185,10 @@ inline void test_generate_agent_meta()
 {
         _DEBUG_PUTS_SEPARATOR();
         puts("*debug test for generate_agent_meta constexpr function*");
-        constexpr u8 data = generate_agent_meta(MY_AGENT, ENEMY_AGENT, 4, 8);
-        constexpr u8 conv = MY_AGENT | ENEMY_AGENT | 4 | 8;
+        constexpr u8 data = generate_agent_meta(MINE_ATTR, ENEMY_ATTR, 4, 8);
+        constexpr u8 conv = MINE_ATTR | ENEMY_ATTR | 4 | 8;
         printf("expected -> 0x%x\n", conv);
-        printf("result of function ->0x%x\n", (u8)data);
+        printf("result of function ->0x%x\n", data);
         if(conv == data){
                 puts("SUCCESS!!");
         }else{
@@ -190,11 +202,63 @@ class Agent {
 private:
         u8 x: 4;
         u8 y: 4;
-        u8 meta_flag;
+        u8 meta_info;
 
+        void move_up()
+        {
+                y--;
+        }
+
+        void move_rup()
+        {
+                x++;
+                y--;
+        }
+
+        void move_right()
+        {
+                x++;
+        }
+
+        void move_rdown()
+        {
+                x++;
+                y++;
+        }
+
+        void move_down()
+        {
+                y++;
+        }
+
+        void move_ldown()
+        {
+                x--;
+                y++;
+        }
+
+        void move_left()
+        {
+                x--;
+        }
+
+        void move_lup()
+        {
+                x--;
+                y--;
+        }
+
+        void move_stop()
+        {}
+
+        u8 extract_player_info() const
+        {
+                return meta_info & EXTRACT_PLAYER_INFO;
+        }
+        
 public:
         Agent(u8 x, u8 y, u8 meta);
-        void move(const Field & field, Direction direction);
+        void move(Field & field, Direction direction);
         
         bool is_mine();
         bool is_enemy();
