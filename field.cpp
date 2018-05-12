@@ -5,6 +5,8 @@
 
 u8 Field::ac_shift_offset;
 u64 Field::field_size;
+u8 Field::field_size_x;
+u8 Field::field_size_y;
 
 Field::Field(): field(field_size)
 {}
@@ -24,6 +26,8 @@ Panel Field::at(u8 x, u8 y)
 
 FieldBuilder::FieldBuilder(u8 width, u8 height)
 {
+		Field::field_size_x = width;
+		Field::field_size_y = height;
         Field::ac_shift_offset = (u64)(std::log2(width) + 0.5);
         Field::field_size = height << Field::ac_shift_offset;
 }
@@ -84,4 +88,16 @@ u64 Field::score()
          * 未実装
          */
         return 0;
+}
+
+/* 
+ *フィールドを○を使って描画します 
+	*/
+void Field::Draw() {
+	for(int i=0; i<field_size_y; i++) {
+		for(int j=0; j<field_size_x; j++) {
+			std::cout << "○ ";
+		}
+		std::cout << std::endl;
+	}
 }

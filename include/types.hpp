@@ -98,6 +98,10 @@ private:
         // フィールドの要素数
         static u64 field_size;
         
+        //フィールドのxサイズyサイズ
+        static u8 field_size_x;
+        static u8 field_size_y;
+        
         std::vector<Panel> field;
 
         /*
@@ -118,10 +122,12 @@ public:
         Panel at(u8 x, u8 y);
 		
         u64 score();
+        
+        // フィールドの描画関数
+        void Draw();
 };
 
 class FieldBuilder {
-        
 private:
 
 public:
