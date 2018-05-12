@@ -155,6 +155,8 @@ public:
         {
                 _DEBUG_PUTS_SEPARATOR();
                 puts("class FieldBuilder debug message.");
+                _DEBUG_PRINTPI("Field::ac_shift_offset", Field::ac_shift_offset);
+                _DEBUG_PRINTPI("Field::field_size", Field::field_size);
                 _DEBUG_PUTS_SEPARATOR();
         }
 #endif
