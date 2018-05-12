@@ -31,6 +31,7 @@ Panel Field::at(u8 x, u8 y) const
  * u8 attribute: これに変更する
  *　　　MINE_ATTR: 自分のパネルに変更
  *　　　ENEMY_ATTR: 敵のパネルに変更
+ *　　　PURE_ATTR: どちらでもない。パネル取り除き時
  * 返り値
  * なし
  */
@@ -39,8 +40,13 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
         switch(attribute){
         case MINE_ATTR:
                 field.at(x + (y << this->ac_shift_offset)).make_mine();
+                break;
         case ENEMY_ATTR:
                 field.at(x + (y << this->ac_shift_offset)).make_enemy();
+                break;
+        case PURE_ATTR:
+                field.at(x + (y << this->ac_shift_offset)).clear_meta();
+                break;
         }
 }
 

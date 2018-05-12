@@ -22,6 +22,7 @@ using i64 = std::int_fast64_t;
 
 constexpr u8 MINE_ATTR = 0b01;
 constexpr u8 ENEMY_ATTR = 0b10;
+constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
