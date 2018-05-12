@@ -32,16 +32,27 @@ constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 class Panel {
 
 private:
-        // パネルのスコア。符号あり
-        i8 value: 6;
-
         /*
-         * メタ情報ビット (2bit)
-         * 上位ビット: ここが1ならば敵のパネル
-         * 下位ビット: ここが1ならば味方のパネル
-         * どちらとも0ならば、どちらにも占領されていないことを示す
+         * 一度に全ビットを扱いたい場合はplain_bitsを使用
+         * ビットフィールドで扱いたい場合はvalueもしくはmeta_infoを使用
          */
-        u8 meta_info: 2;
+        union {
+                struct {
+                        // パネルのスコア。符号あり
+                        i8 value: 6;
+
+                        /*
+                         * メタ情報ビット (2bit)
+                         * 上位ビット: ここが1ならば敵のパネル
+                         * 下位ビット: ここが1ならば味方のパネル
+                         * どちらとも0ならば、どちらにも占領されていないことを示す
+                         */
+                        u8 meta_info: 2;
+                };
+
+                u8 plain_bits;
+        };
+        
         
 public:
 
@@ -83,6 +94,11 @@ public:
         i8 get_score_value()
         {
                 return value;
+        }
+
+        u8 get_plain_bits()
+        {
+                return plain_bits;
         }
         
 };
