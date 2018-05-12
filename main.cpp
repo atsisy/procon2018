@@ -7,6 +7,7 @@ int main()
 
 #ifdef __DEBUG_MODE
         builder.print_status();
+        test_generate_agent_meta();
 #endif
         
         return 0;

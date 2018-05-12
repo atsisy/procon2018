@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <vector>
+#include <initializer_list>
+#include <type_traits>
 
 #include "debug.hpp"
 
@@ -138,4 +140,63 @@ public:
                 _DEBUG_PUTS_SEPARATOR();
         }
 #endif
+};
+
+enum Direction {
+        UP = 0,
+        RUP= 1,
+        RIGHT = 2,
+        RDOWN = 3,
+        DOWN = 4,
+        LDOWN = 5,
+        LEFT = 6,
+        LUP = 7,
+        STOP = 8
+};
+
+
+constexpr u8 MY_AGENT    = 0b00000001;
+constexpr u8 ENEMY_AGENT = 0b00000010;
+
+
+template <typename Head, typename ... Tail>
+constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
+{
+        u8 result = head;
+        using swallow = std::initializer_list<int>;
+        (void)swallow{ (void(result |= tails), 0)... };
+        return result;
+}
+
+#ifdef __DEBUG_MODE
+inline void test_generate_agent_meta()
+{
+        _DEBUG_PUTS_SEPARATOR();
+        puts("*debug test for generate_agent_meta constexpr function*");
+        constexpr u8 data = generate_agent_meta(MY_AGENT, ENEMY_AGENT, 4, 8);
+        constexpr u8 conv = MY_AGENT | ENEMY_AGENT | 4 | 8;
+        printf("expected -> 0x%x\n", conv);
+        printf("result of function ->0x%x\n", (u8)data);
+        if(conv == data){
+                puts("SUCCESS!!");
+        }else{
+                puts("BUG FIXME: 'u8 generate_agent_meta()'");
+        }
+        _DEBUG_PUTS_SEPARATOR();
+}
+#endif
+
+class Agent {
+private:
+        u8 x: 4;
+        u8 y: 4;
+        u8 meta_flag;
+
+public:
+        Agent(u8 x, u8 y, u8 meta);
+        void move(const Field & field, Direction direction);
+        
+        bool is_mine();
+        bool is_enemy();
+        
 };
