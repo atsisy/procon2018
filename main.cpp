@@ -3,7 +3,7 @@
 
 int main()
 {
-		Field mainField;	// フィールドのインスタンス
+	Field mainField;	// フィールドのインスタンス
         FieldBuilder builder(12, 12);
         
         mainField.Draw();
