@@ -6,8 +6,7 @@
 u8 Field::ac_shift_offset;
 u64 Field::field_size;
 
-Field::Field()
-        : field(field_size)
+Field::Field(): field(field_size)
 {}
 
 /*
