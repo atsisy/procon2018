@@ -143,3 +143,52 @@ void Field::Draw() {
 		std::cout << std::endl;
 	}
 }
+
+
+#define MAKE_POINT(x, y) ((x) | ((y) << 4))
+#define IS_EDGE(VAL) (!(VAL >> 4) || !(VAL & 0x0f))
+
+void Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue)
+{
+        u8 x = point & 0x0f, y = point >> 4;
+        const Panel up = at(x, y - 1);
+        const Panel right = at(x + 1, y);
+        const Panel down = at(x, y + 1);
+        const Panel left = at(x - 1, y);
+        if(up.is_pure_panel()) queue.push_back(std::make_pair(up, MAKE_POINT(x, y - 1)));
+        if(right.is_pure_panel()) queue.push_back(std::make_pair(right, MAKE_POINT(x + 1, y)));
+        if(down.is_pure_panel()) queue.push_back(std::make_pair(down, MAKE_POINT(x, y + 1)));
+        if(left.is_pure_panel()) queue.push_back(std::make_pair(left, MAKE_POINT(x - 1, y)));
+}
+
+
+bool Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue)
+{
+        while(queue.size()){
+                const std::pair<Panel, u8> panel_pair = queue.front();
+                queue.pop_front();
+                if(IS_EDGE(panel_pair.second) && panel_pair.first.is_pure_panel()){
+                        return false;
+                }
+                expand_one_panel_2_4(panel_pair.second, queue);
+        }
+
+        return true;
+}
+
+u64 Field::calc_local_area_score()
+{
+        std::deque<std::pair<Panel, u8>> queue;
+        
+        for(u8 y = 0;y < field_size_y;y++){
+                for(u8 x = 0;x < field_size_x;x++){
+                        const Panel panel = at(x, y);
+                        if(panel.is_pure_panel() && !y && !x){
+                                continue;
+                        }
+                        calc_local_area_score_sub(panel, queue);
+                }
+        }
+
+        return 0;
+}

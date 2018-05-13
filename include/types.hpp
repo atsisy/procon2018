@@ -4,6 +4,7 @@
 #include <vector>
 #include <initializer_list>
 #include <type_traits>
+#include <deque>
 
 #include "debug.hpp"
 
@@ -70,22 +71,22 @@ private:
         
 public:
 
-        bool is_my_panel()
+        bool is_my_panel() const
         {
                 return meta_info & MINE_ATTR;
         }
 
-        bool is_enemy_panel()
+        bool is_enemy_panel() const
         {
                 return meta_info & ENEMY_ATTR;
         }
 
-        bool is_not_pure_panel()
+        bool is_not_pure_panel() const
         {
                 return meta_info;
         }
 
-        bool is_pure_panel()
+        bool is_pure_panel() const
         {
                 return !meta_info;
         }
@@ -105,12 +106,12 @@ public:
                 meta_info = 0;
         }
 
-        i8 get_score_value()
+        i8 get_score_value() const
         {
                 return value;
         }
 
-        u8 get_plain_bits()
+        u8 get_plain_bits() const
         {
                 return plain_bits;
         }
@@ -147,7 +148,7 @@ private:
         /*
          * フィールド上の得点を計算するメソッド
          */
-        // 自分のパネルが置かれている部分の合計得点
+        // 自分のパネルが置かれ。ている部分の合計得点
         u64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
         u64 calc_enemypanels_score();
@@ -159,6 +160,9 @@ private:
          * このメソッドは、fieldメンバを変更することができる
          */
         void make_at(u8 x, u8 y, u8 attribute);
+
+        bool calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue);
+        void expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
 
 public:
 		
@@ -177,6 +181,8 @@ public:
         
         // フィールドの描画関数
         void Draw();
+
+        u64 calc_local_area_score();
 };
 
 class FieldBuilder {
