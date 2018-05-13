@@ -2,6 +2,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <iomanip>
 
 u8 Field::ac_shift_offset;
 u64 Field::field_size;
@@ -94,20 +95,9 @@ u64 Field::score()
  *フィールドを○を使って描画します 
 	*/
 void Field::Draw() {
-	/* ○ではなく数字を入力するときの参考プログラム(fieldの中のパネルをまだ作ってないためfieldの要素数が0になっている)
-	int i=0;
-	for(Panel panel:field) {
-		std::cout << panel.get_score_value();
-		std::cout << panel.get_score_value();
-		if(i==field_size_x-1) {
-			i=0;
-			std::cout << std::endl;
-		}
-		i++;
-	}*/
 	for(int i=0; i<field_size_y; i++) {
 		for(int j=0; j<field_size_x; j++) {
-			std::cout << "○ ";
+			std::cout << std::setw(2) << (int)(this->field[i*field_size_x+j].get_score_value());
 		}
 		std::cout << std::endl;
 	}
