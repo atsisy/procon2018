@@ -34,6 +34,14 @@ private:
          */
         u8 meta_info: 2;
         
+        /* 
+    * パネルにスコアを格納
+    * score:代入する数値
+    */
+	void set_score_value(i8 score) {
+		value = score;
+	}
+        
 public:
 
         bool is_my_panel()
@@ -75,14 +83,6 @@ public:
         {
                 return value;
         }
-        
-        /* 
-    * パネルにスコアを格納
-    * score:代入する数値
-    */
-	void set_score_value(i8 score) {
-		value = score;
-	}
 };
 
 class FieldBuilder;
@@ -97,6 +97,11 @@ class Field {
     * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
     */
         friend FieldBuilder;
+        
+        /*
+    *　PanelをFieldから操作したいのでフレンドクラスとする
+    */
+         friend Panel;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
