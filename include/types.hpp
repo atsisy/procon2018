@@ -179,11 +179,11 @@ public:
          */
         void make_at(u8 x, u8 y, u8 attribute);
 
-        i64 calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list);
-        i64 expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
+        i16 calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list);
+        i16 expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
 
 
-        i64 calc_local_area_score();
+        i16 calc_local_area_score();
 };
 
 class FieldBuilder {
