@@ -19,17 +19,23 @@ using i32 = std::int_fast32_t;
 using u64 = std::uint_fast64_t;
 using i64 = std::int_fast64_t;
 
-
 constexpr u8 MINE_ATTR = 0b01;
 constexpr u8 ENEMY_ATTR = 0b10;
 constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
+class Field;
+
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
 class Panel {
+
+        /*
+         * PanelをFieldから操作したいのでフレンドクラスとする
+         */
+        friend Field;
 
 private:
         /*
@@ -53,6 +59,14 @@ private:
                 u8 plain_bits;
         };
         
+        
+        /* 
+         * パネルにスコアを格納
+         * score:代入する数値
+         */
+	void set_score_value(i8 score) {
+		value = score;
+	}
         
 public:
 
@@ -100,7 +114,6 @@ public:
         {
                 return plain_bits;
         }
-        
 };
 
 class FieldBuilder;
@@ -125,6 +138,10 @@ private:
         // フィールドの要素数
         static u64 field_size;
         
+        //フィールドのxサイズyサイズ
+        static u8 field_size_x;
+        static u8 field_size_y;
+        
         std::vector<Panel> field;
 
         /*
@@ -144,6 +161,7 @@ private:
         void make_at(u8 x, u8 y, u8 attribute);
 
 public:
+		
         Field();
 
         /*
@@ -153,17 +171,22 @@ public:
         Panel at(u8 x, u8 y) const;
 
         u64 score();
+        
+        // フィールドのパネルの数値をランダムでセットする関数
+        void randSetPanel();
+        
+        // フィールドの描画関数
+        void Draw();
 };
 
 class FieldBuilder {
-        
 private:
 
 public:
         /*
-         * コンストラクタ
-         * フィールドの幅と高さを受け取る
-         */
+    * コンストラクタ
+    * フィールドの幅と高さを受け取る
+    */
         FieldBuilder(u8 width, u8 height);
 
 #ifdef __DEBUG_MODE

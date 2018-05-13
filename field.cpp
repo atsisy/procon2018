@@ -2,12 +2,15 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <iomanip>
+#include <random>
 
 u8 Field::ac_shift_offset;
 u64 Field::field_size;
+u8 Field::field_size_x;
+u8 Field::field_size_y;
 
-Field::Field()
-        : field(field_size)
+Field::Field(): field(field_size)
 {}
 
 /*
@@ -52,6 +55,8 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
 
 FieldBuilder::FieldBuilder(u8 width, u8 height)
 {
+	Field::field_size_x = width;
+	Field::field_size_y = height;
         Field::ac_shift_offset = (u64)(std::log2(width) + 0.5);
         Field::field_size = height << Field::ac_shift_offset;
 }
@@ -112,4 +117,29 @@ u64 Field::score()
          * 未実装
          */
         return 0;
+}
+
+/*
+ * フィールドのパネルの得点をランダムにセットします
+ * -16 ~ 16
+ */
+void Field::randSetPanel() {
+	std::random_device rnd;
+	std::mt19937 mt(rnd());	//メルセンヌ・ツイスタ
+	std::uniform_int_distribution<> rand33(0,33);	//0~32の乱数
+	for(int i=0; i<(int)field_size; i++) {
+		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
+	}
+}
+
+/* 
+ *フィールドを○を使って描画します 
+	*/
+void Field::Draw() {
+	for(int i=0; i<field_size_y; i++) {
+		for(int j=0; j<field_size_x; j++) {
+                        std::cout << std::setw(3) << (int)at(j, i).get_score_value();
+		}
+		std::cout << std::endl;
+	}
 }
