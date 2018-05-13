@@ -27,8 +27,8 @@ Panel Field::at(u8 x, u8 y)
 
 FieldBuilder::FieldBuilder(u8 width, u8 height)
 {
-		Field::field_size_x = width;
-		Field::field_size_y = height;
+	Field::field_size_x = width;
+	Field::field_size_y = height;
         Field::ac_shift_offset = (u64)(std::log2(width) + 0.5);
         Field::field_size = height << Field::ac_shift_offset;
 }
@@ -97,7 +97,7 @@ u64 Field::score()
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {
 		for(int j=0; j<field_size_x; j++) {
-			std::cout << std::setw(2) << (int)(this->field[i*field_size_x+j].get_score_value());
+                        std::cout << std::setw(2) << (int)at(j, i).get_score_value();
 		}
 		std::cout << std::endl;
 	}
