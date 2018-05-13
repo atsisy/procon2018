@@ -76,6 +76,13 @@ public:
                 return value;
         }
         
+        /* 
+    * パネルにスコアを格納
+    * score:代入する数値
+    */
+	void set_score_value(i8 score) {
+		value = score;
+	}
 };
 
 class FieldBuilder;
