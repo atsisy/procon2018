@@ -146,49 +146,88 @@ void Field::Draw() {
 
 
 #define MAKE_POINT(x, y) ((x) | ((y) << 4))
-#define IS_EDGE(VAL) (!(VAL >> 4) || !(VAL & 0x0f))
 
-void Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue)
+inline bool is_edge(u8 value)
 {
-        u8 x = point & 0x0f, y = point >> 4;
+        return !((u8)((value & 0x0f) - 1) < 10) || !((u8)((value >> 4) - 1) < 10);
+}
+
+
+i16 Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue)
+{
+        i16 score = 0;
+        const u8 x = point & 0x0f, y = point >> 4;
         const Panel up = at(x, y - 1);
         const Panel right = at(x + 1, y);
         const Panel down = at(x, y + 1);
         const Panel left = at(x - 1, y);
-        if(up.is_pure_panel()) queue.push_back(std::make_pair(up, MAKE_POINT(x, y - 1)));
-        if(right.is_pure_panel()) queue.push_back(std::make_pair(right, MAKE_POINT(x + 1, y)));
-        if(down.is_pure_panel()) queue.push_back(std::make_pair(down, MAKE_POINT(x, y + 1)));
-        if(left.is_pure_panel()) queue.push_back(std::make_pair(left, MAKE_POINT(x - 1, y)));
+
+        
+        if(up.is_pure_panel()){
+                score += up.get_score_value();
+                queue.push_back(std::make_pair(up, MAKE_POINT(x, y - 1)));
+        }
+        if(right.is_pure_panel()){
+                score += up.get_score_value();
+                queue.push_back(std::make_pair(right, MAKE_POINT(x + 1, y)));
+        }
+        if(down.is_pure_panel()){
+                score += up.get_score_value();
+                queue.push_back(std::make_pair(down, MAKE_POINT(x, y + 1)));
+        }
+        if(left.is_pure_panel()){
+                score += up.get_score_value();
+                queue.push_back(std::make_pair(left, MAKE_POINT(x - 1, y)));
+        }
+
+        return score;
 }
 
 
-bool Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue)
+i16 Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
 {
+        i16 score = panel.get_score_value();
+        
         while(queue.size()){
                 const std::pair<Panel, u8> panel_pair = queue.front();
                 queue.pop_front();
-                if(IS_EDGE(panel_pair.second) && panel_pair.first.is_pure_panel()){
-                        return false;
+                if(is_edge(panel_pair.second) && panel_pair.first.is_pure_panel()){
+                        queue.clear();
+                        return 0;
                 }
-                expand_one_panel_2_4(panel_pair.second, queue);
+                done_list.push_back(panel_pair.second);
+                score += expand_one_panel_2_4(panel_pair.second, queue);
         }
 
-        return true;
+        return score;
 }
 
-u64 Field::calc_local_area_score()
+i16 Field::calc_local_area_score()
 {
         std::deque<std::pair<Panel, u8>> queue;
+        std::vector<u8> done_list;
+        i16 score = 0;
+
+        const u8 y_range = field_size_y - 1;
+        const u8 x_range = field_size_x - 1;
+        u8 x, y;
         
-        for(u8 y = 0;y < field_size_y;y++){
-                for(u8 x = 0;x < field_size_x;x++){
+        for(y = 1;y < y_range;y++){
+                for(x = 1;x < x_range;x++){
+                        const u8 point = MAKE_POINT(x, y);
                         const Panel panel = at(x, y);
-                        if(panel.is_pure_panel() && !y && !x){
+                        if(panel.is_not_pure_panel()){
                                 continue;
                         }
-                        calc_local_area_score_sub(panel, queue);
+                        if(std::find(std::begin(done_list), std::end(done_list), point) != std::end(done_list)){
+                                continue;
+                        }
+
+                        queue.push_back(std::make_pair(panel, point));
+                        
+                        score += calc_local_area_score_sub(panel, queue, done_list);
                 }
         }
 
-        return 0;
+        return score;
 }

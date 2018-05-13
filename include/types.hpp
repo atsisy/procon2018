@@ -155,15 +155,6 @@ private:
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
         u64 calc_sumpanel_score();
 
-        /*
-         * change_atメソッド フィールド情報のアクセサメソッド
-         * このメソッドは、fieldメンバを変更することができる
-         */
-        void make_at(u8 x, u8 y, u8 attribute);
-
-        bool calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue);
-        void expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
-
 public:
 		
         Field();
@@ -182,7 +173,17 @@ public:
         // フィールドの描画関数
         void Draw();
 
-        u64 calc_local_area_score();
+        /*
+         * change_atメソッド フィールド情報のアクセサメソッド
+         * このメソッドは、fieldメンバを変更することができる
+         */
+        void make_at(u8 x, u8 y, u8 attribute);
+
+        i64 calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list);
+        i64 expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
+
+
+        i64 calc_local_area_score();
 };
 
 class FieldBuilder {
