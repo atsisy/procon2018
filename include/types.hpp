@@ -17,10 +17,17 @@ using i32 = std::int_fast32_t;
 using u64 = std::uint_fast64_t;
 using i64 = std::int_fast64_t;
 
+class Field;
+
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
 class Panel {
+
+        /*
+         * PanelをFieldから操作したいのでフレンドクラスとする
+         */
+        friend Field;
 
 private:
         // パネルのスコア。符号あり
@@ -35,9 +42,9 @@ private:
         u8 meta_info: 2;
         
         /* 
-    * パネルにスコアを格納
-    * score:代入する数値
-    */
+         * パネルにスコアを格納
+         * score:代入する数値
+         */
 	void set_score_value(i8 score) {
 		value = score;
 	}
@@ -94,14 +101,9 @@ class FieldBuilder;
 class Field {
 
         /*
-    * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
-    */
+         * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
+         */
         friend FieldBuilder;
-        
-        /*
-    *　PanelをFieldから操作したいのでフレンドクラスとする
-    */
-         friend Panel;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -117,8 +119,8 @@ private:
         std::vector<Panel> field;
 
         /*
-    * フィールド上の得点を計算するメソッド
-    */
+         * フィールド上の得点を計算するメソッド
+         */
         // 自分のパネルが置かれている部分の合計得点
         u64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
