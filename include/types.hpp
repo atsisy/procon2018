@@ -130,6 +130,9 @@ public:
 		
         u64 score();
         
+        // フィールドのパネルの数値をランダムでセットする関数
+        void randSetPanel();
+        
         // フィールドの描画関数
         void Draw();
 };

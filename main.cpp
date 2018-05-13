@@ -6,6 +6,7 @@ int main()
         FieldBuilder builder(12, 12);
 	Field mainField;	//メインとなるフィールドのインスタンス
 	
+	mainField.randSetPanel();
         mainField.Draw();
 
 #ifdef __DEBUG_MODE

@@ -3,6 +3,7 @@
 #include <limits>
 #include <algorithm>
 #include <iomanip>
+#include <random>
 
 u8 Field::ac_shift_offset;
 u64 Field::field_size;
@@ -91,13 +92,26 @@ u64 Field::score()
         return 0;
 }
 
+/*
+ * フィールドのパネルの得点をランダムにセットします
+ * -16 ~ 16
+ */
+void Field::randSetPanel() {
+	std::random_device rnd;
+	std::mt19937 mt(rnd());	//メルセンヌ・ツイスタ
+	std::uniform_int_distribution<> rand33(0,33);	//0~32の乱数
+	for(int i=0; i<(int)field_size; i++) {
+		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
+	}
+}
+
 /* 
  *フィールドを○を使って描画します 
 	*/
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {
 		for(int j=0; j<field_size_x; j++) {
-                        std::cout << std::setw(2) << (int)at(j, i).get_score_value();
+                        std::cout << std::setw(3) << (int)at(j, i).get_score_value();
 		}
 		std::cout << std::endl;
 	}
