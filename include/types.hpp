@@ -300,15 +300,15 @@ private:
         }
         
         /*
-    *自分の周囲八マスを見て自分の色が存在するか返す関数 
+    *自分の位置からdirectionの方向を見て色が存在するか判定する関数 
+    *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
     */
-		u64 LookNear();
+            bool isMine_LookNear(Field & field, Direction direction);
         
 public:
         Agent(u8 x, u8 y, u8 meta);
         void move(Field & field, Direction direction);
-        
+
         bool is_mine();
         bool is_enemy();
-        
 };

@@ -41,10 +41,50 @@ void Agent::move(Field & field, Direction direction)
                 break;
         }
         locus.push_back(Field::field_size_x*y+x);
-
+        
         field.make_at(this->x, this->y, extract_player_info());
 }
 
-u64 Agent::LookNear() {
-	return 0;
+/*
+ * direction の方向の隣接したマスがmineの色で塗られているか判定
+ */
+bool Agent::isMine_LookNear(Field & field, Direction direction) {
+	u8 lookPoint_x = x;	//見る場所の座標
+	u8 lookPoint_y = y;	
+	
+        switch(direction){
+        case UP:
+                lookPoint_y--;
+                break;
+        case RUP:
+				lookPoint_x++;
+                lookPoint_y--;
+                break;
+        case RIGHT:
+				lookPoint_x++;
+                break;
+        case RDOWN:
+				lookPoint_x++;
+                lookPoint_y++;
+                break;
+        case DOWN:
+                lookPoint_y++;
+                break;
+        case LDOWN:
+				lookPoint_x--;
+                lookPoint_y++;
+                break;
+        case LEFT:
+				lookPoint_x--;
+                break;
+        case LUP:
+				lookPoint_x--;
+                lookPoint_y--;
+                break;
+         case STOP:
+				break;
+        }
+        
+        // lookPoint の位置が自分の色で塗られているか
+	return field.at(lookPoint_x, lookPoint_y).is_my_panel() == true;
 }
