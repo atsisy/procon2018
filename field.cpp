@@ -133,7 +133,7 @@ void Field::randSetPanel() {
 }
 
 /* 
- *フィールドを○を使って描画します 
+ *フィールドを描画します 
 	*/
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {

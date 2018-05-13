@@ -1,10 +1,12 @@
 #include "include/types.hpp"
+#include <vector>
 
 Agent::Agent(u8 x, u8 y, u8 meta)
 {
         this->x = x;
         this->y = y;
         this->meta_info = meta;
+        this->locus.push_back(Field::field_size_x*y+x);
 }
 
 void Agent::move(Field & field, Direction direction)
@@ -38,6 +40,11 @@ void Agent::move(Field & field, Direction direction)
                 move_stop();
                 break;
         }
+        locus.push_back(Field::field_size_x*y+x);
 
         field.make_at(this->x, this->y, extract_player_info());
+}
+
+u64 Agent::LookNear() {
+	return 0;
 }

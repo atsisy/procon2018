@@ -124,7 +124,6 @@ class Agent;
  * 一つのフィールドを表すクラス
  */
 class Field {
-
         /*
          * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
          */
@@ -245,6 +244,8 @@ private:
         u8 x: 4;
         u8 y: 4;
         u8 meta_info;
+        
+        std::vector<u64> locus;	//エージェントの動作の軌跡
 
         void move_up()
         {
@@ -297,6 +298,11 @@ private:
         {
                 return meta_info & EXTRACT_PLAYER_INFO;
         }
+        
+        /*
+    *自分の周囲八マスを見て自分の色が存在するか返す関数 
+    */
+		u64 LookNear();
         
 public:
         Agent(u8 x, u8 y, u8 meta);
