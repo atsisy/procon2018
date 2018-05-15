@@ -303,7 +303,7 @@ private:
     *自分の位置からdirectionの方向を見て色が存在するか判定する関数 
     *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
     */
-            bool isMine_LookNear(Field & field, Direction direction);
+           // bool isMine_LookNear(Field & field, Direction direction);
         
 public:
         Agent(u8 x, u8 y, u8 meta);
@@ -311,4 +311,16 @@ public:
 
         bool is_mine();
         bool is_enemy();
+        bool isMine_LookNear(Field & field, Direction direction);
+};
+
+
+class Closed {
+private:
+	//閉路の座標を保存するベクター
+	std::vector<u64> closed;
+	
+public:
+	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
+	void LoadClosed(Agent agent, u8 end_x, u8 end_y);
 };

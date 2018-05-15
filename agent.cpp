@@ -86,5 +86,5 @@ bool Agent::isMine_LookNear(Field & field, Direction direction) {
         }
         
         // lookPoint の位置が自分の色で塗られているか
-	return field.at(lookPoint_x, lookPoint_y).is_my_panel() == true;
+	return (bool)field.at(lookPoint_x, lookPoint_y).is_my_panel();
 }

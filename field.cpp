@@ -143,3 +143,12 @@ void Field::Draw() {
 		std::cout << std::endl;
 	}
 }
+
+/*
+ * agentの今の位置から(end_x, end_y)へ閉路を作ります
+ */
+void Closed::LoadClosed(Agent agent, u8 end_x, u8 end_y) {
+	/*
+	 * 未実装
+	 */
+}
