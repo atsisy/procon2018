@@ -154,12 +154,19 @@ private:
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
         u64 calc_sumpanel_score();
 
-        /*
-         * change_atメソッド フィールド情報のアクセサメソッド
-         * このメソッドは、fieldメンバを変更することができる
-         */
+/*
+ * change_atメソッド フィールド情報のアクセサメソッド
+ * このメソッドは、fieldメンバを変更することができる
+ */
         void make_at(u8 x, u8 y, u8 attribute);
 
+/*
+ * フィールドのx,yの値を受け取り、Field一次元配列での要素番号を返す
+ */
+	u64 xyIndex(u8 x, u8 y) {
+		return x+(y<<Field::ac_shift_offset);
+	}
+	
 public:
 		
         Field();
