@@ -1,11 +1,11 @@
 BINDIR = ./bin.d
 DST = ./dst.d
 INCLUDE = ./include
-OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/main.o
+OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/load_qr_format.o $(DST)/main.o
 HEADERS = $(INCLUDE)/types.hpp
 CC = g++
 LD = g++
-CFLAGS = -Wall -O2 -std=c++14 -c
+CFLAGS = -Wall -O2 -std=c++17 -c
 
 .PHONY: all
 all: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
