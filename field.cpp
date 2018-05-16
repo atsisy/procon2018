@@ -140,7 +140,6 @@ void Field::Draw() {
 		for(int j=0; j<field_size_x; j++) {
                         std::cout << std::setw(3) << (int)at(j, i).get_score_value();
 		}
-		std::cout << std::endl;
 	}
 }
 
