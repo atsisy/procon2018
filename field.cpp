@@ -142,5 +142,4 @@ void Field::Draw() {
 		}
 		std::cout << std::endl;
 	}
-	std::cout << this->xyIndex(1,2) << std::endl;
 }
