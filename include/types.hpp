@@ -318,9 +318,10 @@ public:
 class Closed {
 private:
 	//閉路の座標を保存するベクター
-	std::vector<u64> closed;
+	//std::vector<u64> closed;
 	
 public:
+	std::vector<u64> closed;
 	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
-	void LoadClosed(Agent agent, u8 end_x, u8 end_y);
+	int LoadClosed(Agent agent, u8 end_x, u8 end_y);
 };

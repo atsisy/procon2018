@@ -15,6 +15,14 @@ int main()
 	Agent a1(2,2,generate_agent_meta(MINE_ATTR));
 	a1.move(mainField,DOWN);
 	a1.move(mainField,DOWN);
+	a1.move(mainField,Right);
+	a1.move(mainField,Right);
+	a1.move(mainField, Up);
+	a1.move(mainField, Up);
+	a1.move(mainField,Left);
+	
+	closed.push_back(1);
+	closed[0].LoadClosed(a1, 2, 2);
 
 #ifdef __DEBUG_MODE
         builder.print_status();

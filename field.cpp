@@ -146,9 +146,20 @@ void Field::Draw() {
 
 /*
  * agentの今の位置から(end_x, end_y)へ閉路を作ります
+ * -1：閉路を作るのに失敗、0：成功
  */
-void Closed::LoadClosed(Agent agent, u8 end_x, u8 end_y) {
-	/*
-	 * 未実装
-	 */
+int Closed::LoadClosed(Agent agent, u8 end_x, u8 end_y) {
+	int buf = -1;
+	int locus_size = this->agent.locus.size();
+	for(int i=0; i<locus_size; i++) {
+		if(this->agent.locus[i]== xyindex) {
+			buf = i;
+			break;
+		}
+	}
+	if(buf == -1) return -1;
+	
+	for(int i=buf; i<locus_size; i++) {
+		this->closed.push_back(agent.locus[i]);
+	}
 }
