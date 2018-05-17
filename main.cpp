@@ -1,10 +1,11 @@
 #include <iostream>
 #include "include/types.hpp"
+#include "include/utility.hpp"
 
 int main()
 {
         FieldBuilder builder(12, 12);
-	Field mainField;	//メインとなるフィールドのインスタンス
+	Field mainField;	//繝｡繧､繝ｳ縺ｨ縺ｪ繧九ヵ繧｣繝ｼ繝ｫ繝峨����繧､繝ｳ繧ｹ繧ｿ繝ｳ繧ｹ
 	
 	mainField.randSetPanel();
         mainField.Draw();
@@ -13,6 +14,12 @@ int main()
         builder.print_status();
         test_generate_agent_meta();
 #endif
+
+        std::cout << "time"
+                  << util::measure_processing_time<util::t_us>([&](){
+                        mainField.Draw();
+                })
+                  << std::endl;
         
         return 0;
 }
