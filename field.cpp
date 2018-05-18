@@ -126,7 +126,7 @@ u64 Field::score()
 void Field::randSetPanel() {
 	std::random_device rnd;
 	std::mt19937 mt(rnd());	//メルセンヌ・ツイスタ
-	std::uniform_int_distribution<> rand33(0,33);	//0~32の乱数
+	std::uniform_int_distribution<> rand33(0,32);	//0~32の乱数
 	for(int i=0; i<(int)field_size; i++) {
 		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
 	}
