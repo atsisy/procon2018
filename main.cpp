@@ -14,12 +14,6 @@ int main()
         builder.print_status();
         test_generate_agent_meta();
 #endif
-
-        std::cout << "time"
-                  << util::measure_processing_time<util::t_us>([&](){
-                        mainField.Draw();
-                })
-                  << std::endl;
         
         return 0;
 }
