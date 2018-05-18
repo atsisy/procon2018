@@ -7,8 +7,6 @@
 
 #include "debug.hpp"
 
-#define MAKE_HASH(x, y) ((y << 4) | x)
-
 /*
  * 整数型定義
  */
@@ -27,8 +25,9 @@ constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
+#define MAKE_HASH(x, y) ((y << 4) | x)
+
 class Field;
-class Closed;
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
@@ -38,7 +37,6 @@ class Panel {
          * PanelをFieldから操作したいのでフレンドクラスとする
          */
         friend Field;
-        friend Closed;
 
 private:
         /*
@@ -121,6 +119,7 @@ public:
 
 class FieldBuilder;
 class Agent;
+class Closed;
 //class Closed;
 
 /*
@@ -333,8 +332,30 @@ private:
 	
 public:
 	std::vector<u8> closed;
+	
 	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
+	//一人のエージェントだけで閉路を作成する関数
 	u8 LoadClosed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	
+	//今の閉路のスコアを計算する関数
+	u64 CalcScore(Field & field);
+	
+#ifdef __DEBUG_MODE
+        void print_closed(Field & field)
+        {
+			int sum = 0;
+			i8 score;
+			_DEBUG_PUTS_SEPARATOR();
+			puts("closed's debug message.");
+            for(u8 panel:closed) {
+				score = field.field[panel].get_score_value();
+                printf("score: %d\n", (int)score);
+                sum += score;
+			}
+			printf("\nTotal Score: %d\n", sum);
+			_DEBUG_PUTS_SEPARATOR();
+        }
+#endif
 	
 	void Draw();
 };

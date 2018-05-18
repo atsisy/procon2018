@@ -14,34 +14,22 @@ int main()
        
 	Agent a1(2,2,generate_agent_meta(MINE_ATTR));
 	
-//a1を動かすだけ
-	a1.move(mainField,DOWN);
-	a1.move(mainField,DOWN);
-	a1.move(mainField,DOWN);
-	a1.move(mainField,DOWN);
-	a1.move(mainField,DOWN);
-	a1.move(mainField,RDOWN);
+//a1を動かす
+	a1.move(mainField,LDOWN);
+	a1.move(mainField, RDOWN);
 	a1.move(mainField, RUP);
-	a1.move(mainField,RDOWN);
-	a1.move(mainField, RUP);
-	a1.move(mainField,RDOWN);
-	a1.move(mainField, UP);
-	a1.move(mainField, UP);
-	a1.move(mainField, UP);
-	a1.move(mainField, UP);
-	a1.move(mainField, UP);
-	a1.move(mainField,LUP);
-	a1.move(mainField,LEFT);
-	a1.move(mainField,LEFT);
-	a1.move(mainField,LEFT);
-	
 	myclosed.push_back(SpaceClosed);
-	myclosed[0].LoadClosed(a1, mainField, 2, 2);
-	        mainField.Draw();
-	myclosed[0].Draw();
+	myclosed[0].LoadClosed(a1,mainField,2,2);
+	a1.move(mainField, RDOWN);
+	a1.move(mainField, LDOWN);
+	myclosed.push_back(SpaceClosed);
+	myclosed[1].LoadClosed(a1, mainField, 2, 4);
+	
+	mainField.Draw();
 
 #ifdef __DEBUG_MODE
         builder.print_status();
+        for(Closed closed:myclosed) closed.print_closed(mainField);
         test_generate_agent_meta();
 #endif
         

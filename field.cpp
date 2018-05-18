@@ -164,7 +164,6 @@ u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
 	
 	for(int i=buf; i<locus_size; i++) {
 		this->closed.push_back(agent.locus[i]);
-		field.field[agent.locus[i]].set_score_value(17);
 	}
 	return 0;
 }
@@ -174,3 +173,16 @@ void Closed::Draw() {
 		std::cout << (int)closed[i] << std::endl;
 	}
 }
+
+/*
+ * 閉路のスコアを返す関数
+ * field:計算する盤面
+ */
+ u64 Closed::CalcScore(Field & field) {
+	 u64 sum = 0;
+	 for(u8 coordinate:this->closed) {
+		 sum += field.field[coordinate].get_score_value();
+	 }
+
+	return sum;
+ }
