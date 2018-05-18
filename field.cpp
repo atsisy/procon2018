@@ -133,7 +133,7 @@ void Field::randSetPanel() {
 }
 
 /* 
- *フィールドを描画します 
+ *フィールドをパネルのスコアを使って描画します 
 	*/
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {
@@ -142,6 +142,7 @@ void Field::Draw() {
 		}
 		std::cout << std::endl;
 	}
+	std::cout << this->xyIndex(1,2) << std::endl;
 }
 
 /*
