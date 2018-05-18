@@ -151,17 +151,19 @@ void Field::Draw() {
  */
 u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
 	i8 buf = -1;
-	int locus_size = agent.locus.size();
 	
 	//エージェントの動きを最初からたどって目的の場所にたどり着くか判定
-	for(int i=0; i<locus_size; i++) {
-		if(agent.locus[i]== MAKE_HASH(end_x, end_y)) {
+	u8 i=0; //カウンタ
+	for(u8 coordinate:agent.locus) {
+		if(coordinate == MAKE_HASH(end_x, end_y)) {
 			buf = i;
 			break;
 		}
+		i++;
 	}
 	if(buf == -1) return -1;
 	
+	u8 locus_size = agent.locus.size();
 	for(int i=buf; i<locus_size; i++) {
 		this->closed.push_back(agent.locus[i]);
 	}
