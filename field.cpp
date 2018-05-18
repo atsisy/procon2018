@@ -126,7 +126,7 @@ u64 Field::score()
 void Field::randSetPanel() {
 	std::random_device rnd;
 	std::mt19937 mt(rnd());	//メルセンヌ・ツイスタ
-	std::uniform_int_distribution<> rand33(0,33);	//0~32の乱数
+	std::uniform_int_distribution<> rand33(0,32);	//0~32の乱数
 	for(int i=0; i<(int)field_size; i++) {
 		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
 	}
@@ -142,18 +142,20 @@ void Field::Draw() {
 		}
 		std::cout << std::endl;
 	}
-	std::cout << this->xyIndex(1,2) << std::endl;
 }
 
 /*
+ * 一人のagentで閉路を作る関数
  * agentの今の位置から(end_x, end_y)へ閉路を作ります
  * -1：閉路を作るのに失敗、0：成功
  */
-int Closed::LoadClosed(Agent agent, u8 end_x, u8 end_y) {
+u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
 	int buf = -1;
-	int locus_size = this->agent.locus.size();
+	int locus_size = agent.locus.size();
+	
+	//エージェントの動きを最初からたどって目的の場所にたどり着くか判定
 	for(int i=0; i<locus_size; i++) {
-		if(this->agent.locus[i]== xyindex) {
+		if(agent.locus[i]== field.xyIndex(end_x, end_y)) {
 			buf = i;
 			break;
 		}
@@ -162,5 +164,13 @@ int Closed::LoadClosed(Agent agent, u8 end_x, u8 end_y) {
 	
 	for(int i=buf; i<locus_size; i++) {
 		this->closed.push_back(agent.locus[i]);
+		field.field[agent.locus[i]].set_score_value(17);
+	}
+	return 0;
+}
+
+void Closed::Draw() {
+	for(int i=0; i<(int)this->closed.size(); i++) {
+		std::cout << closed[i] << std::endl;
 	}
 }

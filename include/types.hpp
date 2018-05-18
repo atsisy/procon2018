@@ -7,6 +7,8 @@
 
 #include "debug.hpp"
 
+#define MAKE_HASH(x, y) ((y << 4) | x)
+
 /*
  * 整数型定義
  */
@@ -26,7 +28,7 @@ constexpr u8 PURE_ATTR = 0b00;
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
 class Field;
-
+class Closed;
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
@@ -36,6 +38,7 @@ class Panel {
          * PanelをFieldから操作したいのでフレンドクラスとする
          */
         friend Field;
+        friend Closed;
 
 private:
         /*
@@ -118,6 +121,7 @@ public:
 
 class FieldBuilder;
 class Agent;
+//class Closed;
 
 /*
  * Fieldクラス
@@ -129,6 +133,7 @@ class Field {
          */
         friend FieldBuilder;
         friend Agent;
+        friend Closed;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -251,8 +256,6 @@ private:
         u8 x: 4;
         u8 y: 4;
         u8 meta_info;
-        
-        std::vector<u64> locus;	//エージェントの動作の軌跡
 
         void move_up()
         {
@@ -315,6 +318,7 @@ private:
 public:
         Agent(u8 x, u8 y, u8 meta);
         void move(Field & field, Direction direction);
+        std::vector<u64> locus;	//エージェントの動作の軌跡
 
         bool is_mine();
         bool is_enemy();
@@ -330,5 +334,7 @@ private:
 public:
 	std::vector<u64> closed;
 	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
-	int LoadClosed(Agent agent, u8 end_x, u8 end_y);
+	u8 LoadClosed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	
+	void Draw();
 };
