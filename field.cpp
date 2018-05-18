@@ -6,7 +6,7 @@
 #include <random>
 
 u8 Field::ac_shift_offset;
-u64 Field::field_size;
+u8 Field::field_size;
 u8 Field::field_size_x;
 u8 Field::field_size_y;
 
@@ -150,12 +150,12 @@ void Field::Draw() {
  * -1：閉路を作るのに失敗、0：成功
  */
 u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
-	int buf = -1;
+	i8 buf = -1;
 	int locus_size = agent.locus.size();
 	
 	//エージェントの動きを最初からたどって目的の場所にたどり着くか判定
 	for(int i=0; i<locus_size; i++) {
-		if(agent.locus[i]== field.xyIndex(end_x, end_y)) {
+		if(agent.locus[i]== MAKE_HASH(end_x, end_y)) {
 			buf = i;
 			break;
 		}
@@ -171,6 +171,6 @@ u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
 
 void Closed::Draw() {
 	for(int i=0; i<(int)this->closed.size(); i++) {
-		std::cout << closed[i] << std::endl;
+		std::cout << (int)closed[i] << std::endl;
 	}
 }

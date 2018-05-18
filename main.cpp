@@ -13,6 +13,8 @@ int main()
 	mainField.randSetPanel();
        
 	Agent a1(2,2,generate_agent_meta(MINE_ATTR));
+	
+//a1を動かすだけ
 	a1.move(mainField,DOWN);
 	a1.move(mainField,DOWN);
 	a1.move(mainField,DOWN);
@@ -20,9 +22,9 @@ int main()
 	a1.move(mainField,DOWN);
 	a1.move(mainField,RDOWN);
 	a1.move(mainField, RUP);
-		a1.move(mainField,RDOWN);
+	a1.move(mainField,RDOWN);
 	a1.move(mainField, RUP);
-		a1.move(mainField,RDOWN);
+	a1.move(mainField,RDOWN);
 	a1.move(mainField, UP);
 	a1.move(mainField, UP);
 	a1.move(mainField, UP);

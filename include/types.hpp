@@ -140,7 +140,7 @@ private:
         static u8 ac_shift_offset;
 
         // フィールドの要素数
-        static u64 field_size;
+        static u8 field_size;
         
         //フィールドのxサイズyサイズ
         static u8 field_size_x;
@@ -167,7 +167,7 @@ private:
 /*
  * フィールドのx,yの値を受け取り、Field一次元配列での要素番号を返す
  */
-	u64 xyIndex(u8 x, u8 y) {
+	u8 xyIndex(u8 x, u8 y) {
 		return x+(y<<Field::ac_shift_offset);
 	}
 	
@@ -318,7 +318,7 @@ private:
 public:
         Agent(u8 x, u8 y, u8 meta);
         void move(Field & field, Direction direction);
-        std::vector<u64> locus;	//エージェントの動作の軌跡
+        std::vector<u8> locus;	//エージェントの動作の軌跡
 
         bool is_mine();
         bool is_enemy();
@@ -332,7 +332,7 @@ private:
 	//std::vector<u64> closed;
 	
 public:
-	std::vector<u64> closed;
+	std::vector<u8> closed;
 	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
 	u8 LoadClosed(Agent agent, Field & field, u8 end_x, u8 end_y);
 	
