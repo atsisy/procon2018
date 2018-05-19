@@ -354,7 +354,7 @@ public:
                 printf("score: %d\n", (int)score);
                 sum += score;
 			}
-			printf("\nTotal Score: %d\n", sum);
+			printf("\nTotal Score: %d\n", (int)CalcScore(field));
 			_DEBUG_PUTS_SEPARATOR();
         }
 #endif

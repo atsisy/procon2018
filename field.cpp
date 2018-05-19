@@ -262,6 +262,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 		 field.field[coordinate].set_score_value(20);
 	 }
 	 
+	 //閉路の内側のスコア計算
 	 bool ans;
 	 /*
 	  * 盤面の辺以外のパネルをすべて見てそれが閉路内に入っているか判定
@@ -286,7 +287,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 			 * ans == true のときそのパネルは囲まれていると判断
 			 * 得点を記録する
 			 */
-			 if(ans == true) field.field[MAKE_HASH(j,i)].set_score_value(17);
+			 if(ans == true) sum += std::abs(field.at(j,i).get_score_value());
 		}
 	}
 	return sum;
