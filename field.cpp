@@ -259,7 +259,6 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 	 //枠のスコア計算
 	 for(u8 coordinate:this->closed) {
 		 sum += field.field[coordinate].get_score_value();
-		 field.field[coordinate].set_score_value(20);
 	 }
 	 
 	 //閉路の内側のスコア計算
