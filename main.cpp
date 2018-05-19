@@ -17,14 +17,17 @@ int main()
 //a1を動かす
 	a1.move(mainField,LDOWN);
 	a1.move(mainField, RDOWN);
+	a1.move(mainField, RDOWN);
+	a1.move(mainField, RDOWN);
 	a1.move(mainField, RUP);
+	a1.move(mainField, RUP);
+	a1.move(mainField, LUP);
+	a1.move(mainField, LUP);
+	a1.move(mainField, LEFT);
 	myclosed.push_back(SpaceClosed);
 	myclosed[0].LoadClosed(a1,mainField,2,2);
-	a1.move(mainField, RDOWN);
-	a1.move(mainField, LDOWN);
-	myclosed.push_back(SpaceClosed);
-	myclosed[1].LoadClosed(a1, mainField, 2, 4);
 	
+	myclosed[0].CalcScore(mainField);
 	mainField.Draw();
 
 #ifdef __DEBUG_MODE

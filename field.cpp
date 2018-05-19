@@ -140,6 +140,7 @@ void Field::Draw() {
 		for(int j=0; j<field_size_x; j++) {
                         std::cout << std::setw(3) << (int)at(j, i).get_score_value();
 		}
+		std::cout << std::endl;
 	}
 }
 
@@ -175,15 +176,118 @@ void Closed::Draw() {
 	}
 }
 
+/* 
+ * 指定したパネルが経路でないとき、Directionの方向を見てclosedの閉路のパネルが存在したとき true を返す
+ * ほぼ閉路スコア計算用
+ */
+bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
+	u8 buf_coordinate;
+	u8 buf;
+	
+	//checkPanelのdirectionの方向にこの経路の持つパネルが存在するか判定
+	switch(direction) {
+		case UP:
+			buf_coordinate = y;
+			do {
+				buf = MAKE_HASH(x, buf_coordinate);
+				for(u8 coordinate:this->closed) {
+					if(coordinate == buf) {
+						if(buf_coordinate == y) return false;	//指定した場所が経路のときは省く
+						return true;
+					}
+				}
+				buf_coordinate--;
+			} while(buf_coordinate != 0);
+			break;
+			
+		case RIGHT:
+			buf_coordinate = x;
+			do {
+				buf = MAKE_HASH(buf_coordinate, y);
+				for(u8 coordinate:this->closed) {
+					if(coordinate == buf) {
+						if(buf_coordinate == x) return false;	//指定した場所が経路のときは省く
+						return true;
+					}
+				}
+				buf_coordinate++;
+			} while(buf_coordinate != Field::field_size_x);
+			break;
+		
+		case DOWN:
+			buf_coordinate = y;
+			do {
+				buf = MAKE_HASH(x, buf_coordinate);
+				for(u8 coordinate:this->closed) {
+					if(coordinate == buf) {
+						if(buf_coordinate == y) return false;	//指定した場所が経路のときは省く
+						return true;
+					}
+				}
+				buf_coordinate++;
+			} while(buf_coordinate != Field::field_size_y);
+			break;
+
+		case LEFT:
+			buf_coordinate = x;
+			do {
+				buf = MAKE_HASH(buf_coordinate, y);
+				for(u8 coordinate:this->closed) {
+					if(coordinate == buf) {
+						if(buf_coordinate == x) return false;	//指定した場所が経路のときは省く
+						return true;
+					}
+				}
+				buf_coordinate--;
+			} while(buf_coordinate != 0);
+			break;
+			
+		default:
+			break;
+		}
+		
+	return false;
+}
+
 /*
  * 閉路のスコアを返す関数
  * field:計算する盤面
  */
  u64 Closed::CalcScore(Field & field) {
 	 u64 sum = 0;
+	 
+	 //枠のスコア計算
 	 for(u8 coordinate:this->closed) {
 		 sum += field.field[coordinate].get_score_value();
+		 field.field[coordinate].set_score_value(20);
 	 }
-
+	 
+	 bool ans;
+	 /*
+	  * 盤面の辺以外のパネルをすべて見てそれが閉路内に入っているか判定
+	  * 上下左右の直線状全てに閉路の辺のパネルが存在した場合、そのパネルは閉路内と判定
+	  */
+	  for(u8 i=1; i<Field::field_size_y-1; i++) {
+		  for(u8 j=1; j<Field::field_size_x-1; j++) {		  
+			 //上を見る
+			  ans = CheckPanelLine(j, i, UP);
+			  if(ans == false) continue;
+			 //右を見る
+			  ans = CheckPanelLine(j, i, RIGHT);
+			  if(ans == false) continue;
+			 //下を見る
+			  ans = CheckPanelLine(j, i, DOWN);
+			  if(ans == false) continue;
+			 //左を見る
+			  ans = CheckPanelLine(j, i, LEFT);
+			  
+			/*
+			 * 上下左右を見たあとの処理
+			 * ans == true のときそのパネルは囲まれていると判断
+			 * 得点を記録する
+			 */
+			 if(ans == true) field.field[MAKE_HASH(j,i)].set_score_value(17);
+		}
+	}
 	return sum;
  }
