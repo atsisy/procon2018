@@ -10,7 +10,7 @@
 * 頂点データファイルを読み込んで、処理し易い用に編集する関数
 * load_src関数のお手伝いさんを担ってる
 */
-std::string load_full_string(std::string file_name)
+std::string QRFormatParser::load_full_string(std::string file_name)
 {
 	std::ifstream ifs(file_name);
 	if (ifs.fail()) {
@@ -25,7 +25,8 @@ std::string load_full_string(std::string file_name)
 }
 
 
-std::vector<std::string> split(const std::string &&s, char delim) {
+std::vector<std::string> QRFormatParser::split(const std::string &&s, char delim)
+{
 	std::vector<std::string> elms;
 	size_t offset = 0;
 	while (true) {
@@ -41,10 +42,10 @@ std::vector<std::string> split(const std::string &&s, char delim) {
 }
 
 
-std::vector<u8> load_one_line(const std::string &part_str)
+std::vector<i8> QRFormatParser::load_one_line(const std::string &part_str)
 {
 	i16 i;
-	std::vector<u8> result;
+	std::vector<i8> result;
 	std::stringstream sstream(part_str);
         
 	while (!sstream.eof()){
@@ -55,7 +56,7 @@ std::vector<u8> load_one_line(const std::string &part_str)
         return result;
 }
 
-std::pair<i16, i16> get_pair_numbers(const std::string &first_two_part)
+std::pair<i16, i16> QRFormatParser::get_pair_numbers(const std::string &first_two_part)
 {
         std::pair<i16, i16> pair_xy;
         i16 i;
@@ -65,16 +66,14 @@ std::pair<i16, i16> get_pair_numbers(const std::string &first_two_part)
         return pair_xy;
 }
 
-std::vector<u8> load_src(std::string file_name)
+QRFormatParser::QRFormatParser(std::string file_name)
 {
-	std::vector<u8> result;
         std::vector<std::string> &&str_vec = split(load_full_string(file_name), ':');
-        std::pair<i16, i16> pair_xy = get_pair_numbers(*std::begin(str_vec));
-        std::vector<std::pair<i16, i16>> agent_point;
+        width_height = get_pair_numbers(*std::begin(str_vec));
 
         for(int i = 0;i < 2;i++){
                 std::vector<std::string>::iterator tmp = std::end(str_vec) - 1;
-                agent_point.push_back(get_pair_numbers(*tmp));
+                my_agent_point.push_back(get_pair_numbers(*tmp));
                 str_vec.erase(tmp);
         }
         
@@ -82,14 +81,11 @@ std::vector<u8> load_src(std::string file_name)
 
         for(const std::string & str : str_vec){
                 auto &&val = load_one_line(str);
-                std::copy(std::begin(val), std::end(val), std::back_inserter(result));
+                std::copy(std::begin(val), std::end(val), std::back_inserter(scores));
         }
 
-        FieldBuilder builder(pair_xy.first, pair_xy.second);
-        printf("%d %d\n", pair_xy.first, pair_xy.second);
-        for(u8 val : result){
+        printf("%d %d\n", width_height.first, width_height.second);
+        for(u8 val : scores){
                 printf("%d\n", (char)val);
         }
-	
-	return result;
 }

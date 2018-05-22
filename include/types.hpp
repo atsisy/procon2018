@@ -179,15 +179,18 @@ public:
         void Draw();
 };
 
-class FieldBuilder {
-private:
+class QRFormatParser;
 
+class FieldBuilder {
+        
+private:
+        
 public:
         /*
     * コンストラクタ
     * フィールドの幅と高さを受け取る
     */
-        FieldBuilder(u8 width, u8 height);
+        FieldBuilder(QRFormatParser & parser);
 
 #ifdef __DEBUG_MODE
         void print_status()
@@ -199,6 +202,25 @@ public:
                 _DEBUG_PUTS_SEPARATOR();
         }
 #endif
+};
+
+
+class QRFormatParser {
+
+        friend FieldBuilder;
+        
+private:
+        std::vector<i8> scores;
+        std::vector<std::pair<i16, i16>> my_agent_point;
+        std::pair<i16, i16> width_height;
+
+        std::pair<i16, i16> get_pair_numbers(const std::string &first_two_part);
+        std::vector<i8> load_one_line(const std::string &part_str);
+        std::vector<std::string> split(const std::string &&s, char delim);
+        std::string load_full_string(std::string file_name);
+        
+public:
+        QRFormatParser(std::string file_name);
 };
 
 enum Direction {
