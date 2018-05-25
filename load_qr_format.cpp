@@ -6,18 +6,23 @@
 #include "include/types.hpp"
 
 /*
-* load_full_string関数
-* 頂点データファイルを読み込んで、処理し易い用に編集する関数
-* load_src関数のお手伝いさんを担ってる
+* load_full_stringメソッド
+* ファイルを文字列形式ですべて読み込むメソッド
 */
 std::string QRFormatParser::load_full_string(std::string file_name)
 {
 	std::ifstream ifs(file_name);
+        /*
+         * ファイルパスが不正であった場合
+         */
 	if (ifs.fail()) {
 		std::cerr << "FILE NOT FOUND. PATH -> " << file_name << std::endl;
 		exit(0);
 	}
 
+        /*
+         * ファイル読み込み
+         */
 	std::istreambuf_iterator<char> last;
 	std::string full_string(std::istreambuf_iterator<char>(ifs), last);
 
@@ -25,6 +30,15 @@ std::string QRFormatParser::load_full_string(std::string file_name)
 }
 
 
+/*
+ * splitメソッド
+ * 渡された文字列を指定された文字で分割し、vectorで返却するメソッド
+ * 引数
+ * s: 文字列
+ * delim: 分割する文字
+ * 返り値
+ * 分割された文字列
+ */
 std::vector<std::string> QRFormatParser::split(const std::string &&s, char delim)
 {
 	std::vector<std::string> elms;
@@ -41,7 +55,14 @@ std::vector<std::string> QRFormatParser::split(const std::string &&s, char delim
 	return std::vector<std::string>();
 }
 
-
+/*
+ * load_one_lineメソッド
+ * 文字列で表現されるマップ一行分のスコアを読み取り、vector<i8>で返却するメソッド
+ * 引数
+ * part_str: 一行分の情報を含む文字列
+ * 返り値
+ * 一行分のスコアデータvector<i8>で返却
+ */
 std::vector<i8> QRFormatParser::load_one_line(const std::string &part_str)
 {
 	i16 i;
@@ -56,6 +77,13 @@ std::vector<i8> QRFormatParser::load_one_line(const std::string &part_str)
         return result;
 }
 
+/*
+ * get_pair_numbersメソッド
+ * "n m"の文字列をpair(n, m)で返却するメソッド
+ * first_two_part: "n m"の文字列
+ * 返り値
+ * nとmが入ったstd::pair
+ */
 std::pair<i16, i16> QRFormatParser::get_pair_numbers(const std::string &first_two_part)
 {
         std::pair<i16, i16> pair_xy;
@@ -66,11 +94,26 @@ std::pair<i16, i16> QRFormatParser::get_pair_numbers(const std::string &first_tw
         return pair_xy;
 }
 
+/*
+ * QRFormatParserクラスのコンストラクタ
+ * 引数
+ * file_name: パーサ用のデータが記述されたファイル
+ */
 QRFormatParser::QRFormatParser(std::string file_name)
 {
+        /*
+         * 文字列をすべて読みこんで':'で分割
+         */
         std::vector<std::string> &&str_vec = split(load_full_string(file_name), ':');
+
+        /*
+         * フィールドのサイズを取得
+         */
         width_height = get_pair_numbers(*std::begin(str_vec));
 
+        /*
+         * お尻からエージェントの初期位置を得る
+         */
         for(int i = 0;i < 2;i++){
                 std::vector<std::string>::iterator tmp = std::end(str_vec) - 1;
                 my_agent_point.push_back(get_pair_numbers(*tmp));
@@ -79,6 +122,9 @@ QRFormatParser::QRFormatParser(std::string file_name)
         
         str_vec.erase(std::begin(str_vec));
 
+        /*
+         * スコアデータ読み込み
+         */
         for(const std::string & str : str_vec){
                 auto &&val = load_one_line(str);
                 std::copy(std::begin(val), std::end(val), std::back_inserter(scores));

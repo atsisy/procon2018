@@ -204,16 +204,26 @@ public:
 #endif
 };
 
-
+/*
+ * QRコードフォーマットのパーサ
+ */
 class QRFormatParser {
 
         friend FieldBuilder;
         
 private:
+        // パネルスコアの羅列
         std::vector<i8> scores;
+
+        // エージェントの座標
         std::vector<std::pair<i16, i16>> my_agent_point;
+
+        // フィールドの幅と高さ
         std::pair<i16, i16> width_height;
 
+        /*
+         * 詳細はメソッド定義の部分に記述
+         */
         std::pair<i16, i16> get_pair_numbers(const std::string &first_two_part);
         std::vector<i8> load_one_line(const std::string &part_str);
         std::vector<std::string> split(const std::string &&s, char delim);
