@@ -211,6 +211,32 @@ public:
 #endif
 };
 
+
+/*
+ * Rectクラス
+ * 正方形を表すクラス
+ * まあ、幅と高さを表したいときはこのクラス使ってください。
+ * 型はご自由に。
+ */
+template <typename T>
+class Rect {
+public:
+        T width;
+        T height;
+
+        Rect(T width, T height)
+        {
+                this->width = width;
+                this->height = height;
+        }
+
+        Rect()
+        {
+                this->width = 0;
+                this->height = 0;
+        }
+};
+
 /*
  * QRコードフォーマットのパーサ
  */
@@ -223,15 +249,15 @@ private:
         std::vector<i8> scores;
 
         // エージェントの座標
-        std::vector<std::pair<i16, i16>> my_agent_point;
+        std::vector<Rect<i16>> my_agent_point;
 
         // フィールドの幅と高さ
-        std::pair<i16, i16> width_height;
+        Rect<i16> width_height;
 
         /*
          * 詳細はメソッド定義の部分に記述
          */
-        std::pair<i16, i16> get_pair_numbers(const std::string &first_two_part);
+        Rect<i16> get_pair_numbers(const std::string &first_two_part);
         std::vector<i8> load_one_line(const std::string &part_str);
         std::vector<std::string> split(const std::string &&s, char delim);
         std::string load_full_string(std::string file_name);
@@ -278,6 +304,7 @@ inline void test_generate_agent_meta()
         _DEBUG_PUTS_SEPARATOR();
 }
 #endif
+
 
 class Agent {
 private:

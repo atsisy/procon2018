@@ -55,10 +55,10 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
 
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
-	Field::field_size_x = parser->width_height.first;
-	Field::field_size_y = parser->width_height.first;
-        Field::ac_shift_offset = (u64)(std::log2(parser->width_height.first) + 0.5);
-        Field::field_size = parser->width_height.second << Field::ac_shift_offset;
+	Field::field_size_x = parser->width_height.width;
+	Field::field_size_y = parser->width_height.height;
+        Field::ac_shift_offset = (u64)(std::log2(parser->width_height.width) + 0.5);
+        Field::field_size = parser->width_height.height << Field::ac_shift_offset;
         original_data = parser;
 }
 

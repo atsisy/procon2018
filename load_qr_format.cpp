@@ -84,14 +84,13 @@ std::vector<i8> QRFormatParser::load_one_line(const std::string &part_str)
  * 返り値
  * nとmが入ったstd::pair
  */
-std::pair<i16, i16> QRFormatParser::get_pair_numbers(const std::string &first_two_part)
+Rect<i16> QRFormatParser::get_pair_numbers(const std::string &first_two_part)
 {
-        std::pair<i16, i16> pair_xy;
-        i16 i;
+        Rect<i16> rect;
 	std::stringstream sstream(first_two_part);
-        sstream >> pair_xy.first;
-        sstream >> pair_xy.second;
-        return pair_xy;
+        sstream >> rect.height;
+        sstream >> rect.width;
+        return rect;
 }
 
 /*
@@ -130,8 +129,13 @@ QRFormatParser::QRFormatParser(std::string file_name)
                 std::copy(std::begin(val), std::end(val), std::back_inserter(scores));
         }
 
-        printf("%d %d\n", width_height.first, width_height.second);
-        for(u8 val : scores){
-                printf("%d\n", (char)val);
+        printf("Field { width : height = %d : %d }\n", width_height.width, width_height.height);
+        
+        for(int y = 0;y < width_height.height;y++){
+                for(int x = 0;x < width_height.width;x++){
+                        printf("%3d", (char)scores.at((y * width_height.width) + x));
+                }
+                printf("\n");
         }
+        puts("--");
 }
