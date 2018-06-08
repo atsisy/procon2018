@@ -1,5 +1,6 @@
 #include <iostream>
 #include "include/types.hpp"
+#include "include/utility.hpp"
 
 int main()
 {

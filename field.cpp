@@ -55,9 +55,14 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
 
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
+        double tmp;
+        
 	Field::field_size_x = parser->width_height.width;
 	Field::field_size_y = parser->width_height.height;
-        Field::ac_shift_offset = (u64)(std::log2(parser->width_height.width) + 0.5);
+
+        tmp = std::log2(parser->width_height.width);
+        Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
+        
         Field::field_size = parser->width_height.height << Field::ac_shift_offset;
         original_data = parser;
 }
@@ -136,14 +141,14 @@ u64 Field::score()
 void Field::randSetPanel() {
 	std::random_device rnd;
 	std::mt19937 mt(rnd());	//メルセンヌ・ツイスタ
-	std::uniform_int_distribution<> rand33(0,33);	//0~32の乱数
+	std::uniform_int_distribution<> rand33(0,32);	//0~32の乱数
 	for(int i=0; i<(int)field_size; i++) {
 		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
 	}
 }
 
 /* 
- *フィールドを○を使って描画します 
+ *フィールドをパネルのスコアを使って描画します 
 	*/
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {
