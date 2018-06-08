@@ -55,9 +55,14 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
 
 FieldBuilder::FieldBuilder(u8 width, u8 height)
 {
+        double tmp;
+        
 	Field::field_size_x = width;
 	Field::field_size_y = height;
-        Field::ac_shift_offset = (u64)(std::log2(width) + 0.5);
+
+        tmp = std::log2(width);
+        Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
+        
         Field::field_size = height << Field::ac_shift_offset;
 }
 
