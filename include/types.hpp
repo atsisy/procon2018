@@ -184,13 +184,20 @@ class QRFormatParser;
 class FieldBuilder {
         
 private:
+        QRFormatParser *original_data;
         
 public:
         /*
-    * コンストラクタ
-    * フィールドの幅と高さを受け取る
-    */
-        FieldBuilder(QRFormatParser & parser);
+         * コンストラクタ
+         * QRFormatparserオブジェクトへのポインタを渡す
+         */
+        FieldBuilder(QRFormatParser *parser);
+
+        /*
+         * リソースを解放するメソッド
+         */
+        void release_resource();
+        
 
 #ifdef __DEBUG_MODE
         void print_status()
