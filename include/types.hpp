@@ -186,15 +186,25 @@ public:
         void Draw();
 };
 
-class FieldBuilder {
-private:
+class QRFormatParser;
 
+class FieldBuilder {
+        
+private:
+        QRFormatParser *original_data;
+        
 public:
         /*
-    * コンストラクタ
-    * フィールドの幅と高さを受け取る
-    */
-        FieldBuilder(u8 width, u8 height);
+         * コンストラクタ
+         * QRFormatparserオブジェクトへのポインタを渡す
+         */
+        FieldBuilder(QRFormatParser *parser);
+
+        /*
+         * リソースを解放するメソッド
+         */
+        void release_resource();
+        
 
 #ifdef __DEBUG_MODE
         void print_status()
@@ -206,6 +216,61 @@ public:
                 _DEBUG_PUTS_SEPARATOR();
         }
 #endif
+};
+
+
+/*
+ * Rectクラス
+ * 正方形を表すクラス
+ * まあ、幅と高さを表したいときはこのクラス使ってください。
+ * 型はご自由に。
+ */
+template <typename T>
+class Rect {
+public:
+        T width;
+        T height;
+
+        Rect(T width, T height)
+        {
+                this->width = width;
+                this->height = height;
+        }
+
+        Rect()
+        {
+                this->width = 0;
+                this->height = 0;
+        }
+};
+
+/*
+ * QRコードフォーマットのパーサ
+ */
+class QRFormatParser {
+
+        friend FieldBuilder;
+        
+private:
+        // パネルスコアの羅列
+        std::vector<i8> scores;
+
+        // エージェントの座標
+        std::vector<Rect<i16>> my_agent_point;
+
+        // フィールドの幅と高さ
+        Rect<i16> width_height;
+
+        /*
+         * 詳細はメソッド定義の部分に記述
+         */
+        Rect<i16> get_pair_numbers(const std::string &first_two_part);
+        std::vector<i8> load_one_line(const std::string &part_str);
+        std::vector<std::string> split(const std::string &&s, char delim);
+        std::string load_full_string(std::string file_name);
+        
+public:
+        QRFormatParser(std::string file_name);
 };
 
 enum Direction {
@@ -246,6 +311,7 @@ inline void test_generate_agent_meta()
         _DEBUG_PUTS_SEPARATOR();
 }
 #endif
+
 
 class Agent {
 private:

@@ -53,17 +53,27 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
         }
 }
 
-FieldBuilder::FieldBuilder(u8 width, u8 height)
+FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
         double tmp;
         
-	Field::field_size_x = width;
-	Field::field_size_y = height;
+	Field::field_size_x = parser->width_height.width;
+	Field::field_size_y = parser->width_height.height;
 
-        tmp = std::log2(width);
+        tmp = std::log2(parser->width_height.width);
         Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
         
-        Field::field_size = height << Field::ac_shift_offset;
+        Field::field_size = parser->width_height.height << Field::ac_shift_offset;
+        original_data = parser;
+}
+
+/*
+ * FieldBuilder::release_resourceメソッド
+ * リソースを解放するためのメソッド
+ */
+void FieldBuilder::release_resource()
+{
+        delete original_data;
 }
 
 /*
