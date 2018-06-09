@@ -129,13 +129,21 @@ QRFormatParser::QRFormatParser(std::string file_name)
                 std::copy(std::begin(val), std::end(val), std::back_inserter(scores));
         }
 
-        printf("Field { width : height = %d : %d }\n", width_height.width, width_height.height);
-        
+#ifdef __DEBUG_MODE
+        _DEBUG_PUTS_SEPARATOR();
+        puts("*QRFormatParser DEBUG* : Load Result\n");
+        printf("Field: (width : height) = (%d : %d)\n", (int)width_height.width, (int)width_height.height);
+
+        printf("Agent1: (x, y) = (%d, %d)\n", (int)my_agent_point.at(0).width, (int)my_agent_point.at(0).height);
+        printf("Agent2: (x, y) = (%d, %d)\n", (int)my_agent_point.at(1).width, (int)my_agent_point.at(1).height);
+
+        puts("Score");
         for(int y = 0;y < width_height.height;y++){
                 for(int x = 0;x < width_height.width;x++){
                         printf("%3d", (char)scores.at((y * width_height.width) + x));
                 }
                 printf("\n");
         }
-        puts("--");
+        _DEBUG_PUTS_SEPARATOR();
+#endif
 }
