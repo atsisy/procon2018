@@ -155,10 +155,16 @@ private:
         u64 calc_sumpanel_score();
 
 /*
- * change_atメソッド フィールド情報のアクセサメソッド
+ * make_atメソッド フィールド情報のアクセサメソッド
  * このメソッドは、fieldメンバを変更することができる
  */
         void make_at(u8 x, u8 y, u8 attribute);
+
+        /*
+         * set_score_atメソッド フィールド情報のアクセサメソッド
+         * このメソッドは、fieldメンバを変更することができる
+         */
+        void set_score_at(u8 x, u8 y, i8 score);
 
 /*
  * フィールドのx,yの値を受け取り、Field一次元配列での要素番号を返す
@@ -204,6 +210,10 @@ public:
          * リソースを解放するメソッド
          */
         void release_resource();
+        /*
+         * 初期状態のフィールドを生成するメソッド
+         */
+        Field *create_root_field();
         
 
 #ifdef __DEBUG_MODE

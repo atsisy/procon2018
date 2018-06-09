@@ -53,6 +53,11 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
         }
 }
 
+void Field::set_score_at(u8 x, u8 y, i8 score)
+{
+        field.at(x + (y << this->ac_shift_offset)).set_score_value(score);
+}
+
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
         double tmp;
@@ -74,6 +79,51 @@ FieldBuilder::FieldBuilder(QRFormatParser *parser)
 void FieldBuilder::release_resource()
 {
         delete original_data;
+}
+
+/*
+ * FieldBuilder::create_root_fieldメソッド
+ * 初期状態のFieldオブジェクトを生成するメソッド
+ * 引数
+ * 無し
+ * 返り値
+ * 初期状態のFieldオブジェクトへのポインタ
+ */
+Field *FieldBuilder::create_root_field()
+{
+        Field *root_field = new Field;
+
+        /*
+         * スコア振り分け
+         */
+        for(u8 y = 0;y < Field::field_size_y;y++){
+                for(u8 x = 0;x < Field::field_size_x;x++){
+                        root_field->set_score_at(
+                                x, y,
+                                original_data->scores.at((y * Field::field_size_x) + x)
+                                );
+                }
+        }
+
+        /*
+         * エージェントに位置情報を取り出す
+         */
+        Rect<i16> agent1 = original_data->my_agent_point.at(0);
+        Rect<i16> agent2 = original_data->my_agent_point.at(1);
+
+        /*
+         * 自分のエージェントを配置
+         */
+        root_field->make_at(agent1.width, agent1.height, MINE_ATTR);
+        root_field->make_at(agent2.width, agent2.height, MINE_ATTR);
+
+        /*
+         * 敵のエージェントを配置
+         */
+        root_field->make_at(agent1.width, agent2.height, ENEMY_ATTR);
+        root_field->make_at(agent2.width, agent1.height, ENEMY_ATTR);
+        
+        return root_field;
 }
 
 /*
