@@ -320,6 +320,16 @@ public:
         bool is_enemy();
 };
 
+// 二人のエージェントで閉路を作るときのフラグを管理するクラス
+class ClosedFlag {
+private:
+	u8 index_me, index_pair;
+	
+public:
+	ClosedFlag();
+	ClosedFlag(u8 index_me, u8 index_pair):index_me(index_me),index_pair(index_pair) {
+	}
+};
 
 class Closed {
 private:
@@ -333,9 +343,9 @@ private:
 	bool CheckPanelLine(u8 x, u8 y, Direction direction);
 	
 public:
-	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
-	//一人のエージェントだけで閉路を作成する関数
-	u8 LoadClosed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	
+	// 二人で閉路を作るときのフラグ管理ベクター
+	static std::vector<ClosedFlag> closedFlag; 
 	
 	//今の閉路のスコアを計算する関数
 	u64 CalcScore(Field & field);

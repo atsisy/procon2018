@@ -144,6 +144,8 @@ void Field::Draw() {
 	}
 }
 
+std::vector<ClosedFlag> Closed::closedFlag; 
+
 /*
  * 一人のagentで閉路を作るコンストラクタ
  * agentの今の位置から(end_x, end_y)へ閉路を作ります

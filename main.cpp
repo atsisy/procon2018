@@ -12,20 +12,25 @@ int main()
 	mainField.randSetPanel();
        
 	Agent a1(2,2,generate_agent_meta(MINE_ATTR));
+	Agent a2(5,5,generate_agent_meta(MINE_ATTR));
 	
-//a1を動かす
-	a1.move(mainField,LDOWN);
-	a1.move(mainField, RDOWN);
-	a1.move(mainField, RDOWN);
-	a1.move(mainField, RDOWN);
-	a1.move(mainField, RUP);
-	a1.move(mainField, RUP);
-	a1.move(mainField, LUP);
-	a1.move(mainField, LUP);
-	a1.move(mainField, LEFT);
-	myclosed.emplace_back(a1, mainField, 2, 2);
+// a1を動かす
+	a1.move(mainField,DOWN);
+	a1.move(mainField,DOWN);
+	a1.move(mainField,DOWN);
+	a1.move(mainField,RIGHT);
+	a1.move(mainField,RIGHT);
+	Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
 	
-	myclosed[0].CalcScore(mainField);
+// a2を動かす
+	a1.move(mainField,UP);
+	a1.move(mainField,UP);
+	a1.move(mainField,UP);
+	a1.move(mainField,LEFT);
+	a1.move(mainField,LEFT);
+	Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
+	
+	//myclosed[0].CalcScore(mainField);
 	mainField.Draw();
 
 #ifdef __DEBUG_MODE
