@@ -1,5 +1,5 @@
 #include <iostream>
-#include "include/types.hpp"
+#include "include/lsearch.hpp"
 #include "include/utility.hpp"
 
 int main(int argc, char **argv)
@@ -17,15 +17,6 @@ int main(int argc, char **argv)
 #ifdef __DEBUG_MODE
         builder.print_status();
         test_generate_agent_meta();
-
-        {
-                /*
-                 * 初期状態Fieldオブジェクト生成のテスト
-                 */
-                Field *root = builder.create_root_field();
-                root->Draw();
-                delete root;
-        }
 #endif
         builder.release_resource();
         

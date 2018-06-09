@@ -118,6 +118,7 @@ public:
 
 class FieldBuilder;
 class Agent;
+class Node;
 
 /*
  * Fieldクラス
@@ -130,6 +131,7 @@ class Field {
          */
         friend FieldBuilder;
         friend Agent;
+        friend Node;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -183,6 +185,12 @@ public:
          */
         Panel at(u8 x, u8 y) const;
 
+        
+        /*
+         * 自分の複製を返すメソッド
+         */
+        Field *clone() const;
+
         u64 score();
         
         // フィールドのパネルの数値をランダムでセットする関数
@@ -211,9 +219,9 @@ public:
          */
         void release_resource();
         /*
-         * 初期状態のフィールドを生成するメソッド
+         * 初期状態のnodeを生成するメソッド
          */
-        Field *create_root_field();
+        Node *create_root_node();
         
 
 #ifdef __DEBUG_MODE
@@ -324,6 +332,9 @@ inline void test_generate_agent_meta()
 
 
 class Agent {
+
+        friend Node;
+        
 private:
         u8 x: 4;
         u8 y: 4;

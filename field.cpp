@@ -1,4 +1,4 @@
-#include "include/types.hpp"
+#include "include/lsearch.hpp"
 #include <cmath>
 #include <limits>
 #include <algorithm>
@@ -58,6 +58,11 @@ void Field::set_score_at(u8 x, u8 y, i8 score)
         field.at(x + (y << this->ac_shift_offset)).set_score_value(score);
 }
 
+Field *Field::clone() const
+{
+        return new Field(*this);
+}
+
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
         double tmp;
@@ -82,14 +87,14 @@ void FieldBuilder::release_resource()
 }
 
 /*
- * FieldBuilder::create_root_fieldメソッド
+ * FieldBuilder::create_root_nodeメソッド
  * 初期状態のFieldオブジェクトを生成するメソッド
  * 引数
  * 無し
  * 返り値
- * 初期状態のFieldオブジェクトへのポインタ
+ * 初期状態のFieldオブジェクトを含むNodeオブジェクトへのポインタ
  */
-Field *FieldBuilder::create_root_field()
+Node *FieldBuilder::create_root_node()
 {
         Field *root_field = new Field;
 
@@ -106,24 +111,13 @@ Field *FieldBuilder::create_root_field()
         }
 
         /*
-         * エージェントに位置情報を取り出す
+         * Fieldオブジェクトへのポインタとエージェントの位置情報を渡す
          */
-        Rect<i16> agent1 = original_data->my_agent_point.at(0);
-        Rect<i16> agent2 = original_data->my_agent_point.at(1);
-
-        /*
-         * 自分のエージェントを配置
-         */
-        root_field->make_at(agent1.width, agent1.height, MINE_ATTR);
-        root_field->make_at(agent2.width, agent2.height, MINE_ATTR);
-
-        /*
-         * 敵のエージェントを配置
-         */
-        root_field->make_at(agent1.width, agent2.height, ENEMY_ATTR);
-        root_field->make_at(agent2.width, agent1.height, ENEMY_ATTR);
-        
-        return root_field;
+        return new Node(
+                root_field,
+                original_data->my_agent_point.at(0),
+                original_data->my_agent_point.at(1)
+                );
 }
 
 /*
