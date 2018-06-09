@@ -5,11 +5,23 @@ OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/main.o
 HEADERS = $(INCLUDE)/types.hpp
 CC = g++
 LD = g++
-CFLAGS = -Wall -O2 -std=c++14 -c
+CFLAGS = -Wall -O2 -std=c++17 -c
+DEBUG = -g
+AOUT = bin
+
+.PHONY: release
+release: all
+
+.PHONY: debug
+debug: CFLAGS+=$(DEBUG)
+debug: all
 
 .PHONY: all
 all: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
-	$(LD) $(OBJS) -o $(BINDIR)/bin
+	$(LD) $(OBJS) -o $(BINDIR)/$(AOUT)
+
+run: $(BINDIR)/$(AOUT)
+	$(BINDIR)/$(AOUT)
 
 $(DST)/%.o: %.cpp
 	$(CC) $*.cpp $(CFLAGS) -o $(DST)/$*.o
