@@ -17,6 +17,11 @@ int main(int argc, char **argv)
 #ifdef __DEBUG_MODE
         builder.print_status();
         test_generate_agent_meta();
+        {
+                Node *node = builder.create_root_node();
+                node->draw();
+                delete node;
+        }
 #endif
         builder.release_resource();
         

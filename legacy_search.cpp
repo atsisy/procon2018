@@ -33,3 +33,18 @@ Node::Node(const Node *parent)
         this->field = parent->field->clone();
         score = 0;
 }
+
+void Node::draw()
+{
+        puts("Field Info");
+        field->Draw();
+        puts("Agent Info");
+        puts("Node::my_agent1");
+        my_agent1.draw();
+        puts("Node::my_agent2");
+        my_agent2.draw();
+        puts("Node::enemy_agent1");
+        enemy_agent1.draw();
+        puts("Node::enemy_agent2");
+        enemy_agent2.draw();
+}

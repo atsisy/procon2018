@@ -398,5 +398,7 @@ public:
         
         bool is_mine();
         bool is_enemy();
+
+        void draw();
         
 };

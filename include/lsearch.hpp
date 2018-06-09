@@ -19,4 +19,6 @@ private:
         Node(Field *field, Rect<i16> agent1, Rect<i16> agent2);
 public:
         Node(const Node *parent);
+
+        void draw();
 };

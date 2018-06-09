@@ -1,4 +1,5 @@
 #include "include/types.hpp"
+#include <iostream>
 
 Agent::Agent(u8 x, u8 y, u8 meta)
 {
@@ -40,4 +41,10 @@ void Agent::move(Field & field, Direction direction)
         }
 
         field.make_at(this->x, this->y, extract_player_info());
+}
+
+void Agent::draw()
+{
+        printf("AGENT: (x, y) = (%d : %d)\n", (int)x, (int)y);
+        std::cout << "ATTRIBUTE: " << ((this->meta_info & 0x01) ? "MINE" : "ENEMY") << std::endl; 
 }
