@@ -53,11 +53,24 @@ void Field::make_at(u8 x, u8 y, u8 attribute)
         }
 }
 
+/*
+ * Field::set_score_atメソッド
+ * 指定した座標のパネルのスコアを変更するメソッド
+ * このメソッドは必ずプライベートにすること
+ */
 void Field::set_score_at(u8 x, u8 y, i8 score)
 {
         field.at(x + (y << this->ac_shift_offset)).set_score_value(score);
 }
 
+/*
+ * Field::cloneメソッド
+ * 自らのクローンを生成し、そのポインタを返すメソッド
+ * 引数
+ * なし
+ * 返り値
+ * 動的確保された自分のクローン
+ */
 Field *Field::clone() const
 {
         return new Field(*this);
