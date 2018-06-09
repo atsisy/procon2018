@@ -145,11 +145,11 @@ void Field::Draw() {
 }
 
 /*
- * 一人のagentで閉路を作る関数
+ * 一人のagentで閉路を作るコンストラクタ
  * agentの今の位置から(end_x, end_y)へ閉路を作ります
  * -1：閉路を作るのに失敗、0：成功
  */
-u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
+Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	i8 buf = -1;
 	
 	//エージェントの動きを最初からたどって目的の場所にたどり着くか判定
@@ -161,13 +161,17 @@ u8 Closed::LoadClosed(Agent agent, Field & field,  u8 end_x, u8 end_y) {
 		}
 		i++;
 	}
-	if(buf == -1) return -1;
+	if(buf == -1) {
+		canMake = false;
+		return;
+	}
 	
+	// 閉路が作れる場合作成
 	u8 locus_size = agent.locus.size();
 	for(int i=buf; i<locus_size; i++) {
 		this->closed.push_back(agent.locus[i]);
 	}
-	return 0;
+	canMake = true;
 }
 
 void Closed::Draw() {

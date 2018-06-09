@@ -323,6 +323,9 @@ public:
 
 class Closed {
 private:
+	// 閉路が作成できたか
+	bool canMake;
+
 	//閉路の座標を保存するベクター
 	std::vector<u8> closed;
 	
@@ -330,14 +333,20 @@ private:
 	bool CheckPanelLine(u8 x, u8 y, Direction direction);
 	
 public:
-	//std::vector<u8> closed;
-	
 	//agentの今の位置からその軌跡をたどり(end_x, end_y)の座標に向かって閉路を作る
 	//一人のエージェントだけで閉路を作成する関数
 	u8 LoadClosed(Agent agent, Field & field, u8 end_x, u8 end_y);
 	
 	//今の閉路のスコアを計算する関数
 	u64 CalcScore(Field & field);
+	
+	// この閉路が正しく作れているか返す関数
+	bool canMakeClosed() {
+		return this->canMake;
+	}
+	
+	Closed();
+	Closed(Agent agent, Field & field, u8 end_x, u8 end_y);
 	
 #ifdef __DEBUG_MODE
         void print_closed(Field & field)

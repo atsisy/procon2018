@@ -5,7 +5,6 @@
 int main()
 {
 	std::vector<Closed> myclosed;	//閉路を格納するベクター
-	Closed SpaceClosed;	//空のClosed型(Closedを持つvectorにpush_backするときなどに使う)
 	
     FieldBuilder builder(12, 12);
 	Field mainField;	//メインとなるフィールドのインスタンス
@@ -24,8 +23,7 @@ int main()
 	a1.move(mainField, LUP);
 	a1.move(mainField, LUP);
 	a1.move(mainField, LEFT);
-	myclosed.push_back(SpaceClosed);
-	myclosed[0].LoadClosed(a1,mainField,2,2);
+	myclosed.emplace_back(a1, mainField, 2, 2);
 	
 	myclosed[0].CalcScore(mainField);
 	mainField.Draw();
