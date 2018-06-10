@@ -115,6 +115,11 @@ public:
         {
                 return plain_bits;
         }
+
+        bool are_you(u8 flag) const
+        {
+                return meta_info & flag;
+        }
 };
 
 class FieldBuilder;
@@ -174,6 +179,8 @@ public:
         
         // フィールドの描画関数
         void Draw();
+
+        void draw_status();
 
         /*
          * change_atメソッド フィールド情報のアクセサメソッド
@@ -319,8 +326,9 @@ private:
                                          std::deque<std::pair<Panel, u8>> & queue,
                                          std::vector<u8> & done_list);
         static i16 expand_to_arounds(const Field *field,
-                                 u8 point,
-                                 std::deque<std::pair<Panel, u8>> & queue);
+                                     u8 point,
+                                     std::deque<std::pair<Panel, u8>> & queue,
+                                     std::vector<u8> & done_list);
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);

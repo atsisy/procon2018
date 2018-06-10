@@ -15,10 +15,14 @@ int main()
         test_generate_agent_meta();
 
         mainField.make_at(3, 3, MINE_ATTR);
-        mainField.make_at(4, 4, MINE_ATTR);
+        mainField.make_at(4, 3, MINE_ATTR);
+        mainField.make_at(5, 4, MINE_ATTR);
+        mainField.make_at(4, 5, MINE_ATTR);
         mainField.make_at(3, 5, MINE_ATTR);
         mainField.make_at(2, 4, MINE_ATTR);
 
+        mainField.draw_status();
+        
         std::chrono::system_clock::time_point  start, end;
         i16 score;
         start = std::chrono::system_clock::now();
