@@ -119,6 +119,7 @@ public:
 
 class FieldBuilder;
 class Agent;
+class FieldEvaluater;
 
 /*
  * Fieldクラス
@@ -131,6 +132,7 @@ class Field {
          */
         friend FieldBuilder;
         friend Agent;
+        friend FieldEvaluater;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -178,12 +180,6 @@ public:
          * このメソッドは、fieldメンバを変更することができる
          */
         void make_at(u8 x, u8 y, u8 attribute);
-
-        i16 calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list);
-        i16 expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue);
-
-
-        i16 calc_local_area_score();
 };
 
 class FieldBuilder {
@@ -312,4 +308,20 @@ public:
         bool is_mine();
         bool is_enemy();
         
+};
+
+
+class FieldEvaluater {
+private:
+        static u8 meta_data;
+        static i16 calc_sub_local_area_score(const Field *field,
+                                         const Panel panel,
+                                         std::deque<std::pair<Panel, u8>> & queue,
+                                         std::vector<u8> & done_list);
+        static i16 expand_to_arounds(const Field *field,
+                                 u8 point,
+                                 std::deque<std::pair<Panel, u8>> & queue);
+public:
+        static i16 calc_local_area(const Field *field);
+        static void set_target(u8 flag);
 };

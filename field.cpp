@@ -9,6 +9,7 @@ u8 Field::ac_shift_offset;
 u64 Field::field_size;
 u8 Field::field_size_x;
 u8 Field::field_size_y;
+u8 FieldEvaluater::meta_data;
 
 Field::Field(): field(field_size)
 {}
@@ -153,14 +154,14 @@ inline bool is_edge(u8 value)
 }
 
 
-i16 Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & queue)
+i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, std::deque<std::pair<Panel, u8>> & queue)
 {
         i16 score = 0;
         const u8 x = point & 0x0f, y = point >> 4;
-        const Panel up = at(x, y - 1);
-        const Panel right = at(x + 1, y);
-        const Panel down = at(x, y + 1);
-        const Panel left = at(x - 1, y);
+        const Panel up = field->at(x, y - 1);
+        const Panel right = field->at(x + 1, y);
+        const Panel down = field->at(x, y + 1);
+        const Panel left = field->at(x - 1, y);
 
         
         if(up.is_pure_panel()){
@@ -184,7 +185,7 @@ i16 Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & que
 }
 
 
-i16 Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
+i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
 {
         i16 score = std::abs(panel.get_score_value());
         
@@ -196,26 +197,26 @@ i16 Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Pan
                         return 0;
                 }
                 done_list.push_back(panel_pair.second);
-                score += expand_one_panel_2_4(panel_pair.second, queue);
+                score += expand_to_arounds(field, panel_pair.second, queue);
         }
 
         return score;
 }
 
-i16 Field::calc_local_area_score()
+i16 FieldEvaluater::calc_local_area(const Field *field)
 {
         std::deque<std::pair<Panel, u8>> queue;
         std::vector<u8> done_list;
         i16 score = 0;
 
-        const u8 y_range = field_size_y - 1;
-        const u8 x_range = field_size_x - 1;
+        const u8 y_range = Field::field_size_y - 1;
+        const u8 x_range = Field::field_size_x - 1;
         u8 x, y;
         
         for(y = 1;y < y_range;y++){
                 for(x = 1;x < x_range;x++){
                         const u8 point = MAKE_POINT(x, y);
-                        const Panel panel = at(x, y);
+                        const Panel panel = field->at(x, y);
                         if(panel.is_not_pure_panel()){
                                 continue;
                         }
@@ -225,9 +226,15 @@ i16 Field::calc_local_area_score()
 
                         queue.push_back(std::make_pair(panel, point));
                         
-                        score += calc_local_area_score_sub(panel, queue, done_list);
+                        score += calc_sub_local_area_score(field, panel, queue, done_list);
                 }
         }
 
         return score;
+}
+
+void FieldEvaluater::set_target(u8 flag)
+{
+        meta_data &= 0xfc;
+        meta_data |= flag;
 }

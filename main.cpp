@@ -23,7 +23,8 @@ int main()
         i16 score;
         start = std::chrono::system_clock::now();
 
-        score = mainField.calc_local_area_score();
+        FieldEvaluater::set_target(generate_agent_meta(MINE_ATTR));
+        score = FieldEvaluater::calc_local_area(&mainField);
 
         end = std::chrono::system_clock::now();
         double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
