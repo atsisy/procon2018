@@ -164,19 +164,19 @@ i16 Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & que
 
         
         if(up.is_pure_panel()){
-                score += up.get_score_value();
+                score += std::abs(up.get_score_value());
                 queue.push_back(std::make_pair(up, MAKE_POINT(x, y - 1)));
         }
         if(right.is_pure_panel()){
-                score += up.get_score_value();
+                score += std::abs(right.get_score_value());
                 queue.push_back(std::make_pair(right, MAKE_POINT(x + 1, y)));
         }
         if(down.is_pure_panel()){
-                score += up.get_score_value();
+                score += std::abs(down.get_score_value());
                 queue.push_back(std::make_pair(down, MAKE_POINT(x, y + 1)));
         }
         if(left.is_pure_panel()){
-                score += up.get_score_value();
+                score += std::abs(left.get_score_value());
                 queue.push_back(std::make_pair(left, MAKE_POINT(x - 1, y)));
         }
 
@@ -186,7 +186,7 @@ i16 Field::expand_one_panel_2_4(u8 point, std::deque<std::pair<Panel, u8>> & que
 
 i16 Field::calc_local_area_score_sub(const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
 {
-        i16 score = panel.get_score_value();
+        i16 score = std::abs(panel.get_score_value());
         
         while(queue.size()){
                 const std::pair<Panel, u8> panel_pair = queue.front();
