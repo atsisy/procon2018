@@ -9,6 +9,7 @@ u8 Field::ac_shift_offset;
 u64 Field::field_size;
 u8 Field::field_size_x;
 u8 Field::field_size_y;
+u8 FieldEvaluater::meta_data;
 
 Field::Field(): field(field_size)
 {}
@@ -214,4 +215,118 @@ void Field::Draw() {
 		}
 		std::cout << std::endl;
 	}
+}
+
+
+void Field::draw_status()
+{
+        for(u8 y = 0;y < field_size_y;y++){
+                for(u8 x = 0;x < field_size_x;x++){
+                        printf(" %c", (at(x, y).is_pure_panel() ? 'P' : at(x, y).is_my_panel() ? 'M' : 'E'));
+                }
+                printf("\n");
+        }
+}
+
+
+#define MAKE_POINT(x, y) ((x) | ((y) << 4))
+
+inline bool is_edge(u8 value)
+{
+        return !((u8)((value & 0x0f) - 1) < 10) || !((u8)((value >> 4) - 1) < 10);
+}
+
+
+i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
+{
+        i16 score = 0;
+        const u8 x = point & 0x0f, y = point >> 4;
+        u8 tmp;
+        const Panel up = field->at(x, y - 1);
+        const Panel right = field->at(x + 1, y);
+        const Panel down = field->at(x, y + 1);
+        const Panel left = field->at(x - 1, y);
+
+        tmp = MAKE_POINT(x, y - 1);
+        if(!up.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
+                score += std::abs(up.get_score_value());
+                queue.push_back(std::make_pair(up, tmp));
+        }
+
+        tmp = MAKE_POINT(x + 1, y);
+        if(!right.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
+                score += std::abs(right.get_score_value());
+                queue.push_back(std::make_pair(right, tmp));
+        }
+
+        tmp = MAKE_POINT(x, y + 1);
+        if(!down.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
+                score += std::abs(down.get_score_value());
+                queue.push_back(std::make_pair(down, tmp));
+        }
+
+        tmp = MAKE_POINT(x - 1, y);
+        if(!left.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
+                score += std::abs(left.get_score_value());
+                queue.push_back(std::make_pair(left, tmp));
+        }
+
+        return score;
+}
+
+
+i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
+{
+        i16 score = 0;
+        
+        while(queue.size()){
+                const std::pair<Panel, u8> panel_pair = queue.front();
+                queue.pop_front();
+                if(is_edge(panel_pair.second) && panel_pair.first.is_pure_panel()){
+                        queue.clear();
+                        return 0;
+                }
+                done_list.push_back(panel_pair.second);
+                score += expand_to_arounds(field, panel_pair.second, queue, done_list);
+        }
+
+        queue.clear();
+        return score;
+}
+
+i16 FieldEvaluater::calc_local_area(const Field *field)
+{
+        std::deque<std::pair<Panel, u8>> queue;
+        std::vector<u8> done_list;
+        i16 score = 0, tmp_score;
+
+        const u8 y_range = Field::field_size_y - 1;
+        const u8 x_range = Field::field_size_x - 1;
+        u8 x, y;
+        
+        for(y = 1;y < y_range;y++){
+                for(x = 1;x < x_range;x++){
+                        const u8 point = MAKE_POINT(x, y);
+                        const Panel panel = field->at(x, y);
+                        if(panel.are_you(meta_data & EXTRACT_PLAYER_INFO)){
+                                continue;
+                        }
+                        if(std::find(std::begin(done_list), std::end(done_list), point) != std::end(done_list)){
+                                continue;
+                        }
+
+                        queue.push_back(std::make_pair(panel, point));
+
+                        tmp_score = calc_sub_local_area_score(field, panel, queue, done_list);
+                        score += (tmp_score ? tmp_score + std::abs(panel.get_score_value()) : 0);
+                }
+        }
+
+        return score;
+}
+
+void FieldEvaluater::set_target(u8 flag)
+{
+        meta_data &= 0xfc;
+        meta_data |= flag;
 }

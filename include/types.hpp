@@ -4,6 +4,7 @@
 #include <vector>
 #include <initializer_list>
 #include <type_traits>
+#include <deque>
 
 #include "debug.hpp"
 
@@ -70,22 +71,22 @@ private:
         
 public:
 
-        bool is_my_panel()
+        bool is_my_panel() const
         {
                 return meta_info & MINE_ATTR;
         }
 
-        bool is_enemy_panel()
+        bool is_enemy_panel() const
         {
                 return meta_info & ENEMY_ATTR;
         }
 
-        bool is_not_pure_panel()
+        bool is_not_pure_panel() const
         {
                 return meta_info;
         }
 
-        bool is_pure_panel()
+        bool is_pure_panel() const
         {
                 return !meta_info;
         }
@@ -105,20 +106,26 @@ public:
                 meta_info = 0;
         }
 
-        i8 get_score_value()
+        i8 get_score_value() const
         {
                 return value;
         }
 
-        u8 get_plain_bits()
+        u8 get_plain_bits() const
         {
                 return plain_bits;
+        }
+
+        bool are_you(u8 flag) const
+        {
+                return meta_info & flag;
         }
 };
 
 class FieldBuilder;
 class Agent;
 class Node;
+class FieldEvaluater;
 
 /*
  * Fieldクラス
@@ -132,6 +139,7 @@ class Field {
         friend FieldBuilder;
         friend Agent;
         friend Node;
+        friend FieldEvaluater;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -149,7 +157,7 @@ private:
         /*
          * フィールド上の得点を計算するメソッド
          */
-        // 自分のパネルが置かれている部分の合計得点
+        // 自分のパネルが置かれ。ている部分の合計得点
         u64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
         u64 calc_enemypanels_score();
@@ -174,7 +182,7 @@ private:
 	u64 xyIndex(u8 x, u8 y) {
 		return x+(y<<Field::ac_shift_offset);
 	}
-	
+
 public:
 		
         Field();
@@ -198,6 +206,14 @@ public:
         
         // フィールドの描画関数
         void Draw();
+
+        void draw_status();
+
+        /*
+         * change_atメソッド フィールド情報のアクセサメソッド
+         * このメソッドは、fieldメンバを変更することができる
+         */
+        void make_at(u8 x, u8 y, u8 attribute);
 };
 
 class QRFormatParser;
@@ -401,4 +417,21 @@ public:
 
         void draw();
         
+};
+
+
+class FieldEvaluater {
+private:
+        static u8 meta_data;
+        static i16 calc_sub_local_area_score(const Field *field,
+                                         const Panel panel,
+                                         std::deque<std::pair<Panel, u8>> & queue,
+                                         std::vector<u8> & done_list);
+        static i16 expand_to_arounds(const Field *field,
+                                     u8 point,
+                                     std::deque<std::pair<Panel, u8>> & queue,
+                                     std::vector<u8> & done_list);
+public:
+        static i16 calc_local_area(const Field *field);
+        static void set_target(u8 flag);
 };
