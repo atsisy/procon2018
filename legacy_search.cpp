@@ -140,6 +140,32 @@ std::vector<Node *> Node::expand() const
         }
 }
 
+Node *Node::evaluate()
+{
+        static FieldEvaluater evaluater;
+
+        /*
+         * 初期化
+         */
+        score = 0;
+        
+        /*
+         * FIXME
+         * 一発でenemyとmineか判定したい
+         */
+        evaluater.set_target(MINE_ATTR);
+        score += evaluater.calc_local_area(field);
+        evaluater.set_target(ENEMY_ATTR);
+        score += evaluater.calc_local_area(field);
+
+        /*
+         * 愚直なやつ
+         */
+        score += this->field->calc_sumpanel_score();
+
+        return this;
+}
+
 /*
   ab探索法
   擬似言語
@@ -154,13 +180,10 @@ std::vector<Node *> Node::expand() const
  */
 Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
 {
-        static FieldEvaluater evaluater;
         Node *child_tmp;
         
         if(!depth){
-                evaluater.set_target(MINE_ATTR);
-                node->set_score(evaluater.calc_local_area(node->field));
-                return node;
+                return node->evaluate();
         }
 
         std::vector<Node *> &&children = node->expand();

@@ -40,6 +40,11 @@ private:
          */
         std::vector<Node *> expand_enemy_node() const;
         std::vector<Node *> expand_my_node() const;
+
+        /*
+         * 自分自身を評価するメソッド
+         */
+        Node *evaluate();
 public:
         /*
          * 普通に使ってほしいコンストラクタ
