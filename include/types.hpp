@@ -208,12 +208,6 @@ public:
         void Draw();
 
         void draw_status();
-
-        /*
-         * change_atメソッド フィールド情報のアクセサメソッド
-         * このメソッドは、fieldメンバを変更することができる
-         */
-        void make_at(u8 x, u8 y, u8 attribute);
 };
 
 class QRFormatParser;

@@ -1,4 +1,5 @@
 #include "include/lsearch.hpp"
+#include <algorithm>
 
 /*
  * Nodeクラスのコンストラクタ
@@ -20,6 +21,9 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
           enemy_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
           
 {
+        /*
+         * ルートノードのために渡すからクローンを作る必要はない。
+         */
         this->field = field;
 
         /*
@@ -33,6 +37,11 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
          */
         field->make_at(enemy_agent1.x, enemy_agent1.y, ENEMY_ATTR);
         field->make_at(enemy_agent2.x, enemy_agent2.y, ENEMY_ATTR);
+
+        /*
+         * ルートのノードは敵
+         */
+        turn = ENEMY_TURN;
         
         score = 0;
 }
@@ -58,6 +67,7 @@ Node::Node(const Node *parent)
          */
         this->field = parent->field->clone();
         score = 0;
+        turn = parent->toggled_turn();
 }
 
 void Node::draw()
@@ -73,4 +83,100 @@ void Node::draw()
         enemy_agent1.draw();
         puts("Node::enemy_agent2");
         enemy_agent2.draw();
+}
+
+std::vector<Node *> Node::expand_enemy_node() const
+{
+        std::vector<Node *> results;
+        
+        for(int a = UP;a <= STOP;a++){
+                for(int b = UP;b <= STOP;b++){
+                        /** FIXME
+                         * fieldがポインタ参照になってる。
+                         * moveメソッドに直接fieldのポインタを渡したい
+                         */
+                        Node *clone = new Node(this);
+                        clone->enemy_agent1.move(*field, (Direction)a);
+                        clone->enemy_agent2.move(*field, (Direction)b);
+                        results.push_back(clone);
+                }
+        }
+
+        return results;
+}
+
+std::vector<Node *> Node::expand_my_node() const
+{
+        std::vector<Node *> results;
+        
+        for(int a = UP;a <= STOP;a++){
+                for(int b = UP;b <= STOP;b++){
+                        /** FIXME
+                         * fieldがポインタ参照になってる。
+                         * moveメソッドに直接fieldのポインタを渡したい
+                         */
+                        Node *clone = new Node(this);
+                        clone->my_agent1.move(*field, (Direction)a);
+                        clone->my_agent2.move(*field, (Direction)b);
+                        results.push_back(clone);
+                }
+        }
+
+        return results;
+}
+
+std::vector<Node *> Node::expand() const
+{
+        if(turn){
+                /*
+                 * 敵のノードを展開
+                 */
+                return this->expand_enemy_node();
+        }else{
+                /*
+                 * 味方のノードを展開
+                 */
+                return this->expand_my_node();
+        }
+}
+
+/*
+  ab探索法
+  擬似言語
+ function alphabeta(node, depth, α, β)
+ if node が終端ノード or depth = 0
+ return node の評価値
+ foreach child of node
+ α := max(α, -alphabeta(child, depth-1, -β, -α))
+ if α ≥ β
+ return α // カット
+ return α
+ */
+Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
+{
+        static FieldEvaluater evaluater;
+        Node *child_tmp;
+        
+        if(!depth){
+                evaluater.set_target(MINE_ATTR);
+                node->set_score(evaluater.calc_local_area(node->field));
+                return node;
+        }
+
+        std::vector<Node *> &&children = node->expand();
+
+        for(Node *node : children){
+                child_tmp = ab(node, depth - 1, -b, -a);
+                a = std::max(a, child_tmp->score);
+                if(a >= b){
+                        return child_tmp;
+                }
+        }
+
+        return child_tmp;
+}
+
+Node *Search::search(Node *root)
+{
+        return ab(root, 4, 10000, -10000);
 }
