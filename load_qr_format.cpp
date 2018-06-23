@@ -93,6 +93,11 @@ Rect<i16> QRFormatParser::get_pair_numbers(const std::string &first_two_part)
         return rect;
 }
 
+Rect<i16> QRFormatParser::translate_to_agent_point(const Rect<i16> point)
+{
+        return Rect<i16>(point.width - 1, point.height - 1);
+}
+
 /*
  * QRFormatParserクラスのコンストラクタ
  * 引数
@@ -115,7 +120,7 @@ QRFormatParser::QRFormatParser(std::string file_name)
          */
         for(int i = 0;i < 2;i++){
                 std::vector<std::string>::iterator tmp = std::end(str_vec) - 1;
-                my_agent_point.push_back(get_pair_numbers(*tmp));
+                my_agent_point.push_back(translate_to_agent_point(get_pair_numbers(*tmp)));
                 str_vec.erase(tmp);
         }
         

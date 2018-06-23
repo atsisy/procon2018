@@ -318,6 +318,7 @@ private:
          */
         Rect<i16> get_pair_numbers(const std::string &first_two_part);
         std::vector<i8> load_one_line(const std::string &part_str);
+        Rect<i16> translate_to_agent_point(const Rect<i16> point);
         std::vector<std::string> split(const std::string &&s, char delim);
         std::string load_full_string(std::string file_name);
         
