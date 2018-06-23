@@ -74,6 +74,7 @@ void Node::draw()
 {
         puts("Field Info");
         field->Draw();
+        field->draw_status();
         puts("Agent Info");
         puts("Node::my_agent1");
         my_agent1.draw();
@@ -192,8 +193,8 @@ Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
 
         std::vector<Node *> &&children = node->expand();
 
-        for(Node *node : children){
-                child_tmp = ab(node, depth - 1, -b, -a);
+        for(Node *child : children){
+                child_tmp = ab(child, depth - 1, -b, -a);
                 a = std::max(a, child_tmp->score);
                 if(a >= b){
                         return child_tmp;
