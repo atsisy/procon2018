@@ -127,6 +127,8 @@ class Agent;
 class Node;
 class FieldEvaluater;
 
+#define MAKE_POINT(x, y) ((x) | ((y) << 4))
+
 /*
  * Fieldクラス
  * 一つのフィールドを表すクラス
@@ -140,6 +142,9 @@ class Field {
         friend Agent;
         friend Node;
         friend FieldEvaluater;
+
+        friend bool is_edge(u8 value);
+        friend bool is_out(u8 value);
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -192,7 +197,6 @@ public:
          * このメソッドは、fieldメンバを変更することはできない
          */
         Panel at(u8 x, u8 y) const;
-
         
         /*
          * 自分の複製を返すメソッド
@@ -209,6 +213,26 @@ public:
 
         void draw_status();
 };
+
+/*
+ * 渡された座標（MAKE_POINTでつくったやつ）がエッジまたはOUTの場合trueを返す
+ */
+inline bool is_edge(u8 value)
+{
+        return ((u8)((value & 0x0f) - (Field::field_size_x - 1)) <= (u8)(-Field::field_size_x + 1))
+                 ||
+                ((u8)((value >> 4) - (Field::field_size_y - 1)) <= (u8)(-Field::field_size_y + 1));
+}
+
+/*
+ * 渡された座標（MAKE_POINTでつくったやつ）がエッジまたはOUTの場合trueを返す
+ */
+inline bool is_out(u8 value)
+{
+        return ((u8)((value & 0x0f) - Field::field_size_x) < (u8)(-Field::field_size_x))
+                ||
+                ((u8)((value >> 4) - Field::field_size_y) < (u8)(-Field::field_size_y));
+}
 
 class QRFormatParser;
 
@@ -401,6 +425,8 @@ private:
         {
                 return meta_info & EXTRACT_PLAYER_INFO;
         }
+
+        std::vector<Direction> movable_direction(Field *field) const;
         
 public:
         Agent(u8 x, u8 y, u8 meta);

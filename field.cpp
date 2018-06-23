@@ -228,47 +228,44 @@ void Field::draw_status()
         }
 }
 
-
-#define MAKE_POINT(x, y) ((x) | ((y) << 4))
-
-inline bool is_edge(u8 value)
-{
-        return !((u8)((value & 0x0f) - 1) < 10) || !((u8)((value >> 4) - 1) < 10);
-}
-
+#define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \
+                        !panel.are_you(meta_data & EXTRACT_PLAYER_INFO) \
+                        &&                                              \
+                        std::find(std::begin(list), std::end(list), point) == std::end(list)) \
+                {                                                       \
+                        score += std::abs(panel.get_score_value());     \
+                        dst_queue.push_back(std::make_pair(panel, point));  \
+                }                                                       \
+        }
 
 i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
 {
         i16 score = 0;
         const u8 x = point & 0x0f, y = point >> 4;
         u8 tmp;
-        const Panel up = field->at(x, y - 1);
-        const Panel right = field->at(x + 1, y);
-        const Panel down = field->at(x, y + 1);
-        const Panel left = field->at(x - 1, y);
 
         tmp = MAKE_POINT(x, y - 1);
-        if(!up.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
-                score += std::abs(up.get_score_value());
-                queue.push_back(std::make_pair(up, tmp));
+        if(!is_out(tmp)){
+                const Panel up = field->at(x, y - 1);
+                PUSH_AROUND(queue, up, tmp, done_list);
         }
 
         tmp = MAKE_POINT(x + 1, y);
-        if(!right.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
-                score += std::abs(right.get_score_value());
-                queue.push_back(std::make_pair(right, tmp));
+        if(!is_out(tmp)){
+                const Panel right = field->at(x + 1, y);
+                PUSH_AROUND(queue, right, tmp, done_list);
         }
 
         tmp = MAKE_POINT(x, y + 1);
-        if(!down.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
-                score += std::abs(down.get_score_value());
-                queue.push_back(std::make_pair(down, tmp));
+        if(!is_out(tmp)){
+                const Panel down = field->at(x, y + 1);
+                PUSH_AROUND(queue, down, tmp, done_list);
         }
 
         tmp = MAKE_POINT(x - 1, y);
-        if(!left.are_you(meta_data & EXTRACT_PLAYER_INFO) && std::find(std::begin(done_list), std::end(done_list), tmp) == std::end(done_list)){
-                score += std::abs(left.get_score_value());
-                queue.push_back(std::make_pair(left, tmp));
+        if(!is_out(tmp)){
+                const Panel left = field->at(x - 1, y);
+                PUSH_AROUND(queue, left, tmp, done_list);
         }
 
         return score;

@@ -88,16 +88,18 @@ void Node::draw()
 std::vector<Node *> Node::expand_enemy_node() const
 {
         std::vector<Node *> results;
+        std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
+        std::vector<Direction> &&directions2 = enemy_agent2.movable_direction(this->field);
         
-        for(int a = UP;a <= STOP;a++){
-                for(int b = UP;b <= STOP;b++){
+        for(const Direction dir1 : directions1){
+                for(const Direction dir2 : directions2){
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->enemy_agent1.move(*field, (Direction)a);
-                        clone->enemy_agent2.move(*field, (Direction)b);
+                        clone->enemy_agent1.move(*field, (Direction)dir1);
+                        clone->enemy_agent2.move(*field, (Direction)dir2);
                         results.push_back(clone);
                 }
         }
@@ -108,16 +110,18 @@ std::vector<Node *> Node::expand_enemy_node() const
 std::vector<Node *> Node::expand_my_node() const
 {
         std::vector<Node *> results;
+        std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
+        std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
         
-        for(int a = UP;a <= STOP;a++){
-                for(int b = UP;b <= STOP;b++){
+        for(const Direction dir1 : directions1){
+                for(const Direction dir2 : directions2){
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->my_agent1.move(*field, (Direction)a);
-                        clone->my_agent2.move(*field, (Direction)b);
+                        clone->my_agent1.move(*field, (Direction)dir1);
+                        clone->my_agent2.move(*field, (Direction)dir2);
                         results.push_back(clone);
                 }
         }

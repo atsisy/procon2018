@@ -22,6 +22,8 @@ int main(int argc, char **argv)
         {
                 Node *node = builder.create_root_node();
                 node->draw();
+                Search search;
+                search.search(node)->draw();
                 delete node;
         }
 #endif
