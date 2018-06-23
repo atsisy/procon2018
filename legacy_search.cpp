@@ -19,7 +19,6 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
           my_agent2(agent2.width, agent2.height, generate_agent_meta(MINE_ATTR)),
           enemy_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
           enemy_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
-          
 {
         /*
          * ルートノードのために渡すからクローンを作る必要はない。
@@ -99,8 +98,8 @@ std::vector<Node *> Node::expand_enemy_node() const
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->enemy_agent1.move(*field, (Direction)dir1);
-                        clone->enemy_agent2.move(*field, (Direction)dir2);
+                        clone->enemy_agent1.move(clone->field, (Direction)dir1);
+                        clone->enemy_agent2.move(clone->field, (Direction)dir2);
                         results.push_back(clone);
                 }
         }
@@ -121,12 +120,12 @@ std::vector<Node *> Node::expand_my_node() const
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->my_agent1.move(*field, (Direction)dir1);
-                        clone->my_agent2.move(*field, (Direction)dir2);
+                        clone->my_agent1.move(clone->field, (Direction)dir1);
+                        clone->my_agent2.move(clone->field, (Direction)dir2);
                         results.push_back(clone);
                 }
         }
-
+        
         return results;
 }
 

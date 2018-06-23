@@ -431,7 +431,7 @@ private:
         
 public:
         Agent(u8 x, u8 y, u8 meta);
-        void move(Field & field, Direction direction);
+        void move(Field *field, Direction direction);
         
         bool is_mine();
         bool is_enemy();

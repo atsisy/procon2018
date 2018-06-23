@@ -8,7 +8,7 @@ Agent::Agent(u8 x, u8 y, u8 meta)
         this->meta_info = meta;
 }
 
-void Agent::move(Field & field, Direction direction)
+void Agent::move(Field *field, Direction direction)
 {
         switch(direction){
         case UP:
@@ -40,7 +40,7 @@ void Agent::move(Field & field, Direction direction)
                 break;
         }
 
-        field.make_at(this->x, this->y, extract_player_info());
+        field->make_at(this->x, this->y, extract_player_info());
 }
 
 void Agent::draw()
@@ -53,13 +53,13 @@ std::vector<Direction> Agent::movable_direction(Field *field) const
 {
         std::vector<Direction> dst;
 
-        u8 xj = (Field::field_size_x - x - 2) & 0x80;
-        u8 yj = (Field::field_size_y - y - 2) & 0x80;
+        bool xj = ((u8)(x - (Field::field_size_x - 1)) <= (u8)(-Field::field_size_x + 1));
+        bool yj = ((u8)(y - (Field::field_size_y - 1)) <= (u8)(-Field::field_size_y + 1));
         
         /*
          * ストップはどこでもできる
          */
-        dst.push_back(STOP);
+        //dst.push_back(STOP);
         
         if(!xj && !yj){
                 dst.push_back(UP);
