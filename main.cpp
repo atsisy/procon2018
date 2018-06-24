@@ -23,14 +23,15 @@ int main()
 	Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
 	
 // a2を動かす
-	a1.move(mainField,UP);
-	a1.move(mainField,UP);
-	a1.move(mainField,UP);
-	a1.move(mainField,LEFT);
-	a1.move(mainField,LEFT);
+	a2.move(mainField,UP);
+	a2.move(mainField,UP);
+	a2.move(mainField,UP);
+	a2.move(mainField,LEFT);
+	a2.move(mainField,LEFT);
 	Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
 	
-	//myclosed[0].CalcScore(mainField);
+	myclosed.emplace_back(Closed(a1, a2));
+	myclosed[0].CalcScore(mainField);
 	mainField.Draw();
 
 #ifdef __DEBUG_MODE

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <random>
+#include <iterator>
 
 u8 Field::ac_shift_offset;
 u8 Field::field_size;
@@ -179,26 +180,25 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
  * a1, a2 から Closed::closedFlag をもとに閉路を生成するコンストラクタ
  */
  Closed::Closed(Agent a1, Agent a2) {
-	 Agent agent1;
-	 Agent agent2;
-	 
 	 // closedFlag[1][0]を持つエージェントがどちらか判定
 	 //										0:index_me 1:index_pair
 	 std::vector<u8> locusBuf;
-	 locusBuf = a1.locus;
+	 std::copy(a1.locus.begin(), a1.locus.end(), back_inserter(locusBuf));
 	 std::sort(locusBuf.begin(), locusBuf.end());	// agent.locus はぐちゃぐちゃにしてはいけないのでバッファに確保
-	if(std::binary_search(locusBuf.begin(), locusBuf.end(), closedFlag[1].indexme())==true) {
-		agent1 = a1;
-		agent2 = a2;
+	 std::vector<u8> agent1locus;
+	 std::vector<u8> agent2locus ;
+	if(std::binary_search(locusBuf.begin(), locusBuf.end(), Closed::closedFlag[1].indexme())==true) {
+		std::copy(a1.locus.begin(), a1.locus.end(), back_inserter(agent1locus));
+		std::copy(a2.locus.begin(), a2.locus.end(), back_inserter(agent2locus));
 	} else {
-		agent1 = a2;
-		agent2 = a1;
+		std::copy(a2.locus.begin(), a2.locus.end(), back_inserter(agent1locus));
+		std::copy(a1.locus.begin(), a1.locus.end(), back_inserter(agent2locus));
 	}
-	
+			
 	// agent1 から closedFlag[0][1]を探す
 	int zeroone_locusnum = 0;
-	for(int i=0; i<(int)agent1.locus.size(); i++) {
-		if(agent1.locus[i] == closedFlag[0].indexpair()) {
+	for(int i=0; i<(int)agent1locus.size(); i++) {
+		if(agent1locus[i] == Closed::closedFlag[0].indexpair()) {
 			zeroone_locusnum = i;
 			break;
 		}
@@ -206,19 +206,37 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	
 	// agent1 の closedFlag[1][0] から closedFlag[0][1] の経路を this->closed に push_back
 	int onezero_locusnum = 0;
-	for(int i=0; i<(int)agent1.locus.size(); i++) {
-		if(agent1.locus[i] == closedFlag[1].indexme()) {
+	for(int i=0; i<(int)agent1locus.size(); i++) {
+		if(agent1locus[i] == Closed::closedFlag[1].indexme()) {
 			onezero_locusnum = i;
 			break;
 		}
 	}
-	for(int i=std::min(zeroone_locusnum, onezero_locusnum); i<std::max(zeroone_locusnum, onezero_locusnum); i++) {
-		this->closed.push_back(agent1.locus[i]);
+	for(int i=std::min(zeroone_locusnum, onezero_locusnum); i<=std::max(zeroone_locusnum, onezero_locusnum); i++) {
+		this->closed.push_back(agent1locus[i]);
 	}
 	
 	// agent2 を辿り closedFlag[1][1] を探す
+	int oneone_locusnum = 0;
+	for(int i=0; i<(int)agent2locus.size(); i++) {
+		if(agent2locus[i] == Closed::closedFlag[1].indexpair()) {
+			oneone_locusnum = i;
+			break;
+		}
+	}
 	
 	// agent2 の closedFlag[1][1] から closedFlag[0][0] の経路を this->closed に push_back
+	int zerozero_locusnum = 0;
+	for(int i=0; i<(int)agent2locus.size(); i++) {
+		if(agent2locus[i] == Closed::closedFlag[0].indexme()) {
+			zerozero_locusnum = i;
+			break;
+		}
+	}
+	std::cout << zerozero_locusnum << std::endl;
+	for(int i=std::min(oneone_locusnum, zerozero_locusnum); i<=std::max(zerozero_locusnum, oneone_locusnum); i++) {
+		this->closed.push_back(agent2locus[i]);
+	}
  }
 
 void Closed::Draw() {

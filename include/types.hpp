@@ -312,7 +312,6 @@ private:
            bool isMine_LookNear(Field & field, Direction direction);
         
 public:
-		Agent();
         Agent(u8 x, u8 y, u8 meta);
         void move(Field & field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
