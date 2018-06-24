@@ -312,6 +312,7 @@ private:
            bool isMine_LookNear(Field & field, Direction direction);
         
 public:
+		Agent();
         Agent(u8 x, u8 y, u8 meta);
         void move(Field & field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
@@ -326,6 +327,13 @@ private:
 	u8 index_me, index_pair;
 	
 public:
+	u8 indexme() {
+		return this->index_me;
+	}
+	u8 indexpair() {
+		return this->index_pair;
+	}
+	
 	ClosedFlag();
 	ClosedFlag(u8 index_me, u8 index_pair):index_me(index_me),index_pair(index_pair) {
 	}
@@ -355,8 +363,14 @@ public:
 		return this->canMake;
 	}
 	
+	// デフォルトコンストラクタ
 	Closed();
+	
+	// 一人のエージェントで閉路を生成するコンストラクタ
 	Closed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	
+	// 二人のエージェントで Closed::closedFlag をもとに閉路を生成するコンストラクタ
+	Closed(Agent a1, Agent a2);
 	
 #ifdef __DEBUG_MODE
         void print_closed(Field & field)

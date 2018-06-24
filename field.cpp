@@ -149,7 +149,6 @@ std::vector<ClosedFlag> Closed::closedFlag;
 /*
  * 一人のagentで閉路を作るコンストラクタ
  * agentの今の位置から(end_x, end_y)へ閉路を作ります
- * -1：閉路を作るのに失敗、0：成功
  */
 Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	i8 buf = -1;
@@ -171,10 +170,56 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	// 閉路が作れる場合作成
 	u8 locus_size = agent.locus.size();
 	for(int i=buf; i<locus_size; i++) {
-		this->closed.push_back(agent.locus[i]);
-	}
+		this->closed.push_back(agent.locus[i]);	}
 	canMake = true;
 }
+
+/*
+ * 二人のagentで閉路を作るコンストラクタ
+ * a1, a2 から Closed::closedFlag をもとに閉路を生成するコンストラクタ
+ */
+ Closed::Closed(Agent a1, Agent a2) {
+	 Agent agent1;
+	 Agent agent2;
+	 
+	 // closedFlag[1][0]を持つエージェントがどちらか判定
+	 //										0:index_me 1:index_pair
+	 std::vector<u8> locusBuf;
+	 locusBuf = a1.locus;
+	 std::sort(locusBuf.begin(), locusBuf.end());	// agent.locus はぐちゃぐちゃにしてはいけないのでバッファに確保
+	if(std::binary_search(locusBuf.begin(), locusBuf.end(), closedFlag[1].indexme())==true) {
+		agent1 = a1;
+		agent2 = a2;
+	} else {
+		agent1 = a2;
+		agent2 = a1;
+	}
+	
+	// agent1 から closedFlag[0][1]を探す
+	int zeroone_locusnum = 0;
+	for(int i=0; i<(int)agent1.locus.size(); i++) {
+		if(agent1.locus[i] == closedFlag[0].indexpair()) {
+			zeroone_locusnum = i;
+			break;
+		}
+	}
+	
+	// agent1 の closedFlag[1][0] から closedFlag[0][1] の経路を this->closed に push_back
+	int onezero_locusnum = 0;
+	for(int i=0; i<(int)agent1.locus.size(); i++) {
+		if(agent1.locus[i] == closedFlag[1].indexme()) {
+			onezero_locusnum = i;
+			break;
+		}
+	}
+	for(int i=std::min(zeroone_locusnum, onezero_locusnum); i<std::max(zeroone_locusnum, onezero_locusnum); i++) {
+		this->closed.push_back(agent1.locus[i]);
+	}
+	
+	// agent2 を辿り closedFlag[1][1] を探す
+	
+	// agent2 の closedFlag[1][1] から closedFlag[0][0] の経路を this->closed に push_back
+ }
 
 void Closed::Draw() {
 	for(int i=0; i<(int)this->closed.size(); i++) {
