@@ -1,11 +1,13 @@
 #include "include/types.hpp"
 #include <iostream>
+#include <vector>
 
 Agent::Agent(u8 x, u8 y, u8 meta)
 {
         this->x = x;
         this->y = y;
         this->meta_info = meta;
+        this->locus.push_back(MAKE_HASH(x,y));
 }
 
 void Agent::move(Field *field, Direction direction)
@@ -40,6 +42,10 @@ void Agent::move(Field *field, Direction direction)
                 break;
         }
 
+#ifdef _ENABLE_YASUDA
+        locus.push_back(MAKE_HASH(x,y));
+#endif
+        
         field->make_at(this->x, this->y, extract_player_info());
 }
 
@@ -79,4 +85,48 @@ std::vector<Direction> Agent::movable_direction(Field *field) const
         }
         
         return dst;
+}
+
+/*
+ * direction の方向の隣接したマスがmineの色で塗られているか判定
+ */
+bool Agent::isMine_LookNear(Field & field, Direction direction) {
+	u8 lookPoint_x = x;	//見る場所の座標
+	u8 lookPoint_y = y;	
+	
+        switch(direction){
+        case UP:
+                lookPoint_y--;
+                break;
+        case RUP:
+				lookPoint_x++;
+                lookPoint_y--;
+                break;
+        case RIGHT:
+				lookPoint_x++;
+                break;
+        case RDOWN:
+				lookPoint_x++;
+                lookPoint_y++;
+                break;
+        case DOWN:
+                lookPoint_y++;
+                break;
+        case LDOWN:
+				lookPoint_x--;
+                lookPoint_y++;
+                break;
+        case LEFT:
+				lookPoint_x--;
+                break;
+        case LUP:
+				lookPoint_x--;
+                lookPoint_y--;
+                break;
+         case STOP:
+				break;
+        }
+        
+        // lookPoint の位置が自分の色で塗られているか
+	return (bool)field.at(lookPoint_x, lookPoint_y).is_my_panel();
 }

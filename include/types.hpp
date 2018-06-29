@@ -26,8 +26,9 @@ constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
-class Field;
+#define MAKE_HASH(x, y) ((y << 4) | x)
 
+class Field;
 /* Panelクラス
  * パネルの情報を保持するクラス
  */
@@ -37,7 +38,6 @@ class Panel {
          * PanelをFieldから操作したいのでフレンドクラスとする
          */
         friend Field;
-
 private:
         /*
          * 一度に全ビットを扱いたい場合はplain_bitsを使用
@@ -45,7 +45,7 @@ private:
          */
         union {
                 struct {
-                        // パネルのスコア。符号あり
+                        // パネルのスコア。符号ありa
                         i8 value: 6;
 
                         /*
@@ -129,12 +129,12 @@ class FieldEvaluater;
 
 #define MAKE_POINT(x, y) ((x) | ((y) << 4))
 
+class Closed;
 /*
  * Fieldクラス
  * 一つのフィールドを表すクラス
  */
 class Field {
-
         /*
          * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
          */
@@ -145,13 +145,14 @@ class Field {
 
         friend bool is_edge(u8 value);
         friend bool is_out(u8 value);
+        friend Closed;
         
 private:
         // アクセスのとき、y座標をどれだけシフトするか
         static u8 ac_shift_offset;
 
         // フィールドの要素数
-        static u64 field_size;
+        static u8 field_size;
         
         //フィールドのxサイズyサイズ
         static u8 field_size_x;
@@ -184,7 +185,7 @@ private:
 /*
  * フィールドのx,yの値を受け取り、Field一次元配列での要素番号を返す
  */
-	u64 xyIndex(u8 x, u8 y) {
+	u8 xyIndex(u8 x, u8 y) {
 		return x+(y<<Field::ac_shift_offset);
 	}
 
@@ -429,15 +430,96 @@ private:
 
         std::vector<Direction> movable_direction(Field *field) const;
         
+        /*
+    *自分の位置からdirectionの方向を見て色が存在するか判定する関数 
+    *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
+    */
+           bool isMine_LookNear(Field & field, Direction direction);
+        
 public:
         Agent(u8 x, u8 y, u8 meta);
+
         void move(Field *field, Direction direction);
         
-        bool is_mine();
-        bool is_enemy();
-
         void draw();
         
+        void move(Field & field, Direction direction);
+        std::vector<u8> locus;	//エージェントの動作の軌跡
+
+        bool is_mine();
+        bool is_enemy();
+};
+
+
+// 二人のエージェントで閉路を作るときのフラグを管理するクラス
+class ClosedFlag {
+private:
+	u8 index_me, index_pair;
+	
+public:
+	u8 indexme() {
+		return this->index_me;
+	}
+	u8 indexpair() {
+		return this->index_pair;
+	}
+	
+	ClosedFlag();
+	ClosedFlag(u8 index_me, u8 index_pair):index_me(index_me),index_pair(index_pair) {
+	}
+};
+
+class Closed {
+private:
+	// 閉路が作成できたか
+	bool canMake;
+
+	//閉路の座標を保存するベクター
+	std::vector<u8> closed;
+	
+	//引数x,yで示した盤面の位置から見てDirectionの方向にこのclosedのパネルが存在し、かつ指定した座標が閉路の辺の座標でないか判定する関数
+	bool CheckPanelLine(u8 x, u8 y, Direction direction);
+	
+public:
+	
+	// 二人で閉路を作るときのフラグ管理ベクター
+	static std::vector<ClosedFlag> closedFlag; 
+	
+	//今の閉路のスコアを計算する関数
+	u64 CalcScore(Field & field);
+	
+	// この閉路が正しく作れているか返す関数
+	bool canMakeClosed() {
+		return this->canMake;
+	}
+	
+	// デフォルトコンストラクタ
+	Closed();
+	
+	// 一人のエージェントで閉路を生成するコンストラクタ
+	Closed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	
+	// 二人のエージェントで Closed::closedFlag をもとに閉路を生成するコンストラクタ
+	Closed(Agent a1, Agent a2);
+	
+#ifdef __DEBUG_MODE
+        void print_closed(Field & field)
+        {
+			int sum = 0;
+			i8 score;
+			_DEBUG_PUTS_SEPARATOR();
+			puts("closed's debug message.");
+            for(u8 panel:closed) {
+				score = field.field[panel].get_score_value();
+                printf("score: %d\n", (int)score);
+                sum += score;
+			}
+			printf("\nTotal Score: %d\n", (int)CalcScore(field));
+			_DEBUG_PUTS_SEPARATOR();
+        }
+#endif
+	
+	void Draw();
 };
 
 
