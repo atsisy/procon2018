@@ -1,30 +1,16 @@
 BINDIR = ./bin.d
 DST = ./dst.d
-INCLUDE = ./include
-OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/legacy_search.o $(DST)/load_qr_format.o $(DST)/main.o
-HEADERS = $(INCLUDE)/types.hpp
-CC = g++
-LD = g++
-CFLAGS = -Wall -O2 -std=c++17 -c
-DEBUG = -g
-AOUT = bin
 
 .PHONY: release
-release: all
+release: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
+	cd solver && make release
 
 .PHONY: debug
-debug: CFLAGS+=$(DEBUG)
-debug: all
+debug: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
+	cd solver && make debug
 
-.PHONY: all
-all: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
-	$(LD) $(OBJS) -o $(BINDIR)/$(AOUT)
-
-run: $(BINDIR)/$(AOUT)
-	$(BINDIR)/$(AOUT)
-
-$(DST)/%.o: %.cpp
-	$(CC) $*.cpp $(CFLAGS) -o $(DST)/$*.o
+run: $(BINDIR)/$(SLV_AOUT)
+	$(BINDIR)/$(SLV_AOUT)
 
 %.d:
 	mkdir -p $*.d

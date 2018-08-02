@@ -1,9 +1,9 @@
 #include <iostream>
-#include "include/lsearch.hpp"
-#include "include/utility.hpp"
+#include "lsearch.hpp"
+#include "utility.hpp"
 #include <chrono>
 #include <vector>
-#include "include/types.hpp"
+#include "types.hpp"
 
 int main(int argc, char **argv)
 {

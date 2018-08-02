@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include "include/types.hpp"
+#include "types.hpp"
 
 /*
 * load_full_stringメソッド
