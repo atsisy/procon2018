@@ -58,31 +58,28 @@ void Agent::draw()
 std::vector<Direction> Agent::movable_direction(Field *field) const
 {
         std::vector<Direction> dst;
-
-        bool xj = ((u8)(x - (Field::field_size_x - 1)) <= (u8)(-Field::field_size_x + 1));
-        bool yj = ((u8)(y - (Field::field_size_y - 1)) <= (u8)(-Field::field_size_y + 1));
         
         /*
          * ストップはどこでもできる
          */
-        //dst.push_back(STOP);
-        
-        if(!xj && !yj){
-                dst.push_back(UP);
-                dst.push_back(RUP);
-                dst.push_back(RIGHT);
-                dst.push_back(RDOWN);
-                dst.push_back(DOWN);
-                dst.push_back(LDOWN);
-                dst.push_back(LEFT);
+        dst.push_back(STOP);
+
+        if(field->is_within(x - 1, y - 1))
                 dst.push_back(LUP);
-        }else if(!xj){
-                dst.push_back(RIGHT);
-                dst.push_back(LEFT);
-        }else if(!yj){
+        if(field->is_within(x, y - 1))
                 dst.push_back(UP);
+        if(field->is_within(x + 1, y - 1))
+                dst.push_back(RUP);
+        if(field->is_within(x - 1, y))
+                dst.push_back(LEFT);
+        if(field->is_within(x + 1, y))
+                dst.push_back(RIGHT);
+        if(field->is_within(x - 1, y + 1))
+                dst.push_back(LDOWN);
+        if(field->is_within(x, y + 1))
                 dst.push_back(DOWN);
-        }
+        if(field->is_within(x + 1, y + 1))
+                dst.push_back(RDOWN);
         
         return dst;
 }

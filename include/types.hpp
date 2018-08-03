@@ -213,6 +213,11 @@ public:
         void Draw();
 
         void draw_status();
+
+        bool is_within(u8 x, u8 y)
+        {
+                return (x >= 0 && x < field_size_x) && (y >= 0 && y < field_size_y);
+        }
 };
 
 /*

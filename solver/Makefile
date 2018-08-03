@@ -4,11 +4,13 @@ DST = ../dst.d
 INCLUDE = ../include
 CC = g++
 LD = g++
-CFLAGS = -Wall -O2 -std=c++17 -c
+CFLAGS = -Wall -std=c++17 -c
+OPTIMIZE =  -O2 -march=native
 BINDIR = ../bin.d
 DEBUG = -g
 
 .PHONY: release
+release: CFLAGS+=$(OPTIMIZE)
 release: full
 
 .PHONY: debug

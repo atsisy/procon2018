@@ -75,7 +75,11 @@ void Field::set_score_at(u8 x, u8 y, i8 score)
  */
 Field *Field::clone() const
 {
-        return new Field(*this);
+        Field *clone = new Field();
+        for(u8 i = 0;i < field.size();i++){
+                clone->field[i] = this->field[i];
+        }
+        return clone;
 }
 
 FieldBuilder::FieldBuilder(QRFormatParser *parser)

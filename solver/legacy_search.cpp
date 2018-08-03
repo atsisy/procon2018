@@ -40,7 +40,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         /*
          * ルートのノードは敵
          */
-        turn = ENEMY_TURN;
+        turn = MY_TURN;
         
         score = 0;
 }
@@ -65,7 +65,7 @@ Node::Node(const Node *parent)
          * クローン生成して即代入
          */
         this->field = parent->field->clone();
-        score = 0;
+        score = -1000000;
         turn = parent->toggled_turn();
 }
 
@@ -85,9 +85,9 @@ void Node::draw()
         enemy_agent2.draw();
 }
 
-std::vector<Node *> Node::expand_enemy_node() const
+void Node::expand_enemy_node()
 {
-        std::vector<Node *> results;
+        //children.reserve(81);
         std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = enemy_agent2.movable_direction(this->field);
         
@@ -100,16 +100,14 @@ std::vector<Node *> Node::expand_enemy_node() const
                         Node *clone = new Node(this);
                         clone->enemy_agent1.move(clone->field, (Direction)dir1);
                         clone->enemy_agent2.move(clone->field, (Direction)dir2);
-                        results.push_back(clone);
+                        children.push_back(clone);
                 }
         }
-
-        return results;
 }
 
-std::vector<Node *> Node::expand_my_node() const
+void Node::expand_my_node()
 {
-        std::vector<Node *> results;
+        //children.reserve(81);
         std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
         
@@ -122,29 +120,27 @@ std::vector<Node *> Node::expand_my_node() const
                         Node *clone = new Node(this);
                         clone->my_agent1.move(clone->field, (Direction)dir1);
                         clone->my_agent2.move(clone->field, (Direction)dir2);
-                        results.push_back(clone);
+                        children.push_back(clone);
                 }
         }
-        
-        return results;
 }
 
-std::vector<Node *> Node::expand() const
+void Node::expand()
 {
         if(turn){
                 /*
                  * 敵のノードを展開
                  */
-                return this->expand_enemy_node();
+                expand_enemy_node();
         }else{
                 /*
                  * 味方のノードを展開
                  */
-                return this->expand_my_node();
+                expand_my_node();
         }
 }
 
-Node *Node::evaluate()
+i64 Node::evaluate()
 {
         static FieldEvaluater evaluater;
 
@@ -166,8 +162,8 @@ Node *Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-
-        return this;
+        
+        return score;
 }
 
 /*
@@ -182,28 +178,61 @@ Node *Node::evaluate()
  return α // カット
  return α
  */
-Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
+i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
 {
-        Node *child_tmp;
-        
         if(!depth){
                 return node->evaluate();
         }
 
-        std::vector<Node *> &&children = node->expand();
+        node->expand();
 
-        for(Node *child : children){
-                child_tmp = ab(child, depth - 1, -b, -a);
-                a = std::max(a, child_tmp->score);
-                if(a >= b){
-                        return child_tmp;
+        for(Node *child : node->ref_children()){
+                child->set_score(ab_min(child, depth - 1, a, b));
+                if(child->get_score() >= b){
+                        delete node;
+                        return node->get_score();
+                }
+                if(child->get_score() > a){
+                        // better one
+                        a = child->get_score();
                 }
         }
 
-        return child_tmp;
+        return a;
+}
+
+i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
+{
+        if(!depth){
+                return node->evaluate();
+        }
+        
+        node->expand();
+
+        for(Node *child : node->ref_children()){
+                child->set_score(ab_min(child, depth - 1, a, b));
+                if(child->get_score() <= a){
+                        delete node;
+                        return child->get_score();
+                }
+
+                if(child->get_score() < b){
+                        //better one
+                        b = child->get_score();
+                }
+        }
+
+        return b;
 }
 
 Node *Search::search(Node *root)
 {
-        return ab(root, 4, 10000, -10000);
+        ab_max(root, 4, -10000, 10000);
+        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+        std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
+        /*
+         * FIXME
+         * 先頭に必ずぶっ壊れたデータが入っている
+         */
+        return root->ref_children().at(1);
 }

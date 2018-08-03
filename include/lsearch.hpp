@@ -30,6 +30,8 @@ private:
         Agent enemy_agent1;
         Agent enemy_agent2;
 
+        std::vector<Node *> children;
+        
         /*
          * ルートノード生成用のコンストラクタ
          */
@@ -38,13 +40,13 @@ private:
         /*
          * ターンによりノードの展開方法が異なるため、この２つのメソッドを使い分けよう！
          */
-        std::vector<Node *> expand_enemy_node() const;
-        std::vector<Node *> expand_my_node() const;
+        void expand_enemy_node();
+        void expand_my_node();
 
         /*
          * 自分自身を評価するメソッド
          */
-        Node *evaluate();
+        i64 evaluate();
 public:
         /*
          * 普通に使ってほしいコンストラクタ
@@ -61,23 +63,34 @@ public:
         /*
          * 展開するやつ
          */
-        std::vector<Node *> expand() const;
+        void expand();
         
         void set_score(i16 score)
         {
                 this->score = score;
         }
 
+        i64 get_score() const
+        {
+                return score;
+        }
+
         u8 toggled_turn() const
         {
                 return !turn;
+        }
+
+        std::vector<Node *> &ref_children()
+        {
+                return children;
         }
 };
 
 
 class Search {
 private:
-        Node *ab(Node *node, u8 depth, i16 a, i16 b);
+        i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
+        i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
 public:
         Node *search(Node *root);
 };
