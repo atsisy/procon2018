@@ -74,13 +74,6 @@ public:
         }
 };
 
-class SlantTree {
-private:
-
-public:
-
-};
-
 class Search {
 private:
         Node *ab(Node *node, u8 depth, i16 a, i16 b);

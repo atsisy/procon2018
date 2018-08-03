@@ -59,16 +59,16 @@ private:
 
                 u8 plain_bits;
         };
-        
-        
-        /* 
+
+
+        /*
          * パネルにスコアを格納
          * score:代入する数値
          */
 	void set_score_value(i8 score) {
 		value = score;
 	}
-        
+
 public:
 
         bool is_my_panel() const
@@ -146,18 +146,18 @@ class Field {
         friend bool is_edge(u8 value);
         friend bool is_out(u8 value);
         friend Closed;
-        
+
 private:
         // アクセスのとき、y座標をどれだけシフトするか
         static u8 ac_shift_offset;
 
         // フィールドの要素数
         static u8 field_size;
-        
+
         //フィールドのxサイズyサイズ
         static u8 field_size_x;
         static u8 field_size_y;
-        
+
         std::vector<Panel> field;
 
         /*
@@ -190,7 +190,7 @@ private:
 	}
 
 public:
-		
+
         Field();
 
         /*
@@ -198,17 +198,17 @@ public:
          * このメソッドは、fieldメンバを変更することはできない
          */
         Panel at(u8 x, u8 y) const;
-        
+
         /*
          * 自分の複製を返すメソッド
          */
         Field *clone() const;
 
         u64 score();
-        
+
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
-        
+
         // フィールドの描画関数
         void Draw();
 
@@ -238,10 +238,10 @@ inline bool is_out(u8 value)
 class QRFormatParser;
 
 class FieldBuilder {
-        
+
 private:
         QRFormatParser *original_data;
-        
+
 public:
         /*
          * コンストラクタ
@@ -257,7 +257,7 @@ public:
          * 初期状態のnodeを生成するメソッド
          */
         Node *create_root_node();
-        
+
 
 #ifdef __DEBUG_MODE
         void print_status()
@@ -303,7 +303,7 @@ public:
 class QRFormatParser {
 
         friend FieldBuilder;
-        
+
 private:
         // パネルスコアの羅列
         std::vector<i8> scores;
@@ -322,7 +322,7 @@ private:
         Rect<i16> translate_to_agent_point(const Rect<i16> point);
         std::vector<std::string> split(const std::string &&s, char delim);
         std::string load_full_string(std::string file_name);
-        
+
 public:
         QRFormatParser(std::string file_name);
 };
@@ -398,12 +398,12 @@ inline void test_generate_agent_meta()
 class Agent {
 
         friend Node;
-        
+
 private:
         u8 x: 4;
         u8 y: 4;
         u8 meta_info;
-        
+
         Direction blockdirection;
         u8 blocktern;
 
@@ -460,39 +460,40 @@ private:
         }
 
         std::vector<Direction> movable_direction(Field *field) const;
-        
+
         /*
-    *自分の位置からdirectionの方向を見て色が存在するか判定する関数 
+    *自分の位置からdirectionの方向を見て色が存在するか判定する関数
     *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
     */
            bool isMine_LookNear(Field & field, Direction direction);
-        
+
 public:
         Agent(u8 x, u8 y, u8 meta);
 
         void move(Field *field, Direction direction);
-        
+
         i8 get_blockscore(Field &field, Direction k) {
 			u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
 			u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)
 			i8 score = field.at(kx+1,ky).get_score_value()+field.at(kx-1,ky).get_score_value()+field.at(kx,ky+1).get_score_value()+field.at(kx,ky-1).get_score_value();
 			return score;
 		}
-		
+
 		Agent aftermove_agent(u8 addx, u8 addy) {
 			return Agent(this->x+addx, this->y+addy, MINE_ATTR);
 		}
-		
+
 		void setblockdirection(Direction direction) {
 			this->blockdirection = direction;
 		}
-		
+
 		void moveblock(Field &field) {
+                        // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
 			this->move(field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
 		}
-		
+
         void draw();
-        
+
         void move(Field & field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
@@ -505,7 +506,7 @@ public:
 class ClosedFlag {
 private:
 	u8 index_me, index_pair;
-	
+
 public:
 	u8 indexme() {
 		return this->index_me;
@@ -513,7 +514,7 @@ public:
 	u8 indexpair() {
 		return this->index_pair;
 	}
-	
+
 	ClosedFlag();
 	ClosedFlag(u8 index_me, u8 index_pair):index_me(index_me),index_pair(index_pair) {
 	}
@@ -526,32 +527,32 @@ private:
 
 	//閉路の座標を保存するベクター
 	std::vector<u8> closed;
-	
+
 	//引数x,yで示した盤面の位置から見てDirectionの方向にこのclosedのパネルが存在し、かつ指定した座標が閉路の辺の座標でないか判定する関数
 	bool CheckPanelLine(u8 x, u8 y, Direction direction);
-	
+
 public:
-	
+
 	// 二人で閉路を作るときのフラグ管理ベクター
-	static std::vector<ClosedFlag> closedFlag; 
-	
+	static std::vector<ClosedFlag> closedFlag;
+
 	//今の閉路のスコアを計算する関数
 	u64 CalcScore(Field & field);
-	
+
 	// この閉路が正しく作れているか返す関数
 	bool canMakeClosed() {
 		return this->canMake;
 	}
-	
+
 	// デフォルトコンストラクタ
 	Closed();
-	
+
 	// 一人のエージェントで閉路を生成するコンストラクタ
 	Closed(Agent agent, Field & field, u8 end_x, u8 end_y);
-	
+
 	// 二人のエージェントで Closed::closedFlag をもとに閉路を生成するコンストラクタ
 	Closed(Agent a1, Agent a2);
-	
+
 #ifdef __DEBUG_MODE
         void print_closed(Field & field)
         {
@@ -568,7 +569,7 @@ public:
 			_DEBUG_PUTS_SEPARATOR();
         }
 #endif
-	
+
 	void Draw();
 };
 
