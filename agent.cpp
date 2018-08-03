@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-Agent::Agent(u8 x, u8 y, u8 meta)
+Agent::Agent(u8 x, u8 y, u8 meta):blockdirection(UP),blocktern(0)
 {
         this->x = x;
         this->y = y;

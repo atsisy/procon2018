@@ -252,7 +252,7 @@ Node *Search::absearch(Node *root)
 
 i8 Search::slantsearch(Agent agent, Field & field) {
 	Direction ret;
-	slant(agent, field, 4, &ret);
+	slant(agent, field, 1, &ret);
 	
 	return ret;
 }

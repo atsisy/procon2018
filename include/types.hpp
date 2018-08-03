@@ -339,6 +339,34 @@ enum Direction {
         STOP = 8
 };
 
+inline Direction int_to_direction(int num) {
+	switch(num) {
+		case 0:
+			return UP;
+		case 1:
+			return RUP;
+		case 2:
+			return RIGHT;
+		case 3:
+			return RDOWN;
+		case 4:
+			return DOWN;
+		case 5:
+			return LDOWN;
+		case 6:
+			return LEFT;
+		case 7:
+			return LUP;
+		case 8:
+			return STOP;
+		default:
+			#ifdef __DEBUG_MODE
+			std::cout << "invalid number: " << num << std::endl;
+			#endif
+			return STOP;
+	};
+}
+
 template <typename Head, typename ... Tail>
 constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
 {
@@ -375,6 +403,9 @@ private:
         u8 x: 4;
         u8 y: 4;
         u8 meta_info;
+        
+        Direction blockdirection;
+        u8 blocktern;
 
         void move_up()
         {
@@ -451,7 +482,15 @@ public:
 		Agent aftermove_agent(u8 addx, u8 addy) {
 			return Agent(this->x+addx, this->y+addy, MINE_ATTR);
 		}
-        
+		
+		void setblockdirection(Direction direction) {
+			this->blockdirection = direction;
+		}
+		
+		void moveblock(Field &field) {
+			this->move(field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
+		}
+		
         void draw();
         
         void move(Field & field, Direction direction);
