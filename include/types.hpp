@@ -441,6 +441,13 @@ public:
 
         void move(Field *field, Direction direction);
         
+        i8 get_blockscore(Field &field, Direction k) {
+			u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
+			u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)
+			i8 score = field.at(kx+1,ky).get_score_value()+field.at(kx-1,ky).get_score_value()+field.at(kx,ky+1).get_score_value()+field.at(kx,ky-1).get_score_value();
+			return score;
+		}
+        
         void draw();
         
         void move(Field & field, Direction direction);

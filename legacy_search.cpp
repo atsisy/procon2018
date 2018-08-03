@@ -203,7 +203,50 @@ Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
         return child_tmp;
 }
 
-Node *Search::search(Node *root)
+Direction Search::slant(Agent agent, Field &field, u8 depth) {
+	Direction direction = UP;
+	
+	int ds = -10000;
+	int tmp;
+	
+	// toriaezu depth = 1
+	
+	// Down
+	tmp = agent.get_blockscore(field, DOWN);
+	if(ds < tmp) {
+		ds = tmp;
+		direction = DOWN;
+	}
+	
+	// Up
+	tmp = agent.get_blockscore(field, UP);
+	if(ds < tmp) {
+		ds = tmp;
+		direction = UP;
+	}
+		
+	// Right
+	tmp = agent.get_blockscore(field, RIGHT);
+	if(ds < tmp) {
+		ds = tmp;
+		direction = RIGHT;
+	}
+		
+	// Left
+	tmp = agent.get_blockscore(field, LEFT);
+	if(ds < tmp) {
+		ds = tmp;
+		direction = LEFT;
+	}
+	
+	return direction;
+}
+
+Node *Search::absearch(Node *root)
 {
-        return ab(root, 4, 10000, -10000);
+	return ab(root, 4, 10000, -10000);
+}
+
+Direction Search::slantsearch(Agent agent, Field & field) {
+	return slant(agent, field, 1);
 }
