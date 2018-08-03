@@ -24,7 +24,7 @@ int main(int argc, char **argv)
                 mainField.randSetPanel();
        
                 Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
-                Agent a2(5,5,generate_agent_meta(MINE_ATTR));
+                Agent a2(4,4,generate_agent_meta(MINE_ATTR));
 					
                 mainField.Draw();
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, UP) << std::endl;

@@ -447,6 +447,10 @@ public:
 			i8 score = field.at(kx+1,ky).get_score_value()+field.at(kx-1,ky).get_score_value()+field.at(kx,ky+1).get_score_value()+field.at(kx,ky-1).get_score_value();
 			return score;
 		}
+		
+		Agent aftermove_agent(u8 addx, u8 addy) {
+			return Agent(this->x+addx, this->y+addy, MINE_ATTR);
+		}
         
         void draw();
         

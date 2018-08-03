@@ -1,5 +1,7 @@
 #include "include/lsearch.hpp"
+#include "include/types.hpp"
 #include <algorithm>
+#include <vector>
 
 /*
  * Nodeクラスのコンストラクタ
@@ -203,43 +205,44 @@ Node *Search::ab(Node *node, u8 depth, i16 a, i16 b)
         return child_tmp;
 }
 
-Direction Search::slant(Agent agent, Field &field, u8 depth) {
-	Direction direction = UP;
+i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	
 	int ds = -10000;
 	int tmp;
+	std::vector<i8> discore(4,0);			// up, right, down, left
 	
-	// toriaezu depth = 1
-	
-	// Down
-	tmp = agent.get_blockscore(field, DOWN);
-	if(ds < tmp) {
-		ds = tmp;
-		direction = DOWN;
-	}
-	
-	// Up
-	tmp = agent.get_blockscore(field, UP);
-	if(ds < tmp) {
-		ds = tmp;
-		direction = UP;
-	}
+	if(depth == 0) {
+		// Up
+		tmp = agent.get_blockscore(field, UP);
+		if(ds < tmp) ds = tmp;
 		
-	// Right
-	tmp = agent.get_blockscore(field, RIGHT);
-	if(ds < tmp) {
-		ds = tmp;
-		direction = RIGHT;
-	}
+		// Right
+		tmp = agent.get_blockscore(field, RIGHT);
+		if(ds < tmp) ds = tmp;
 		
-	// Left
-	tmp = agent.get_blockscore(field, LEFT);
-	if(ds < tmp) {
-		ds = tmp;
-		direction = LEFT;
+		// Down
+		tmp = agent.get_blockscore(field, DOWN);
+		if(ds < tmp) ds = tmp;	
+		
+		// Left
+		tmp = agent.get_blockscore(field, LEFT);
+		if(ds < tmp) ds = tmp;
+	
+		return tmp;
 	}
 	
-	return direction;
+	Direction weast;
+	discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
+	discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
+	discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
+	discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
+	
+	i8 max = *std::max_element(discore.begin(), discore.end());
+	
+	for(int i=0;i<4; i++)
+		if(discore[i] == max) *result = (Direction)(i*2); 
+	
+	return max;
 }
 
 Node *Search::absearch(Node *root)
@@ -247,6 +250,9 @@ Node *Search::absearch(Node *root)
 	return ab(root, 4, 10000, -10000);
 }
 
-Direction Search::slantsearch(Agent agent, Field & field) {
-	return slant(agent, field, 1);
+i8 Search::slantsearch(Agent agent, Field & field) {
+	Direction ret;
+	slant(agent, field, 4, &ret);
+	
+	return ret;
 }
