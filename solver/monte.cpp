@@ -1,8 +1,11 @@
 #include "lsearch.hpp"
 #include <algorithm>
 
-constexpr u8 MONTE_DEPTH = 50;
-constexpr u32 MONTE_SIMULATION_TIMES = 200;
+constexpr u8 MONTE_DEPTH = 60;
+constexpr u32 MONTE_FINAL_TIMES = 2000;
+constexpr u32 MONTE_MIN_TIMES = 80;
+constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
+constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 
 Montecarlo::Montecarlo()
         : random(std::random_device()())
@@ -14,7 +17,7 @@ Montecarlo::Montecarlo()
 Node *Montecarlo::let_me_monte(Node *node)
 {
         std::vector<PlayoutResult> result;
-        u16 win, lose;
+        u16 win, lose, limit, i;
 
         // 一個下のノードを展開
         node->expand();
@@ -22,7 +25,12 @@ Node *Montecarlo::let_me_monte(Node *node)
         // 各ノードに対してシュミレーションを行う
         for(Node *child : node->ref_children()){
                 win = lose = 0;
-                for(u8 i = 0;i < MONTE_SIMULATION_TIMES;i++){
+                limit = MONTE_MIN_TIMES;
+                
+                for(i = 0;i <= limit && i < MONTE_FINAL_TIMES;i++){
+                        if(i == limit && ((double)win / (double)i) > MONTE_THD_WIN_PERCENTAGE){
+                                limit += MONTE_ADDITIONAL_SIM_TIMES;
+                        }
                         switch(playout(child, MONTE_DEPTH)){
                         case WIN:
                                 win++;
@@ -34,7 +42,7 @@ Node *Montecarlo::let_me_monte(Node *node)
                                 break;
                         }
                 }
-                result.emplace_back((double)win / (double)MONTE_SIMULATION_TIMES, child);
+                result.emplace_back((double)win / (double)i, child);
         }
         
         // 勝率でソート

@@ -3,7 +3,7 @@ DST = ./dst.d
 
 .PHONY: release
 release: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
-	cd solver && make release
+	cd solver && make release -j3
 
 .PHONY: debug
 debug: $(BINDIR) $(DST) $(OBJS) $(HEADERS)
