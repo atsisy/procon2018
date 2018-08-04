@@ -41,6 +41,8 @@ private:
         std::vector<Node *> expand_enemy_node() const;
         std::vector<Node *> expand_my_node() const;
 
+        std::string dump_json();
+        
         /*
          * 自分自身を評価するメソッド
          */
@@ -57,6 +59,8 @@ public:
          * 情報を吐くよ！！
          */
         void draw();
+
+        void dump_json_file(const char *file_name);
 
         /*
          * 展開するやつ

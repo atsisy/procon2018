@@ -62,7 +62,10 @@ int main(int argc, char **argv)
                 Node *node = builder.create_root_node();
                 node->draw();
                 Search search;
-                search.search(node)->draw();
+                
+                Node *ans = search.search(node);
+                ans->draw();
+                ans->dump_json_file("dump.json");
                 delete node;
         }
 #endif

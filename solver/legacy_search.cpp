@@ -1,5 +1,7 @@
 #include "lsearch.hpp"
+#include "picojson.h"
 #include <algorithm>
+#include <fstream>
 
 /*
  * Nodeクラスのコンストラクタ
@@ -84,6 +86,55 @@ void Node::draw()
         puts("Node::enemy_agent2");
         enemy_agent2.draw();
 }
+
+std::string Node::dump_json()
+{
+        picojson::object root;
+        picojson::array array;
+
+        root.insert(std::make_pair("width", picojson::value((double)Field::field_size_x)));
+        root.insert(std::make_pair("height", picojson::value((double)Field::field_size_y)));
+
+        for(u8 y = 0;y < Field::field_size_y;y++){
+                for(u8 x = 0;x < Field::field_size_x;x++){
+                        picojson::object data;
+                        data.insert(std::make_pair("x", picojson::value((double)x)));
+                        data.insert(std::make_pair("y", picojson::value((double)y)));
+                        data.insert(std::make_pair("score", picojson::value(
+                                                           (double)(field->at(x, y).get_score_value()))));
+                        data.insert(std::make_pair("attribute", [](const Panel panel)
+                                                                        {
+                                                                                if(panel.are_you(MINE_ATTR))
+                                                                                        return "M";
+                                                                                else if(panel.are_you(ENEMY_ATTR))
+                                                                                        return "E";
+                                                                                else
+                                                                                        return "P";
+                                                                        }(field->at(x, y))));
+                        array.push_back(picojson::value(data));
+                }
+        }
+
+        root.insert(std::make_pair("agent_m1_x", picojson::value((double)my_agent1.x)));
+        root.insert(std::make_pair("agent_m1_y", picojson::value((double)my_agent1.y)));
+        root.insert(std::make_pair("agent_m2_x", picojson::value((double)my_agent2.x)));
+        root.insert(std::make_pair("agent_m2_y", picojson::value((double)my_agent2.y)));
+        root.insert(std::make_pair("agent_e1_x", picojson::value((double)enemy_agent1.x)));
+        root.insert(std::make_pair("agent_e1_y", picojson::value((double)enemy_agent1.y)));
+        root.insert(std::make_pair("agent_e2_x", picojson::value((double)enemy_agent2.x)));
+        root.insert(std::make_pair("agent_e2_y", picojson::value((double)enemy_agent2.y)));
+        root.insert(std::make_pair("turn", picojson::value((double)turn)));
+
+        root.insert(std::make_pair("Field", picojson::value(array)));
+        return picojson::value(root).serialize();
+}
+
+void Node::dump_json_file(const char *file_name)
+{
+        std::ofstream f(file_name);
+        f << dump_json();
+}
+
 
 std::vector<Node *> Node::expand_enemy_node() const
 {
