@@ -7,6 +7,12 @@
 
 int main(int argc, char **argv)
 {
+
+        Node *node = new Node(argv[1]);
+        node->draw();
+        return 0;
+
+        
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */

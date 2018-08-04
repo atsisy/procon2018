@@ -94,6 +94,20 @@ FieldBuilder::FieldBuilder(QRFormatParser *parser)
         original_data = parser;
 }
 
+FieldBuilder::FieldBuilder(i32 field_width, i32 field_height)
+{
+        double tmp;
+        
+	Field::field_size_x = field_width;
+	Field::field_size_y = field_height;
+
+        tmp = std::log2(field_width);
+        Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
+        
+        Field::field_size = field_height << Field::ac_shift_offset;
+        original_data = nullptr;
+}
+
 /*
  * FieldBuilder::release_resourceメソッド
  * リソースを解放するためのメソッド

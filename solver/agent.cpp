@@ -10,6 +10,12 @@ Agent::Agent(u8 x, u8 y, u8 meta)
         this->locus.push_back(MAKE_HASH(x,y));
 }
 
+Agent::Agent(u8 meta)
+{
+        this->meta_info = meta;
+        this->locus.push_back(MAKE_HASH(x,y));
+}
+
 void Agent::move(Field *field, Direction direction)
 {
         switch(direction){

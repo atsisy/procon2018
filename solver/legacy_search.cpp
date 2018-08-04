@@ -71,6 +71,56 @@ Node::Node(const Node *parent)
         turn = parent->toggled_turn();
 }
 
+Node::Node(const char *json_path)
+        : my_agent1(MINE_ATTR), my_agent2(MINE_ATTR),
+          enemy_agent1(ENEMY_ATTR), enemy_agent2(ENEMY_ATTR)
+{
+        std::ifstream ifs(json_path, std::ios::in);
+        if (ifs.fail()) {
+                std::cerr << "failed to read json file" << std::endl;
+                exit(1);
+        }
+        const std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        ifs.close();
+
+        picojson::value v;
+        const std::string err = picojson::parse(v, json);
+        if (err.empty() == false) {
+                std::cerr << err << std::endl;
+                exit(1);
+        }
+        
+        picojson::object& obj = v.get<picojson::object>();
+        my_agent1.x = (int)obj["agent_m1_x"].get<double>();
+        my_agent1.y = (int)obj["agent_m1_y"].get<double>();
+        my_agent2.x = (int)obj["agent_m2_x"].get<double>();
+        my_agent2.y = (int)obj["agent_m2_y"].get<double>();
+        enemy_agent1.x = (int)obj["agent_e1_x"].get<double>();
+        enemy_agent1.y = (int)obj["agent_e1_y"].get<double>();
+        enemy_agent2.x = (int)obj["agent_e2_x"].get<double>();
+        enemy_agent2.y = (int)obj["agent_e2_y"].get<double>();
+
+        picojson::array& array = obj["Field"].get<picojson::array>();
+        FieldBuilder builer((i32)obj["width"].get<double>(), (i32)obj["height"].get<double>());
+        field = new Field();
+        
+        for(picojson::value &e : array){
+                picojson::object &object = e.get<picojson::object>();
+                field->set_score_at(object["x"].get<double>(), object["y"].get<double>(), object["score"].get<double>());
+                field->make_at(object["x"].get<double>(), object["y"].get<double>(), [](std::string key){
+                                                                                                  if(key == "P")
+                                                                                                          return PURE_ATTR;
+                                                                                                  else if(key == "M")
+                                                                                                          return MINE_ATTR;
+                                                                                                  else
+                                                                                                          return ENEMY_ATTR;
+                                                                                          }(object["attribute"].get<std::string>()));
+        }
+
+        turn = ENEMY_TURN;
+        
+}
+
 void Node::draw()
 {
         puts("Field Info");

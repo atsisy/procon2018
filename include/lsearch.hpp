@@ -55,6 +55,11 @@ public:
         Node(const Node *parent);
 
         /*
+         * JSONからNodeを復元する
+         */
+        Node(const char *json_path);
+
+        /*
          * デバッグ用のメソッド
          * 情報を吐くよ！！
          */
