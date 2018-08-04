@@ -2,8 +2,8 @@
 #include <algorithm>
 
 constexpr u8 MONTE_DEPTH = 60;
-constexpr u32 MONTE_FINAL_TIMES = 2000;
-constexpr u32 MONTE_MIN_TIMES = 80;
+constexpr u32 MONTE_FINAL_TIMES = 3000;
+constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 
@@ -31,7 +31,7 @@ Node *Montecarlo::let_me_monte(Node *node)
                         if(i == limit && ((double)win / (double)i) > MONTE_THD_WIN_PERCENTAGE){
                                 limit += MONTE_ADDITIONAL_SIM_TIMES;
                         }
-                        switch(playout(child, MONTE_DEPTH)){
+                        switch(faster_playout(child, MONTE_DEPTH)){
                         case WIN:
                                 win++;
                                 break;
@@ -97,4 +97,36 @@ Judge Montecarlo::playout(Node *node, u8 depth)
                 return LOSE;
         else
                 return DRAW;
+}
+
+Judge Montecarlo::faster_playout(Node *node, u8 depth)
+{
+        Node *current = new Node(node);
+        Direction d1, d2;
+        bool turn = false;
+        Judge result;
+        
+        while(depth--){
+                do{
+                        d1 = int_to_direction(random() % 9);
+                }while(
+                        (!turn && !current->enemy_agent1.is_movable(current->field, d1)) ||
+                        (turn && !current->my_agent1.is_movable(current->field, d1)));
+                do{
+                        d2 = int_to_direction(random() % 9);
+                }while(
+                        (!turn && !current->enemy_agent2.is_movable(current->field, d2)) ||
+                        (turn && !current->my_agent2.is_movable(current->field, d2)));
+                current->play(turn, d1, d2);
+                turn = !turn;
+        }
+
+        if(current->evaluate() > 0)
+                result = WIN;
+        else if(current->evaluate() < 0)
+                result = LOSE;
+        else
+                result = DRAW;
+        delete current;
+        return result;
 }

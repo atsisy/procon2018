@@ -58,6 +58,10 @@ int main(int argc, char **argv)
         }
                 */
 
+        Node *node = builder.create_root_node();
+        Montecarlo monte;
+        monte.let_me_monte(node)->draw();
+        delete node;
 #endif
         builder.release_resource();
         

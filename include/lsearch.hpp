@@ -46,6 +46,8 @@ private:
         void expand_enemy_node();
         void expand_my_node();
 
+        void play(bool play_turn, Direction d1, Direction d2);
+
         /*
          * 自分自身を評価するメソッド
          */
@@ -123,6 +125,8 @@ private:
         std::mt19937 random;
         
         Judge playout(Node *node, u8 depth);
+        Judge faster_playout(Node *node, u8 depth);
+        
         Node *simulation(Node *node);
         
 public:

@@ -87,6 +87,17 @@ void Node::draw()
         enemy_agent2.draw();
 }
 
+void Node::play(bool play_turn, Direction d1, Direction d2)
+{
+        if(play_turn){
+                my_agent1.move(this->field, d1);
+                my_agent2.move(this->field, d2);
+        }else{
+                enemy_agent1.move(this->field, d1);
+                enemy_agent2.move(this->field, d2);
+        }
+}
+
 void Node::expand_enemy_node()
 {
         //children.reserve(81);
