@@ -59,8 +59,10 @@ int main(int argc, char **argv)
         {
                 Node *node = builder.create_root_node();
                 node->draw();
-                Search search;
-                search.search(node)->draw();
+                //Search search;
+                //search.search(node)->draw();
+                Montecarlo monte;
+                monte.let_me_monte(node)->draw();
                 delete node;
         }
 #endif

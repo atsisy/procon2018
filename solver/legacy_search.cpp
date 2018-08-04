@@ -140,6 +140,19 @@ void Node::expand()
         }
 }
 
+Node *Node::get_specific_child(Direction agent1, Direction agent2)
+{
+        Node *clone = new Node(this);
+        if(IS_MYTURN(turn)){
+                clone->my_agent1.move(clone->field, agent1);
+                clone->my_agent2.move(clone->field, agent2);
+        }else{
+                clone->enemy_agent1.move(clone->field, agent1);
+                clone->enemy_agent2.move(clone->field, agent2);  
+        }
+        return clone;
+}
+
 i64 Node::evaluate()
 {
         static FieldEvaluater evaluater;
@@ -156,7 +169,7 @@ i64 Node::evaluate()
         evaluater.set_target(MINE_ATTR);
         score += evaluater.calc_local_area(field);
         evaluater.set_target(ENEMY_ATTR);
-        score += evaluater.calc_local_area(field);
+        score -= evaluater.calc_local_area(field);
 
         /*
          * 愚直なやつ

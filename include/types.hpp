@@ -214,7 +214,7 @@ public:
 
         void draw_status();
 
-        bool is_within(u8 x, u8 y)
+        bool is_within(i8 x, i8 y)
         {
                 return (x >= 0 && x < field_size_x) && (y >= 0 && y < field_size_y);
         }
@@ -344,6 +344,34 @@ enum Direction {
         STOP = 8
 };
 
+inline Direction int_to_direction(int num) {
+	switch(num) {
+        case 0:
+                return UP;
+        case 1:
+                return RUP;
+        case 2:
+                return RIGHT;
+        case 3:
+                return RDOWN;
+        case 4:
+                return DOWN;
+        case 5:
+                return LDOWN;
+        case 6:
+                return LEFT;
+        case 7:
+                return LUP;
+        case 8:
+                return STOP;
+        default:
+#ifdef __DEBUG_MODE
+                std::cout << "invalid number: " << num << std::endl;
+#endif
+                return STOP;
+	};
+}
+
 template <typename Head, typename ... Tail>
 constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
 {
@@ -445,6 +473,7 @@ public:
         Agent(u8 x, u8 y, u8 meta);
 
         void move(Field *field, Direction direction);
+        bool is_movable(Field *field, Direction dir);
         
         void draw();
         

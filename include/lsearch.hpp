@@ -1,8 +1,10 @@
 #pragma once
 
 #include "types.hpp"
+#include <random>
 
 class Search;
+class Montecarlo;
 
 constexpr u8 MY_TURN = 0;
 constexpr u8 ENEMY_TURN = !MY_TURN;
@@ -15,6 +17,7 @@ class Node {
         friend FieldBuilder;
         friend FieldEvaluater;
         friend Search;
+        friend Montecarlo;
 private:
         // フィールド
         Field *field;
@@ -64,6 +67,8 @@ public:
          * 展開するやつ
          */
         void expand();
+
+        Node *get_specific_child(Direction agent1, Direction agent2);
         
         void set_score(i16 score)
         {
@@ -91,6 +96,34 @@ class Search {
 private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
+
 public:
         Node *search(Node *root);
+};
+
+
+enum Judge {
+        LOSE = 0,
+        WIN = 1,
+        DRAW = 2,
+};
+
+struct PlayoutResult {
+
+        double percentage;
+        Node *node;
+
+        PlayoutResult(double p, Node *n){ percentage = p, node = n; }
+};
+
+class Montecarlo {
+private:
+        std::mt19937 random;
+        
+        Judge playout(Node *node, u8 depth);
+        Node *simulation(Node *node);
+        
+public:
+        Node *let_me_monte(Node *node);
+        Montecarlo();
 };

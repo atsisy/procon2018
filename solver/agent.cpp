@@ -127,3 +127,38 @@ bool Agent::isMine_LookNear(Field & field, Direction direction) {
         // lookPoint の位置が自分の色で塗られているか
 	return (bool)field.at(lookPoint_x, lookPoint_y).is_my_panel();
 }
+
+bool Agent::is_movable(Field *field, Direction dir)
+{
+        i8 _x = this->x;
+        i8 _y = this->y;
+        
+        switch(dir){
+        case UP:
+                _y--;
+                break;
+        case RUP:
+                _x++, _y--;
+                break;
+        case RIGHT:
+                _x++;
+                break;
+        case RDOWN:
+                _x++, _y++;
+                break;
+        case DOWN:
+                _y++;
+                break;
+        case LDOWN:
+                _x--, _y++;
+                break;
+        case LEFT:
+                _x--;
+                break;
+        case LUP:
+                _x--, _y--;
+                break;
+        }
+
+        return field->is_within(_x, _y);
+}
