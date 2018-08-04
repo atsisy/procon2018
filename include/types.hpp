@@ -208,6 +208,11 @@ public:
         
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
+
+        // jsonの文字列返却するメソッド
+        std::string dump_json();
+
+        void dump_json_file(const char *file_name);
         
         // フィールドの描画関数
         void Draw();

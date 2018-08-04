@@ -21,7 +21,9 @@ int main(int argc, char **argv)
 
 	
                 mainField.randSetPanel();
-       
+
+                mainField.dump_json_file("test.json");
+                
                 Agent a1(2,2,generate_agent_meta(MINE_ATTR));
                 Agent a2(5,5,generate_agent_meta(MINE_ATTR));
 	
