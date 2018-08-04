@@ -11,7 +11,8 @@ int main(int argc, char **argv)
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
         FieldBuilder builder(new QRFormatParser(argv[1]));
-	Field mainField;	//メインとなるフィールドのインスタンス
+		Field mainField;	//メインとなるフィールドのインスタンス
+		Search search;
 
         {
                 /*
@@ -22,30 +23,18 @@ int main(int argc, char **argv)
 	
                 mainField.randSetPanel();
        
-                Agent a1(2,2,generate_agent_meta(MINE_ATTR));
-                Agent a2(5,5,generate_agent_meta(MINE_ATTR));
-	
-// a1を動かす
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,RIGHT);
-                a1.move(&mainField,RIGHT);
-                Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
-                
-// a2を動かす
-                a2.move(&mainField,UP);
-                a2.move(&mainField,UP);
-                a2.move(&mainField,UP);
-                a2.move(&mainField,LEFT);
-                a2.move(&mainField,LEFT);
-                Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
-	
-                myclosed.emplace_back(Closed(a1, a2));
-                myclosed[0].CalcScore(mainField);
+                Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
+                Agent a2(4,4,generate_agent_meta(MINE_ATTR));
+					
                 mainField.Draw();
+                std::cout << "block: " << (int)a2.get_blockscore(mainField, UP) << std::endl;
+                std::cout << "block: " << (int)a2.get_blockscore(mainField, RIGHT) << std::endl;
+                std::cout << "block: " << (int)a2.get_blockscore(mainField, DOWN) << std::endl;
+                std::cout << "block: " << (int)a2.get_blockscore(mainField, LEFT) << std::endl;
+                std::cout << "best direction: " << (int)search.slantsearch(a2, mainField) << std::endl;
+                
 #ifdef __DEBUG_MODE
-                std::cout << myclosed.size() << std::endl;
+                std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
                 for(Closed closed:myclosed){
                         closed.print_closed(mainField);
                 }
@@ -56,6 +45,8 @@ int main(int argc, char **argv)
         builder.print_status();
         test_generate_agent_meta();
 
+
+                /* モンテカルロ法
         {
                 Node *node = builder.create_root_node();
                 node->draw();
@@ -65,6 +56,8 @@ int main(int argc, char **argv)
                 monte.let_me_monte(node)->draw();
                 delete node;
         }
+                */
+
 #endif
         builder.release_resource();
         

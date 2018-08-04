@@ -1,5 +1,7 @@
 #include "lsearch.hpp"
+#include "types.hpp"
 #include <algorithm>
+#include <vector>
 
 /*
  * Nodeクラスのコンストラクタ
@@ -238,7 +240,47 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         return b;
 }
 
-Node *Search::search(Node *root)
+i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
+	
+	int ds = -10000;
+	int tmp;
+	std::vector<i8> discore(4,0);			// up, right, down, left
+	
+	if(depth == 0) {
+		// Up
+		tmp = agent.get_blockscore(field, UP);
+		if(ds < tmp) ds = tmp;
+		
+		// Right
+		tmp = agent.get_blockscore(field, RIGHT);
+		if(ds < tmp) ds = tmp;
+		
+		// Down
+		tmp = agent.get_blockscore(field, DOWN);
+		if(ds < tmp) ds = tmp;	
+		
+		// Left
+		tmp = agent.get_blockscore(field, LEFT);
+		if(ds < tmp) ds = tmp;
+	
+		return tmp;
+	}
+	
+	Direction weast;
+	discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
+	discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
+	discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
+	discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
+	
+	i8 max = *std::max_element(discore.begin(), discore.end());
+	
+	for(int i=0;i<4; i++)
+		if(discore[i] == max) *result = (Direction)(i*2); 
+	
+	return max;
+}
+
+Node *Search::absearch(Node *root)
 {
         ab_max(root, 4, -10000, 10000);
         std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
@@ -248,4 +290,11 @@ Node *Search::search(Node *root)
          * 先頭に必ずぶっ壊れたデータが入っている
          */
         return root->ref_children().at(1);
+}
+
+i8 Search::slantsearch(Agent agent, Field & field) {
+	Direction ret;
+	slant(agent, field, 1, &ret);
+	
+	return ret;
 }
