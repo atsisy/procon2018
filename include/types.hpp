@@ -164,7 +164,7 @@ private:
          * フィールド上の得点を計算するメソッド
          */
         // 自分のパネルが置かれている部分の合計得点
-        u64 calc_mypanels_score();
+      u64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
         u64 calc_enemypanels_score();
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
@@ -209,6 +209,11 @@ public:
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
 
+        // jsonの文字列返却するメソッド
+        std::string dump_json();
+
+        void dump_json_file(const char *file_name);
+        
         // フィールドの描画関数
         void Draw();
 
@@ -253,6 +258,8 @@ public:
          * QRFormatparserオブジェクトへのポインタを渡す
          */
         FieldBuilder(QRFormatParser *parser);
+
+        FieldBuilder(i32 field_size_x, i32 field_size_y);
 
         /*
          * リソースを解放するメソッド
@@ -474,6 +481,7 @@ private:
 
 public:
         Agent(u8 x, u8 y, u8 meta);
+        Agent(u8 meta);
 
         void move(Field *field, Direction direction);
 

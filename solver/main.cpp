@@ -7,6 +7,12 @@
 
 int main(int argc, char **argv)
 {
+
+        Node *json_node = new Node(argv[1]);
+        json_node->draw();
+        return 0;
+
+        
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
@@ -22,10 +28,29 @@ int main(int argc, char **argv)
 
 	
                 mainField.randSetPanel();
-       
-                Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
-                Agent a2(4,4,generate_agent_meta(MINE_ATTR));
-					
+                
+                Agent a1(2,2,generate_agent_meta(MINE_ATTR));
+                Agent a2(5,5,generate_agent_meta(MINE_ATTR));
+	
+// a1を動かす
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,RIGHT);
+                a1.move(&mainField,RIGHT);
+                Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
+                
+// a2を動かす
+                a2.move(&mainField,UP);
+                a2.move(&mainField,UP);
+                a2.move(&mainField,UP);
+                a2.move(&mainField,LEFT);
+                a2.move(&mainField,LEFT);
+                Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
+	
+                myclosed.emplace_back(Closed(a1, a2));
+                myclosed[0].CalcScore(mainField);
+                
                 mainField.Draw();
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, UP) << std::endl;
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, RIGHT) << std::endl;
@@ -45,8 +70,6 @@ int main(int argc, char **argv)
         builder.print_status();
         test_generate_agent_meta();
 
-
-                /* モンテカルロ法
         {
                 Node *node = builder.create_root_node();
                 node->draw();
@@ -56,7 +79,6 @@ int main(int argc, char **argv)
                 monte.let_me_monte(node)->draw();
                 delete node;
         }
-                */
 
         Node *node = builder.create_root_node();
         Montecarlo monte;
