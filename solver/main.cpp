@@ -6,53 +6,14 @@
 #include <cstring>
 #include "types.hpp"
 
+void command_switching(char **argv);
+
 int main(int argc, char **argv)
 {
-
-        if(!strcmp(argv[1], "init")){
-                
-                /*
-                 * コマンドライン引数の添字21にQRへのファイルパスが含まれているとする。
-                 */
-                FieldBuilder builder(new QRFormatParser(argv[2]));
-                Node *node = builder.create_root_node();
-                node->draw();
-                Montecarlo monte;
-                Node *ans = monte.let_me_monte(node);
-                ans->draw();
-                ans->dump_json_file("cdump.json");
-                delete node;
-                return 0;
-        }else if(!strcmp(argv[1], "continue")){
-                
-                Node *json_node = new Node(argv[2]);
-                Montecarlo monte;
-                Node *ans = monte.let_me_monte(json_node);
-                ans->draw();
-                ans->dump_json_file("cdump.json");
-                delete json_node;
-                delete ans;
-                return 0;
-                
-        }else if(!strcmp(argv[1], "score")){
-                Node *json_node = new Node(argv[2]);
-                std::cout << "SCORE: " << json_node->evaluate() << std::endl;
-                delete json_node;
-                return 0;
-                
-        }else if(!strcmp(argv[1], "debug")){
-                FieldBuilder builder(new QRFormatParser(argv[2]));
-                builder.print_status();
-                test_generate_agent_meta();
-                builder.release_resource();
-                return 0;
-        }else{
-                std::cerr << "the command is missing: you may have experience a problem" << std::endl;
-                
-        }
+        command_switching(argv);
         
-		Field mainField;	//メインとなるフィールドのインスタンス
-		Search search;
+        Field mainField;	//メインとなるフィールドのインスタンス
+        Search search;
 
         {
                 /*
@@ -101,6 +62,53 @@ int main(int argc, char **argv)
         }
         
         return 0;
+}
+
+void command_switching(char **argv)
+{
+        if(!strcmp(argv[1], "init")){
+                
+                /*
+                 * コマンドライン引数の添字21にQRへのファイルパスが含まれているとする。
+                 */
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                Node *node = builder.create_root_node();
+                node->draw();
+                Montecarlo monte;
+                Node *ans = monte.let_me_monte(node);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete node;
+                return 0;
+        }else if(!strcmp(argv[1], "continue")){
+                
+                Node *json_node = new Node(argv[2]);
+                Montecarlo monte;
+                Node *ans = monte.let_me_monte(json_node);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete json_node;
+                delete ans;
+                return 0;
+                
+        }else if(!strcmp(argv[1], "score")){
+                Node *json_node = new Node(argv[2]);
+                std::cout << "SCORE: " << json_node->evaluate() << std::endl;
+                delete json_node;
+                return 0;
+                
+        }else if(!strcmp(argv[1], "debug")){
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                builder.print_status();
+                test_generate_agent_meta();
+                builder.release_resource();
+                return 0;
+        }else{
+                std::cerr << "the command is missing: you may have experience a problem" << std::endl;
+                return;
+        }
+
+        exit(0);
 }
 
         /*****
