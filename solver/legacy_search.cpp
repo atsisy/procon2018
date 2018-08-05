@@ -44,7 +44,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         /*
          * ルートのノードは敵
          */
-        turn = MY_TURN;
+        turn = ENEMY_TURN;
         
         score = 0;
 }

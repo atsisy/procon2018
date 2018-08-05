@@ -3,20 +3,54 @@
 #include "utility.hpp"
 #include <chrono>
 #include <vector>
+#include <cstring>
 #include "types.hpp"
 
 int main(int argc, char **argv)
 {
 
-        Node *json_node = new Node(argv[1]);
-        json_node->draw();
-        return 0;
-
+        if(!strcmp(argv[1], "init")){
+                
+                /*
+                 * コマンドライン引数の添字21にQRへのファイルパスが含まれているとする。
+                 */
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                Node *node = builder.create_root_node();
+                node->draw();
+                Montecarlo monte;
+                Node *ans = monte.let_me_monte(node);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete node;
+                return 0;
+        }else if(!strcmp(argv[1], "continue")){
+                
+                Node *json_node = new Node(argv[2]);
+                Montecarlo monte;
+                Node *ans = monte.let_me_monte(json_node);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete json_node;
+                delete ans;
+                return 0;
+                
+        }else if(!strcmp(argv[1], "score")){
+                Node *json_node = new Node(argv[2]);
+                std::cout << "SCORE: " << json_node->evaluate() << std::endl;
+                delete json_node;
+                return 0;
+                
+        }else if(!strcmp(argv[1], "debug")){
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                builder.print_status();
+                test_generate_agent_meta();
+                builder.release_resource();
+                return 0;
+        }else{
+                std::cerr << "the command is missing: you may have experience a problem" << std::endl;
+                
+        }
         
-        /*
-         * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
-         */
-        FieldBuilder builder(new QRFormatParser(argv[1]));
 		Field mainField;	//メインとなるフィールドのインスタンス
 		Search search;
 
@@ -65,27 +99,6 @@ int main(int argc, char **argv)
                 }
 #endif
         }
-
-#ifdef __DEBUG_MODE
-        builder.print_status();
-        test_generate_agent_meta();
-
-        {
-                Node *node = builder.create_root_node();
-                node->draw();
-                //Search search;
-                //search.search(node)->draw();
-                Montecarlo monte;
-                monte.let_me_monte(node)->draw();
-                delete node;
-        }
-
-        Node *node = builder.create_root_node();
-        Montecarlo monte;
-        monte.let_me_monte(node)->draw();
-        delete node;
-#endif
-        builder.release_resource();
         
         return 0;
 }

@@ -50,10 +50,6 @@ private:
 
         std::string dump_json();
         
-        /*
-         * 自分自身を評価するメソッド
-         */
-        i64 evaluate();
 public:
         /*
          * 普通に使ってほしいコンストラクタ
@@ -74,6 +70,12 @@ public:
 
         void dump_json_file(const char *file_name);
 
+        
+        /*
+         * 自分自身を評価するメソッド
+         */
+        i64 evaluate();
+        
         /*
          * 展開するやつ
          */

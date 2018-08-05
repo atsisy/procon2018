@@ -2,8 +2,8 @@
 #include <algorithm>
 
 constexpr u8 MONTE_DEPTH = 60;
-constexpr u32 MONTE_FINAL_TIMES = 3000;
-constexpr u32 MONTE_MIN_TIMES = 100;
+constexpr u32 MONTE_FINAL_TIMES = 2000;
+constexpr u32 MONTE_MIN_TIMES = 90;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 
@@ -121,9 +121,9 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
                 turn = !turn;
         }
 
-        if(current->evaluate() > 0)
+        if(current->evaluate() < 0)
                 result = WIN;
-        else if(current->evaluate() < 0)
+        else if(current->evaluate() > 0)
                 result = LOSE;
         else
                 result = DRAW;
