@@ -79,7 +79,6 @@ void command_switching(char **argv)
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete node;
-                return 0;
         }else if(!strcmp(argv[1], "continue")){
                 
                 Node *json_node = new Node(argv[2]);
@@ -89,20 +88,17 @@ void command_switching(char **argv)
                 ans->dump_json_file("cdump.json");
                 delete json_node;
                 delete ans;
-                return 0;
                 
         }else if(!strcmp(argv[1], "score")){
                 Node *json_node = new Node(argv[2]);
                 std::cout << "SCORE: " << json_node->evaluate() << std::endl;
                 delete json_node;
-                return 0;
                 
         }else if(!strcmp(argv[1], "debug")){
                 FieldBuilder builder(new QRFormatParser(argv[2]));
                 builder.print_status();
                 test_generate_agent_meta();
                 builder.release_resource();
-                return 0;
         }else{
                 std::cerr << "the command is missing: you may have experience a problem" << std::endl;
                 return;

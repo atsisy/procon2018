@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include <random>
+#include <array>
 
 class Search;
 class Montecarlo;
@@ -46,8 +47,9 @@ private:
         void expand_enemy_node();
         void expand_my_node();
 
-        void play(bool play_turn, Direction d1, Direction d2);
-
+        void play(std::array<Direction, 4> dirs);
+        void play_half(Direction d1, Direction d2, u8 turn);
+        
         std::string dump_json();
         
 public:
@@ -137,6 +139,9 @@ private:
         
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
+        std::array<Direction, 4> find_random_legal_direction(Node *node);
+        std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
+        void random_half_play(Node *node, u8 turn);
         
         Node *simulation(Node *node);
         

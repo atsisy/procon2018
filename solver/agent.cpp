@@ -16,7 +16,7 @@ Agent::Agent(u8 meta)
         this->locus.push_back(MAKE_HASH(x,y));
 }
 
-void Agent::move(Field *field, Direction direction)
+void Agent::just_move(Direction direction)
 {
         switch(direction){
         case UP:
@@ -47,7 +47,44 @@ void Agent::move(Field *field, Direction direction)
                 move_stop();
                 break;
         }
+}
 
+void Agent::turn_back(Direction direction)
+{
+        switch(direction){
+        case UP:
+                move_down();
+                break;
+        case RUP:
+                move_ldown();
+                break;
+        case RIGHT:
+                move_left();
+                break;
+        case RDOWN:
+                move_lup();
+                break;
+        case DOWN:
+                move_up();
+                break;
+        case LDOWN:
+                move_rup();
+                break;
+        case LEFT:
+                move_right();
+                break;
+        case LUP:
+                move_rdown();
+                break;
+        case STOP:
+                move_stop();
+                break;
+        }
+}
+
+void Agent::move(Field *field, Direction direction)
+{
+        just_move(direction);
 #ifdef _ENABLE_YASUDA
         locus.push_back(MAKE_HASH(x,y));
 #endif
@@ -88,6 +125,17 @@ std::vector<Direction> Agent::movable_direction(Field *field) const
                 dst.push_back(RDOWN);
         
         return dst;
+}
+
+bool Agent::check_conflict(Direction mine, Agent enemy, Direction es)
+{
+        bool result;
+        just_move(mine);
+        enemy.just_move(es);
+        result = same_location(enemy);
+        enemy.turn_back(es);
+        turn_back(mine);
+        return result;
 }
 
 /*

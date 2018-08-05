@@ -99,26 +99,90 @@ Judge Montecarlo::playout(Node *node, u8 depth)
                 return DRAW;
 }
 
+std::array<Direction, 4> Montecarlo::find_random_legal_direction(Node *node)
+{
+        Direction m1, m2, e1, e2;
+        
+        do{
+                m1 = int_to_direction(random() % 9);
+        }while(!node->my_agent1.is_movable(node->field, m1));
+        do{
+                m2 = int_to_direction(random() % 9);
+        }while(!node->my_agent2.is_movable(node->field, m2));
+        do{
+                e1 = int_to_direction(random() % 9);
+        }while(!node->enemy_agent1.is_movable(node->field, e1));
+        do{
+                e2 = int_to_direction(random() % 9);
+        }while(!node->enemy_agent2.is_movable(node->field, e2));
+
+        return check_direction_legality(node, {m1, m2, e1, e2});
+}
+
+std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::array<Direction, 4> dirs)
+{
+        Direction m1, m2, e1, e2;
+
+        m1 = dirs[0];
+        m2 = dirs[1];
+        e1 = dirs[2];
+        e2 = dirs[3];
+        
+        if(node->my_agent1.check_conflict(dirs[0], node->my_agent2, dirs[1]))
+                m1 = m2 = STOP;
+        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent1, dirs[2]))
+                m1 = e1 = STOP;
+        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent2, dirs[3]))
+                m1 = e2 = STOP;
+        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent1, dirs[2]))
+                m2 = e1 = STOP;
+        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent2, dirs[3]))
+                m2 = e2 = STOP;
+        if(node->enemy_agent1.check_conflict(dirs[2], node->enemy_agent2, dirs[3]))
+                e1 = e2 = STOP;
+        
+        return {m1, m2, e1, e2};
+}
+
+void Montecarlo::random_half_play(Node *node, u8 turn)
+{
+        Direction d1, d2;
+        
+        do{
+                d1 = int_to_direction(random() % 9);
+        }while(
+                (turn && !node->enemy_agent1.is_movable(node->field, d1)) ||
+                (!turn && !node->my_agent1.is_movable(node->field, d1)));
+        do{
+                d2 = int_to_direction(random() % 9);
+        }while(
+                (turn && !node->enemy_agent2.is_movable(node->field, d2)) ||
+                (!turn && !node->my_agent2.is_movable(node->field, d2)));
+
+        if(IS_MYTURN(turn)){
+                if(node->my_agent1.check_conflict(d1, node->my_agent2, d2))
+                        d1 = d2 = STOP;
+        }else{
+                if(node->enemy_agent1.check_conflict(d1, node->enemy_agent2, d2))
+                        d1 = d2 = STOP;
+        }
+        
+        node->play_half(d1, d2, turn);
+}
+
 Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
-        Direction d1, d2;
-        bool turn = false;
         Judge result;
+
+        
+        /*
+         * ここで一回ランダムに片方が行う必要がある
+         */
+        random_half_play(current, MY_TURN);
         
         while(depth--){
-                do{
-                        d1 = int_to_direction(random() % 9);
-                }while(
-                        (!turn && !current->enemy_agent1.is_movable(current->field, d1)) ||
-                        (turn && !current->my_agent1.is_movable(current->field, d1)));
-                do{
-                        d2 = int_to_direction(random() % 9);
-                }while(
-                        (!turn && !current->enemy_agent2.is_movable(current->field, d2)) ||
-                        (turn && !current->my_agent2.is_movable(current->field, d2)));
-                current->play(turn, d1, d2);
-                turn = !turn;
+                current->play(find_random_legal_direction(current));
         }
 
         if(current->evaluate() < 0)

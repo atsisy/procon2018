@@ -139,9 +139,17 @@ void Node::draw()
         enemy_agent2.draw();
 }
 
-void Node::play(bool play_turn, Direction d1, Direction d2)
+void Node::play(std::array<Direction, 4> dirs)
 {
-        if(play_turn){
+        my_agent1.move(this->field, dirs[0]);
+        my_agent2.move(this->field, dirs[1]);
+        enemy_agent1.move(this->field, dirs[2]);
+        enemy_agent2.move(this->field, dirs[3]);
+}
+
+void Node::play_half(Direction d1, Direction d2, u8 turn)
+{
+        if(IS_MYTURN(turn)){
                 my_agent1.move(this->field, d1);
                 my_agent2.move(this->field, d2);
         }else{

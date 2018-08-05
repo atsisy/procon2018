@@ -418,7 +418,7 @@ private:
 
         Direction blockdirection;
         u8 blocktern;
-
+        
         void move_up()
                 {
                         y--;
@@ -471,6 +471,8 @@ private:
                         return meta_info & EXTRACT_PLAYER_INFO;
                 }
 
+        void just_move(Direction direction);
+        void turn_back(Direction direction);
         std::vector<Direction> movable_direction(Field *field) const;
 
         /*
@@ -507,6 +509,8 @@ public:
                 this->move(field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
         }
 
+        bool check_conflict(Direction mine, Agent enemy, Direction es);
+
         void draw();
 
         void move(Field & field, Direction direction);
@@ -514,6 +518,19 @@ public:
 
         bool is_mine();
         bool is_enemy();
+
+        bool operator==(const Agent &agent)
+        {
+                return this->x == agent.x &&
+                        this->y == agent.y &&
+                        this->meta_info == agent.meta_info;
+        }
+
+        bool same_location(const Agent &agent)
+        {
+                return this->x == agent.x &&
+                        this->y == agent.y;
+        }
 };
 
 
