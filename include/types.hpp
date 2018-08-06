@@ -479,7 +479,6 @@ public:
         
         std::vector<Direction> movable_direction(Field *field) const;
 
-        i8 get_blockscore(Field &field, Direction k);
 
         Agent aftermove_agent(u8 addx, u8 addy) {
                 return Agent(this->x+addx, this->y+addy, MINE_ATTR);
