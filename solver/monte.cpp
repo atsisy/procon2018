@@ -74,6 +74,7 @@ Node *Montecarlo::let_me_monte(Node *node)
                 }
                 delete next;
                 next = new std::vector<PlayoutResult>;
+                limit += MONTE_MIN_TIMES;
         }
 
 #ifdef __DEBUG_MODE

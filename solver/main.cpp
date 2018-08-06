@@ -91,7 +91,7 @@ void command_switching(char **argv)
                 
         }else if(!strcmp(argv[1], "score")){
                 Node *json_node = new Node(argv[2]);
-                std::cout << "SCORE: " << json_node->evaluate() << std::endl;
+                json_node->put_score_info();
                 delete json_node;
                 
         }else if(!strcmp(argv[1], "debug")){

@@ -77,6 +77,8 @@ public:
          * 自分自身を評価するメソッド
          */
         i64 evaluate();
+
+        void put_score_info();
         
         /*
          * 展開するやつ

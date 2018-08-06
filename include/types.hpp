@@ -26,6 +26,8 @@ constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
+constexpr i16 STOP_GET_SCORE = 0xDEAD;
+
 #define MAKE_HASH(x, y) ((y << 4) | x)
 
 class Field;
@@ -144,7 +146,6 @@ class Field {
         friend FieldEvaluater;
 
         friend bool is_edge(u8 value);
-        friend bool is_out(u8 value);
         friend Closed;
 
 private:
@@ -164,11 +165,11 @@ private:
          * フィールド上の得点を計算するメソッド
          */
         // 自分のパネルが置かれている部分の合計得点
-      u64 calc_mypanels_score();
+        i64 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
-        u64 calc_enemypanels_score();
+        i64 calc_enemypanels_score();
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
-        u64 calc_sumpanel_score();
+        i64 calc_sumpanel_score();
 
 /*
  * make_atメソッド フィールド情報のアクセサメソッド
@@ -219,9 +220,14 @@ public:
 
         void draw_status();
 
-        bool is_within(i8 x, i8 y)
+        bool is_within(i8 x, i8 y) const
         {
                 return (x >= 0 && x < field_size_x) && (y >= 0 && y < field_size_y);
+        }
+
+        bool is_edge(i8 x, i8 y) const
+        {
+                return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
         }
 };
 
@@ -238,12 +244,15 @@ inline bool is_edge(u8 value)
 /*
  * 渡された座標（MAKE_POINTでつくったやつ）がエッジまたはOUTの場合trueを返す
  */
+/*
 inline bool is_out(u8 value)
 {
         return ((u8)((value & 0x0f) - Field::field_size_x) < (u8)(-Field::field_size_x))
                 ||
                 ((u8)((value >> 4) - Field::field_size_y) < (u8)(-Field::field_size_y));
 }
+*/
+
 
 class QRFormatParser;
 
@@ -617,7 +626,8 @@ private:
         static i16 expand_to_arounds(const Field *field,
                                      u8 point,
                                      std::deque<std::pair<Panel, u8>> & queue,
-                                     std::vector<u8> & done_list);
+                                     std::vector<u8> & done_list,
+                                     std::vector<u8> & checking);
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);

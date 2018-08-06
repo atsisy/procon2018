@@ -301,6 +301,15 @@ i64 Node::evaluate()
         return score;
 }
 
+void Node::put_score_info()
+{
+        puts("** SCORE INFORMATION **");
+        std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
+        std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Total*: " << evaluate() << std::endl;
+}
+
 /*
   ab探索法
   擬似言語
