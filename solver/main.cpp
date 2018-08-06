@@ -22,16 +22,24 @@ int main(int argc, char **argv)
 
 	
                 mainField.randSetPanel();
-       
+				Direction go;
+				
                 Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
-                Agent a2(4,4,generate_agent_meta(MINE_ATTR));
-					
-                mainField.Draw();
-                std::cout << "block: " << (int)a2.get_blockscore(mainField, UP) << std::endl;
-                std::cout << "block: " << (int)a2.get_blockscore(mainField, RIGHT) << std::endl;
-                std::cout << "block: " << (int)a2.get_blockscore(mainField, DOWN) << std::endl;
-                std::cout << "block: " << (int)a2.get_blockscore(mainField, LEFT) << std::endl;
-                std::cout << "best direction: " << (int)search.slantsearch(a2, mainField) << std::endl;
+                
+                for(int i=0; i<10; i++) {
+                go = search.slantsearch(a1, mainField, 10);
+                std::cout << "go = " << go << std::endl;
+                a1.setblockdirection(go);
+                a1.draw();
+                a1.moveblock(mainField);
+                a1.draw();
+                a1.moveblock(mainField);
+				a1.draw();
+                a1.moveblock(mainField);
+                a1.draw();
+			}
+                
+
                 
 #ifdef __DEBUG_MODE
                 std::cout << "myclosed.size() :" << myclosed.size() << std::endl;

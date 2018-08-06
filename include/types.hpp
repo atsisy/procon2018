@@ -491,8 +491,19 @@ public:
 
         void moveblock(Field &field) {
                 // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
-                this->move(field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
+                this->move(&field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
+                this->blocktern = (blocktern+1)%3;
         }
+        
+        int get4dirScore(Field &field) {
+			int score = 0;
+			for(int i=0; i<4; i++)
+				score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
+			return score;
+		}
+		        
+        // direction block check
+        bool checkblock(Field &field, Direction direction);
 
         void draw();
 

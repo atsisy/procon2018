@@ -240,11 +240,54 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         return b;
 }
 
-i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
+int Search::slant(Agent agent, Field &field, i8 depth, Direction *result) {
+	int ds = -10000;
+	std::vector<int> discore(4, 0);
+	int ind;
+	if(depth == 0) {
+		for(int i=0; i<4; i++) {
+			if(!agent.checkblock(field, int_to_direction(i*2))) 
+				return ds;
+			else 
+				 discore[i] = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).get4dirScore(field);
+		 }
+		 ind = 0;
+		 for(int i=1; i<4; i++) {
+			 if(discore[i] > discore[ind]) ind = i;
+		 }
+		 *result = int_to_direction(ind*2);
+		 return discore[ind];
+	 }
+	
+	Direction dir, weast;
+	Agent buf(0,0,MINE_ATTR);
+	for(int i=0; i<4; i++) {
+		dir = int_to_direction(i*2);
+		if(agent.checkblock(field, dir)) {
+			buf = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2);
+			discore[i] += buf.get4dirScore(field);
+			buf.move(&field, int_to_direction((dir+2)%8));
+			discore[i] += slant(buf, field, depth-1, &weast);
+		} else return ds;
+	}
+	
+	
+	ind = 0;
+	for(int i=1; i<4; i++) {
+		if(discore[i] > discore[ind]) ind = i;
+	}
+	
+	*result = int_to_direction(ind*2);
+
+	return discore[ind];
+}
+
+/*
+i64 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	
 	int ds = -10000;
 	int tmp;
-	std::vector<i8> discore(4,0);			// up, right, down, left
+	std::vector<i8> discore(4,ds);			// up, right, down, left
 	
 	if(depth == 0) {
 		// Up
@@ -288,13 +331,20 @@ i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	}
 	if(movflag == 0) return ds;
 	
-	i8 max = *std::max_element(discore.begin(), discore.end());
+	i8 ind = 0;
+	std::vector<Direction> abledir;
+	for(int i=1; i<4; i++) {
+		abledir = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).movable_direction(&field);
+		if(abledir.size() == 9 && discore[i] > discore[ind]) {
+			ind = i; 
+			*result = int_to_direction(ind*2);
+			std::cout << "result:" << int_to_direction(i*2) << std::endl;			
+		}
+	}
 	
-	for(int i=0;i<4; i++)
-		if(discore[i] == max) *result = (Direction)(i*2); 
-	
-	return max;
-}
+	//*result = int_to_direction(ind*2);
+	return discore[ind];
+}*/
 
 Node *Search::absearch(Node *root)
 {
@@ -308,9 +358,9 @@ Node *Search::absearch(Node *root)
         return root->ref_children().at(1);
 }
 
-i8 Search::slantsearch(Agent agent, Field & field) {
+Direction Search::slantsearch(Agent agent, Field & field, u8 depth) {
 	Direction ret;
-	slant(agent, field, 10, &ret);
+	slant(agent, field, depth, &ret);
 	
 	return ret;
 }

@@ -164,6 +164,19 @@ bool Agent::is_movable(Field *field, Direction dir)
         return field->is_within(_x, _y);
 }
 
+bool Agent::checkblock(Field &field, Direction direction) {
+	Agent buf(0,0,MINE_ATTR);
+	std::vector<Direction> movable = this->movable_direction(&field);
+	std::sort(movable.begin(), movable.end());
+	if(!std::binary_search(movable.begin(), movable.end(), direction)) return false;
+	
+	buf = this->aftermove_agent(((direction/2+1)%4-1)%2, (direction/2-1)%2);
+	movable = buf.movable_direction(&field);
+	if(movable.size() != 9) return false;
+	
+	return true;
+}
+
 i8 Agent::get_blockscore(Field &field, Direction k) {
 	u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
     u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)

@@ -96,11 +96,11 @@ private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
 
-        i8 slant(Agent agent, Field &field, u8 depth, Direction *result);
+        int slant(Agent agent, Field &field, i8 depth, Direction *result);
 
 public:
         Node *absearch(Node *root);
-        i8 slantsearch(Agent agent, Field & field);
+        Direction slantsearch(Agent agent, Field & field, u8 depth);
 };
 
 
