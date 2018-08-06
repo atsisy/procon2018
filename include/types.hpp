@@ -464,8 +464,6 @@ private:
                         return meta_info & EXTRACT_PLAYER_INFO;
                 }
 
-        std::vector<Direction> movable_direction(Field *field) const;
-
         /*
          *自分の位置からdirectionの方向を見て色が存在するか判定する関数
          *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
@@ -478,13 +476,10 @@ public:
         void move(Field *field, Direction direction);
 
         bool is_movable(Field *field, Direction dir);
+        
+        std::vector<Direction> movable_direction(Field *field) const;
 
-        i8 get_blockscore(Field &field, Direction k) {
-                u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
-                u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)
-                i8 score = field.at(kx+1,ky).get_score_value()+field.at(kx-1,ky).get_score_value()+field.at(kx,ky+1).get_score_value()+field.at(kx,ky-1).get_score_value();
-                return score;
-        }
+        i8 get_blockscore(Field &field, Direction k);
 
         Agent aftermove_agent(u8 addx, u8 addy) {
                 return Agent(this->x+addx, this->y+addy, MINE_ATTR);

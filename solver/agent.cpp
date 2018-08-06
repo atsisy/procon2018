@@ -1,6 +1,7 @@
 #include "types.hpp"
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 Agent::Agent(u8 x, u8 y, u8 meta):blockdirection(UP),blocktern(0)
 {
@@ -161,4 +162,22 @@ bool Agent::is_movable(Field *field, Direction dir)
         }
 
         return field->is_within(_x, _y);
+}
+
+i8 Agent::get_blockscore(Field &field, Direction k) {
+	u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
+    u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)
+    Agent buf(kx, ky, MINE_ATTR);
+    std::vector<Direction> able = buf.movable_direction(&field);
+    std::sort(able.begin(), able.end());
+ 
+    i8 score = 0;
+    for(int i=0; i<4; i++) {
+		if(std::binary_search(able.begin(), able.end(), i*2)) {
+		//	std::cout << "direction:" << i*2 << std::endl;
+			score += field.at(kx+((i+1)%4-1)%2, ky+(i-1)%2).get_score_value();
+		}
+	}
+	//std::cout << "score:" << (int)score << std::endl;
+    return score;
 }

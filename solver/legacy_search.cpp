@@ -267,10 +267,26 @@ i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	}
 	
 	Direction weast;
-	discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
-	discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
-	discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
-	discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
+	std::vector<Direction> directionable = agent.movable_direction(&field);
+	Agent aft(0,0,MINE_ATTR);
+	std::vector<Direction> directionable_aft;
+	u8 movflag = 0;
+	
+	std::sort(directionable.begin(), directionable.end());
+	for(int i=0; i<4; i++) {
+		if(std::binary_search(directionable.begin(), directionable.end(), i*2)) {
+			aft = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2);
+			discore[i] += aft.get_blockscore(field, int_to_direction(i*2));
+			aft.move(&field, int_to_direction((i*2+2)%8));
+			directionable_aft = aft.movable_direction(&field);
+			if(directionable_aft.size() == 9) {
+				movflag ++;
+			//	std::cout << "movflag:" << (int)movflag << std::endl;
+				discore[i] += slant(aft, field, depth-1, &weast);
+			}
+		}
+	}
+	if(movflag == 0) return ds;
 	
 	i8 max = *std::max_element(discore.begin(), discore.end());
 	
@@ -294,7 +310,7 @@ Node *Search::absearch(Node *root)
 
 i8 Search::slantsearch(Agent agent, Field & field) {
 	Direction ret;
-	slant(agent, field, 1, &ret);
+	slant(agent, field, 10, &ret);
 	
 	return ret;
 }
