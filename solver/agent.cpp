@@ -92,6 +92,16 @@ void Agent::move(Field *field, Direction direction)
         field->make_at(this->x, this->y, extract_player_info());
 }
 
+void Agent::protected_move(Field  *field, Direction direction)
+{
+        just_move(direction);
+        if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
+                field->make_at(x, y, PURE_ATTR);
+                turn_back(direction);
+        }
+        field->make_at(this->x, this->y, extract_player_info());
+}
+
 void Agent::draw()
 {
         printf("AGENT: (x, y) = (%d : %d)\n", (int)x, (int)y);

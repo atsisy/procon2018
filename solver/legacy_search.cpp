@@ -141,10 +141,10 @@ void Node::draw()
 
 void Node::play(std::array<Direction, 4> dirs)
 {
-        my_agent1.move(this->field, dirs[0]);
-        my_agent2.move(this->field, dirs[1]);
-        enemy_agent1.move(this->field, dirs[2]);
-        enemy_agent2.move(this->field, dirs[3]);
+        my_agent1.protected_move(this->field, dirs[0]);
+        my_agent2.protected_move(this->field, dirs[1]);
+        enemy_agent1.protected_move(this->field, dirs[2]);
+        enemy_agent2.protected_move(this->field, dirs[3]);
 }
 
 void Node::play_half(Direction d1, Direction d2, u8 turn)
@@ -220,8 +220,8 @@ void Node::expand_enemy_node()
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->enemy_agent1.move(clone->field, (Direction)dir1);
-                        clone->enemy_agent2.move(clone->field, (Direction)dir2);
+                        clone->enemy_agent1.protected_move(clone->field, (Direction)dir1);
+                        clone->enemy_agent2.protected_move(clone->field, (Direction)dir2);
                         children.push_back(clone);
                 }
         }
@@ -240,8 +240,8 @@ void Node::expand_my_node()
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->my_agent1.move(clone->field, (Direction)dir1);
-                        clone->my_agent2.move(clone->field, (Direction)dir2);
+                        clone->my_agent1.protected_move(clone->field, (Direction)dir1);
+                        clone->my_agent2.protected_move(clone->field, (Direction)dir2);
                         children.push_back(clone);
                 }
         }

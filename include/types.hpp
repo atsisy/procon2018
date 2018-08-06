@@ -514,6 +514,7 @@ public:
         void draw();
 
         void move(Field & field, Direction direction);
+        void protected_move(Field *field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
         bool is_mine();

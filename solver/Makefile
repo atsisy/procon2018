@@ -5,7 +5,7 @@ INCLUDE = ../include
 CC = g++
 LD = g++
 CFLAGS = -Wall -std=c++17 -c
-OPTIMIZE =  -Ofast -march=native
+OPTIMIZE =  -O2 -march=native
 BINDIR = ../bin.d
 DEBUG = -g
 

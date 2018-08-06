@@ -1,9 +1,10 @@
 #include "lsearch.hpp"
 #include <algorithm>
+#include <numeric>
 
 constexpr u8 MONTE_DEPTH = 60;
 constexpr u32 MONTE_FINAL_TIMES = 2000;
-constexpr u32 MONTE_MIN_TIMES = 90;
+constexpr u32 MONTE_MIN_TIMES = 200;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 
@@ -16,43 +17,70 @@ Montecarlo::Montecarlo()
  */
 Node *Montecarlo::let_me_monte(Node *node)
 {
-        std::vector<PlayoutResult> result;
+        std::vector<PlayoutResult> *result = new std::vector<PlayoutResult>;
+        std::vector<PlayoutResult> *next = new std::vector<PlayoutResult>;
+        
         u16 win, lose, limit, i;
+        double avg_percentage;
 
         // 一個下のノードを展開
         node->expand();
 
+        std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()),
+                      [&result](Node *child){ result->emplace_back(0, child); });
+
         // 各ノードに対してシュミレーションを行う
-        for(Node *child : node->ref_children()){
-                win = lose = 0;
-                limit = MONTE_MIN_TIMES;
-                
-                for(i = 0;i <= limit && i < MONTE_FINAL_TIMES;i++){
-                        if(i == limit && ((double)win / (double)i) > MONTE_THD_WIN_PERCENTAGE){
-                                limit += MONTE_ADDITIONAL_SIM_TIMES;
-                        }
-                        switch(faster_playout(child, MONTE_DEPTH)){
-                        case WIN:
-                                win++;
-                                break;
-                        case LOSE:
-                                lose++;
-                                break;
-                        default:
-                                break;
-                        }
-                }
-                result.emplace_back((double)win / (double)i, child);
-        }
         
-        // 勝率でソート
-        std::sort(std::begin(result), std::end(result), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });
+        limit = MONTE_MIN_TIMES;
+
+        while(result->size() > 1){
+                for(PlayoutResult &p : *result){
+                        Node *child = p.node;
+                        win = lose = 0;
+                        for(i = 0;i < limit;i++){
+                                switch(faster_playout(child, MONTE_DEPTH)){
+                                case WIN:
+                                        win++;
+                                        break;
+                                case LOSE:
+                                        lose++;
+                                        break;
+                                default:
+                                        break;
+                                }
+                        }
+                
+                        next->emplace_back((double)win / (double)i, child);
+                }
+                
+                // 勝率でソート
+                std::sort(std::begin(*next), std::end(*next), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });
+                // 平均勝率を算出
+                avg_percentage = 0;
+                for(u8 i = 0;i < next->size();i++){
+                        avg_percentage += next->at(i).percentage;
+                }
+                avg_percentage /=  (double)result->size();
+
+                std::cout << "TOP -> " << next->at(0).percentage << std::endl;
+                
+                delete result;
+                result = new std::vector<PlayoutResult>;
+                for(u8 i = 0;i < next->size();i++){
+                        if(next->at(i).percentage > avg_percentage)
+                                result->push_back(next->at(i));
+                        else
+                                break;
+                }
+                delete next;
+                next = new std::vector<PlayoutResult>;
+        }
 
 #ifdef __DEBUG_MODE
-        std::for_each(std::begin(result), std::end(result), [](PlayoutResult r){ std::cout << "Win:" << r.percentage * 100 << "%" << std::endl; });
+        std::for_each(std::begin(*result), std::end(*result), [](PlayoutResult r){ std::cout << "Win:" << r.percentage * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
-        return result.at(0).node;
+        return result->at(0).node;
 }
 
 /*
@@ -174,7 +202,6 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
         Judge result;
-
         
         /*
          * ここで一回ランダムに片方が行う必要がある
