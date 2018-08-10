@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <random>
 #include <iterator>
+#include <fstream>
+#include "picojson.h"
 
 u8 Field::ac_shift_offset;
 u8 Field::field_size;
@@ -94,6 +96,20 @@ FieldBuilder::FieldBuilder(QRFormatParser *parser)
         
         Field::field_size = parser->width_height.height << Field::ac_shift_offset;
         original_data = parser;
+}
+
+FieldBuilder::FieldBuilder(i32 field_width, i32 field_height)
+{
+        double tmp;
+        
+	Field::field_size_x = field_width;
+	Field::field_size_y = field_height;
+
+        tmp = std::log2(field_width);
+        Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
+        
+        Field::field_size = field_height << Field::ac_shift_offset;
+        original_data = nullptr;
 }
 
 /*
@@ -231,6 +247,44 @@ void Field::draw_status()
                 }
                 printf("\n");
         }
+}
+
+std::string Field::dump_json()
+{
+        picojson::object root;
+        picojson::array array;
+
+        root.insert(std::make_pair("width", picojson::value((double)this->field_size_x)));
+        root.insert(std::make_pair("height", picojson::value((double)this->field_size_y)));
+
+        for(u8 y = 0;y < field_size_y;y++){
+                for(u8 x = 0;x < field_size_x;x++){
+                        picojson::object data;
+                        data.insert(std::make_pair("x", picojson::value((double)x)));
+                        data.insert(std::make_pair("y", picojson::value((double)y)));
+                        data.insert(std::make_pair("score", picojson::value(
+                                                           (double)(at(x, y).get_score_value()))));
+                        data.insert(std::make_pair("attribute", [](const Panel panel)
+                                                                        {
+                                                                                if(panel.are_you(MINE_ATTR))
+                                                                                        return "M";
+                                                                                else if(panel.are_you(ENEMY_ATTR))
+                                                                                        return "E";
+                                                                                else
+                                                                                        return "P";
+                                                                        }(at(x, y))));
+                        array.push_back(picojson::value(data));
+                }
+        }
+
+        root.insert(std::make_pair("Field", picojson::value(array)));
+        return picojson::value(root).serialize();
+}
+
+void Field::dump_json_file(const char *file_name)
+{
+        std::ofstream f(file_name);
+        f << dump_json();
 }
 
 #define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \

@@ -46,6 +46,8 @@ private:
         void expand_enemy_node();
         void expand_my_node();
 
+        std::string dump_json();
+        
         /*
          * 自分自身を評価するメソッド
          */
@@ -58,10 +60,17 @@ public:
         Node(const Node *parent);
 
         /*
+         * JSONからNodeを復元する
+         */
+        Node(const char *json_path);
+
+        /*
          * デバッグ用のメソッド
          * 情報を吐くよ！！
          */
         void draw();
+
+        void dump_json_file(const char *file_name);
 
         /*
          * 展開するやつ

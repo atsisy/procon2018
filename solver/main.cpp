@@ -7,6 +7,12 @@
 
 int main(int argc, char **argv)
 {
+
+        Node *node = new Node(argv[1]);
+        node->draw();
+        return 0;
+
+        
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
@@ -22,6 +28,7 @@ int main(int argc, char **argv)
 
 	
                 mainField.randSetPanel();
+<<<<<<< HEAD
 				Direction go;
 				
                 Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
@@ -40,6 +47,21 @@ int main(int argc, char **argv)
 				}
                 
 
+=======
+
+                mainField.dump_json_file("test.json");
+                
+                Agent a1(2,2,generate_agent_meta(MINE_ATTR));
+                Agent a2(5,5,generate_agent_meta(MINE_ATTR));
+	
+// a1を動かす
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,DOWN);
+                a1.move(&mainField,RIGHT);
+                a1.move(&mainField,RIGHT);
+                Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
+>>>>>>> origin/json
                 
 #ifdef __DEBUG_MODE
                 std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
@@ -58,10 +80,18 @@ int main(int argc, char **argv)
         {
                 Node *node = builder.create_root_node();
                 node->draw();
+<<<<<<< HEAD
                 //Search search;
                 //search.search(node)->draw();
                 Montecarlo monte;
                 monte.let_me_monte(node)->draw();
+=======
+                Search search;
+                
+                Node *ans = search.search(node);
+                ans->draw();
+                ans->dump_json_file("dump.json");
+>>>>>>> origin/json
                 delete node;
         }
                 */
