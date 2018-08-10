@@ -63,6 +63,23 @@ public:
          * JSONからNodeを復元する
          */
         Node(const char *json_path);
+        
+        Agent mitgetAgent(int anum) {
+			switch(anum) {
+				case 1:
+					return this->my_agent1;
+				case 2:
+					return this->my_agent2;
+				case 3:
+					return this->enemy_agent1;
+				default:
+					return this->enemy_agent2;
+			};	
+		}
+
+		Field *mitgetField() {
+			return this->field;
+		}
 
         /*
          * デバッグ用のメソッド
@@ -79,6 +96,14 @@ public:
 
         Node *get_specific_child(Direction agent1, Direction agent2);
         
+        void setAgentField(Agent a1, Agent a2, Agent a3, Agent a4, Field *field) {
+			this->my_agent1 = a1;
+			this->my_agent2 = a2;
+			this->enemy_agent1 = a3;
+			this->enemy_agent2 = a4;
+			this->field = field;
+		}
+		
         void set_score(i16 score)
         {
                 this->score = score;
@@ -105,7 +130,7 @@ private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
 
-        int slant(Agent agent, Field &field, i8 depth, Direction *result);
+        int slant(Agent agent, Field &field, u8 depth, Direction *result);
 
 public:
         Node *absearch(Node *root);

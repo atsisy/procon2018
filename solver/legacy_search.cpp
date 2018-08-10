@@ -139,7 +139,6 @@ void Node::draw()
         enemy_agent2.draw();
 }
 
-void Node::expand_enemy_node()
 std::string Node::dump_json()
 {
         picojson::object root;
@@ -189,7 +188,7 @@ void Node::dump_json_file(const char *file_name)
 }
 
 
-std::vector<Node *> Node::expand_enemy_node() const
+void Node::expand_enemy_node()
 {
         //children.reserve(81);
         std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
@@ -342,17 +341,20 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         return b;
 }
 
-int Search::slant(Agent agent, Field &field, i8 depth, Direction *result) {
+int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	int ds = -10000;
+	Direction *resultsave = result;
 	std::vector<int> discore(4, 0);
 	int ind;
 	if(depth == 0) {
 		for(int i=0; i<4; i++) {
-			if(!agent.checkblock(field, int_to_direction(i*2))) 
-				return ds;
-			else 
+			if(!agent.checkblock(field, int_to_direction(i*2))) {
+				discore[i] = ds;
+			} else {
 				 discore[i] = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).get4dirScore(field);
+			 }
 		 }
+		 
 		 ind = 0;
 		 for(int i=1; i<4; i++) {
 			 if(discore[i] > discore[ind]) ind = i;
@@ -361,16 +363,20 @@ int Search::slant(Agent agent, Field &field, i8 depth, Direction *result) {
 		 return discore[ind];
 	 }
 	
-	Direction dir, weast;
-	Agent buf(0,0,MINE_ATTR);
+	Direction dir;
+	Direction waste;
+	Agent buf(0,0,generate_agent_meta(agent.extract_player_info()));
+	Field imfield = field;
 	for(int i=0; i<4; i++) {
 		dir = int_to_direction(i*2);
 		if(agent.checkblock(field, dir)) {
 			buf = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2);
 			discore[i] += buf.get4dirScore(field);
-			buf.move(&field, int_to_direction((dir+2)%8));
-			discore[i] += slant(buf, field, depth-1, &weast);
-		} else return ds;
+			buf.move(&imfield, int_to_direction((dir+2)%8));
+			discore[i] += slant(buf, field, depth-1, &waste);
+		} else {
+			discore[i] = ds;
+		}
 	}
 	
 	
@@ -378,9 +384,8 @@ int Search::slant(Agent agent, Field &field, i8 depth, Direction *result) {
 	for(int i=1; i<4; i++) {
 		if(discore[i] > discore[ind]) ind = i;
 	}
-	
-	*result = int_to_direction(ind*2);
 
+	*resultsave = int_to_direction(ind*2);
 	return discore[ind];
 }
 

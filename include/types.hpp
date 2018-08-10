@@ -209,14 +209,11 @@ public:
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
 
-<<<<<<< HEAD
-=======
         // jsonの文字列返却するメソッド
         std::string dump_json();
 
         void dump_json_file(const char *file_name);
-        
->>>>>>> origin/json
+       
         // フィールドの描画関数
         void Draw();
 
@@ -469,11 +466,6 @@ private:
         void move_stop()
                 {}
 
-        u8 extract_player_info() const
-                {
-                        return meta_info & EXTRACT_PLAYER_INFO;
-                }
-
         /*
          *自分の位置からdirectionの方向を見て色が存在するか判定する関数
          *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
@@ -489,10 +481,18 @@ public:
         bool is_movable(Field *field, Direction dir);
         
         std::vector<Direction> movable_direction(Field *field) const;
+        
+        u8 mitgetX() {
+			return this->x;
+		}
+		
+		u8 mitgetY() {
+			return this->y;
+		}
 
 
         Agent aftermove_agent(u8 addx, u8 addy) {
-                return Agent(this->x+addx, this->y+addy, MINE_ATTR);
+                return Agent(this->x+addx, this->y+addy, generate_agent_meta(this->extract_player_info()));
         }
 
         void setblockdirection(Direction direction) {
@@ -507,10 +507,16 @@ public:
         
         int get4dirScore(Field &field) {
 			int score = 0;
-			for(int i=0; i<4; i++)
-				score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
+			for(int i=0; i<4; i++) {
+				if(!field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).is_enemy_panel()) score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
+			}
 			return score;
 		}
+		        
+		u8 extract_player_info() const
+                {
+                        return meta_info & EXTRACT_PLAYER_INFO;
+                }
 		        
         // direction block check
         bool checkblock(Field &field, Direction direction);
@@ -519,6 +525,7 @@ public:
 
         void move(Field & field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
+
 
         bool is_mine();
         bool is_enemy();

@@ -7,61 +7,53 @@
 
 int main(int argc, char **argv)
 {
-
-        Node *node = new Node(argv[1]);
-        node->draw();
-        return 0;
-
         
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
         FieldBuilder builder(new QRFormatParser(argv[1]));
-		Field mainField;	//メインとなるフィールドのインスタンス
+		
+        Node *node = builder.create_root_node();
+		
+		Field mainField = *node->mitgetField();
 		Search search;
-
-        {
+		
+		mainField.draw_status();
+        
                 /*
                  * 安田式アルゴリズムテストコード
                  */
                 std::vector<Closed> myclosed;	//閉路を格納するベクター
-
-	
-                mainField.randSetPanel();
-<<<<<<< HEAD
-				Direction go;
 				
-                Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
-                
-                for(int i=0; i<20; i++) {
-					go = search.slantsearch(a1, mainField, 10);
-					std::cout << "moving " << go << "direction" << std::endl;
-					a1.setblockdirection(go);
-					a1.draw();
-					a1.moveblock(mainField);
-					a1.draw();
-					a1.moveblock(mainField);
-					a1.draw();
-					a1.moveblock(mainField);
-					a1.draw();
+                Agent a1 = node->mitgetAgent(1);
+                Agent a2 = node->mitgetAgent(2);
+                Agent a3 = node->mitgetAgent(3);
+                Agent a4 = node->mitgetAgent(4);
+                       
+                Direction search1, search2;
+           while(1) {
+				std::cout << "search direction..." << std::endl;
+				search1 = search.slantsearch(a3, mainField, 10);
+				search2 = search.slantsearch(a4, mainField, 10);
+				std::cout << "search1: " << (int)search1 << std::endl;
+				std::cout << "search2: " << (int)search2 << std::endl;
+				a3.setblockdirection(search1);
+				a4.setblockdirection(search2);
+				
+				for(int i=0; i<3; i++) {	
+					a3.moveblock(mainField);
+					a4.moveblock(mainField);
+					node->setAgentField(a1, a2, a3, a4, &mainField);
+					node->dump_json_file("cdump.json");
+					a3.draw();
+					a4.draw();
+					mainField.draw_status();
+					getc(stdin);
+					delete node;
+					node = new Node("jdump.json");
 				}
-                
-
-=======
-
-                mainField.dump_json_file("test.json");
-                
-                Agent a1(2,2,generate_agent_meta(MINE_ATTR));
-                Agent a2(5,5,generate_agent_meta(MINE_ATTR));
-	
-// a1を動かす
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,DOWN);
-                a1.move(&mainField,RIGHT);
-                a1.move(&mainField,RIGHT);
-                Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
->>>>>>> origin/json
+			}
+			delete node;
                 
 #ifdef __DEBUG_MODE
                 std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
@@ -69,7 +61,6 @@ int main(int argc, char **argv)
                         closed.print_closed(mainField);
                 }
 #endif
-        }
 
 #ifdef __DEBUG_MODE
         builder.print_status();
