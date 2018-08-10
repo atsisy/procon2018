@@ -26,18 +26,18 @@ int main(int argc, char **argv)
 				
                 Agent a1(2, 2,generate_agent_meta(MINE_ATTR));
                 
-                for(int i=0; i<10; i++) {
-                go = search.slantsearch(a1, mainField, 10);
-                std::cout << "go = " << go << std::endl;
-                a1.setblockdirection(go);
-                a1.draw();
-                a1.moveblock(mainField);
-                a1.draw();
-                a1.moveblock(mainField);
-				a1.draw();
-                a1.moveblock(mainField);
-                a1.draw();
-			}
+                for(int i=0; i<20; i++) {
+					go = search.slantsearch(a1, mainField, 10);
+					std::cout << "moving " << go << "direction" << std::endl;
+					a1.setblockdirection(go);
+					a1.draw();
+					a1.moveblock(mainField);
+					a1.draw();
+					a1.moveblock(mainField);
+					a1.draw();
+					a1.moveblock(mainField);
+					a1.draw();
+				}
                 
 
                 
