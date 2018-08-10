@@ -144,13 +144,11 @@ struct PlayoutResult {
                 win = 0;
         }
         
-        PlayoutResult update(u16 trying, u16 win)
+        void update(u16 trying, u16 win)
         {
-                PlayoutResult p(node);
-                p.trying = this->trying + trying;
-                p.win = this->win + win;
-                p.percentage = (double)p.win / (double)p.trying;
-                return p;
+                this->trying += trying;
+                this->win += win;
+                this->percentage = (double)this->win / (double)this->trying;
         }
 };
 

@@ -12,13 +12,13 @@ Montecarlo::Montecarlo()
         : random(std::random_device()())
 {}
 
-static inline double get_win_average(std::vector<PlayoutResult> *data)
+static inline double get_win_average(std::vector<PlayoutResult> &data)
 {
         double avg_percentage = 0;
-        for(u8 i = 0;i < data->size();i++){
-                avg_percentage += data->at(i).percentage;
+        for(u8 i = 0;i < data.size();i++){
+                avg_percentage += data.at(i).percentage;
         }
-        return avg_percentage / (double)data->size();
+        return avg_percentage / (double)data.size();
 }
 
 const Node *Montecarlo::get_first_child(const Node *node)
@@ -33,8 +33,7 @@ const Node *Montecarlo::get_first_child(const Node *node)
  */
 const Node *Montecarlo::let_me_monte(Node *node)
 {
-        std::vector<PlayoutResult> *result = new std::vector<PlayoutResult>;
-        std::vector<PlayoutResult> *next = new std::vector<PlayoutResult>;
+        std::vector<PlayoutResult> result;
         
         u16 win, lose, limit, i;
         double avg_percentage;
@@ -43,14 +42,14 @@ const Node *Montecarlo::let_me_monte(Node *node)
         node->expand();
 
         std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()),
-                      [&result](Node *child){ result->emplace_back(child); });
+                      [&result](Node *child){ result.emplace_back(child); });
 
         // 各ノードに対してシュミレーションを行う
         
         limit = MONTE_MIN_TIMES;
 
-        while(result->size() > 1){
-                for(PlayoutResult &p : *result){
+        while(result.size() > 1){
+                for(PlayoutResult &p : result){
                         Node *child = p.node;
                         win = lose = 0;
                         for(i = 0;i < limit;i++){
@@ -66,17 +65,14 @@ const Node *Montecarlo::let_me_monte(Node *node)
                                 }
                         }
                 
-                        next->emplace_back(p.update(i, win));
+                        p.update(i, win);
                 }
                 
                 // 勝率でソート
-                std::sort(std::begin(*next), std::end(*next), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });
+                std::sort(std::begin(result), std::end(result), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });
                 // 平均勝率を算出
-                avg_percentage = get_win_average(next);
-                std::cout << "TOP -> " << next->at(0).percentage << std::endl;
-                
-                delete result;
-                result = new std::vector<PlayoutResult>;
+                avg_percentage = get_win_average(result);
+                std::cout << "TOP -> " << result.at(0).percentage << std::endl;
 
                 /*
                 if(next->size() < 16){
@@ -90,25 +86,21 @@ const Node *Montecarlo::let_me_monte(Node *node)
                         }
                         }else*/
                 {
-                        for(u8 i = 0;i < next->size();i++){
-                                if(next->at(i).percentage > avg_percentage)
-                                        result->push_back(next->at(i));
-                                else
-                                        break;
-                        }
+                        u8 i;
+                        for(i = 0;result.at(i).percentage > avg_percentage;i++);
+                        result.erase(std::begin(result) + i, std::end(result));
+                        std::cout << result.size() << " nodes" << std::endl;
                 }
 
-                delete next;
-                next = new std::vector<PlayoutResult>;
                 limit <<= 1;
         }
 
 #ifdef __DEBUG_MODE
-        std::for_each(std::begin(*result), std::end(*result), [](PlayoutResult r){ std::cout << "Win:" << r.percentage * 100 << "%" << std::endl; });
+        std::for_each(std::begin(result), std::end(result), [](PlayoutResult r){ std::cout << "Win:" << r.percentage * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
-        std::cout << (int)result->at(0).trying << "trying" << std::endl;
-        return get_first_child(result->at(0).node);
+        std::cout << (int)result.at(0).trying << "trying" << std::endl;
+        return get_first_child(result.at(0).node);
 }
 
 /*
