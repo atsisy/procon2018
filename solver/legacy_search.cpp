@@ -45,6 +45,8 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
          * ルートのノードは敵
          */
         turn = ENEMY_TURN;
+
+        parent = NULL;
         
         score = 0;
 }
@@ -71,6 +73,7 @@ Node::Node(const Node *parent)
         this->field = parent->field->clone();
         score = -1000000;
         turn = parent->toggled_turn();
+        this->parent = parent;
 }
 
 Node::Node(const char *json_path)
@@ -123,7 +126,7 @@ Node::Node(const char *json_path)
         
 }
 
-void Node::draw()
+void Node::draw() const
 {
         puts("Field Info");
         field->Draw();
@@ -158,7 +161,7 @@ void Node::play_half(Direction d1, Direction d2, u8 turn)
         }
 }
 
-std::string Node::dump_json()
+std::string Node::dump_json() const
 {
         picojson::object root;
         picojson::array array;
@@ -200,7 +203,7 @@ std::string Node::dump_json()
         return picojson::value(root).serialize();
 }
 
-void Node::dump_json_file(const char *file_name)
+void Node::dump_json_file(const char *file_name) const
 {
         std::ofstream f(file_name);
         f << dump_json();

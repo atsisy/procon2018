@@ -26,6 +26,8 @@ private:
         i64 score;
         u8 turn;
 
+        const Node *parent;
+
         /*
          * 敵味方それぞれ2つずつのエージェント
          */
@@ -50,7 +52,7 @@ private:
         void play(std::array<Direction, 4> dirs);
         void play_half(Direction d1, Direction d2, u8 turn);
         
-        std::string dump_json();
+        std::string dump_json() const;
         
 public:
         /*
@@ -68,9 +70,9 @@ public:
          * デバッグ用のメソッド
          * 情報を吐くよ！！
          */
-        void draw();
+        void draw() const;
 
-        void dump_json_file(const char *file_name);
+        void dump_json_file(const char *file_name) const;
 
         
         /*
@@ -131,13 +133,32 @@ struct PlayoutResult {
 
         double percentage;
         Node *node;
+        u16 trying;
+        u16 win;
 
-        PlayoutResult(double p, Node *n){ percentage = p, node = n; }
+        PlayoutResult(Node *node)
+        {
+                this->node = node;
+                percentage = 0;
+                trying = 0;
+                win = 0;
+        }
+        
+        PlayoutResult update(u16 trying, u16 win)
+        {
+                PlayoutResult p(node);
+                p.trying = this->trying + trying;
+                p.win = this->win + win;
+                p.percentage = (double)p.win / (double)p.trying;
+                return p;
+        }
 };
 
 class Montecarlo {
 private:
         std::mt19937 random;
+
+        const Node *get_first_child(const Node *node);
         
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
@@ -148,6 +169,6 @@ private:
         Node *simulation(Node *node);
         
 public:
-        Node *let_me_monte(Node *node);
+        const Node *let_me_monte(Node *node);
         Montecarlo();
 };

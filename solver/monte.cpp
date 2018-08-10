@@ -4,7 +4,7 @@
 
 constexpr u8 MONTE_DEPTH = 60;
 constexpr u32 MONTE_FINAL_TIMES = 2000;
-constexpr u32 MONTE_MIN_TIMES = 200;
+constexpr u32 MONTE_MIN_TIMES = 500;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 
@@ -12,10 +12,26 @@ Montecarlo::Montecarlo()
         : random(std::random_device()())
 {}
 
+static inline double get_win_average(std::vector<PlayoutResult> *data)
+{
+        double avg_percentage = 0;
+        for(u8 i = 0;i < data->size();i++){
+                avg_percentage += data->at(i).percentage;
+        }
+        return avg_percentage / (double)data->size();
+}
+
+const Node *Montecarlo::get_first_child(const Node *node)
+{
+        if(node->parent->parent == NULL)
+                return node;
+        return get_first_child(node->parent);
+}
+
 /*
  * モンテカルロ法のアルゴリズム
  */
-Node *Montecarlo::let_me_monte(Node *node)
+const Node *Montecarlo::let_me_monte(Node *node)
 {
         std::vector<PlayoutResult> *result = new std::vector<PlayoutResult>;
         std::vector<PlayoutResult> *next = new std::vector<PlayoutResult>;
@@ -27,7 +43,7 @@ Node *Montecarlo::let_me_monte(Node *node)
         node->expand();
 
         std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()),
-                      [&result](Node *child){ result->emplace_back(0, child); });
+                      [&result](Node *child){ result->emplace_back(child); });
 
         // 各ノードに対してシュミレーションを行う
         
@@ -50,38 +66,49 @@ Node *Montecarlo::let_me_monte(Node *node)
                                 }
                         }
                 
-                        next->emplace_back((double)win / (double)i, child);
+                        next->emplace_back(p.update(i, win));
                 }
                 
                 // 勝率でソート
                 std::sort(std::begin(*next), std::end(*next), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });
                 // 平均勝率を算出
-                avg_percentage = 0;
-                for(u8 i = 0;i < next->size();i++){
-                        avg_percentage += next->at(i).percentage;
-                }
-                avg_percentage /=  (double)result->size();
-
+                avg_percentage = get_win_average(next);
                 std::cout << "TOP -> " << next->at(0).percentage << std::endl;
                 
                 delete result;
                 result = new std::vector<PlayoutResult>;
-                for(u8 i = 0;i < next->size();i++){
-                        if(next->at(i).percentage > avg_percentage)
-                                result->push_back(next->at(i));
-                        else
-                                break;
+
+                /*
+                if(next->size() < 16){
+                        for(u8 i = 0;i < next->size();i++){
+                                if(next->at(i).percentage > avg_percentage){
+                                        next->at(i).node->expand();
+                                        for(Node *child : next->at(i).node->ref_children())
+                                                result->push_back(PlayoutResult(0, child));
+                                }else
+                                        break;
+                        }
+                        }else*/
+                {
+                        for(u8 i = 0;i < next->size();i++){
+                                if(next->at(i).percentage > avg_percentage)
+                                        result->push_back(next->at(i));
+                                else
+                                        break;
+                        }
                 }
+
                 delete next;
                 next = new std::vector<PlayoutResult>;
-                limit += MONTE_MIN_TIMES;
+                limit <<= 1;
         }
 
 #ifdef __DEBUG_MODE
         std::for_each(std::begin(*result), std::end(*result), [](PlayoutResult r){ std::cout << "Win:" << r.percentage * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
-        return result->at(0).node;
+        std::cout << (int)result->at(0).trying << "trying" << std::endl;
+        return get_first_child(result->at(0).node);
 }
 
 /*
@@ -207,8 +234,8 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
-        random_half_play(current, MY_TURN);
-        
+        random_half_play(current, node->turn);
+
         while(depth--){
                 current->play(find_random_legal_direction(current));
         }

@@ -520,7 +520,7 @@ public:
 
         bool check_conflict(Direction mine, Agent enemy, Direction es);
 
-        void draw();
+        void draw() const;
 
         void move(Field & field, Direction direction);
         void protected_move(Field *field, Direction direction);

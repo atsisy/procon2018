@@ -102,7 +102,7 @@ void Agent::protected_move(Field  *field, Direction direction)
         field->make_at(this->x, this->y, extract_player_info());
 }
 
-void Agent::draw()
+void Agent::draw() const
 {
         printf("AGENT: (x, y) = (%d : %d)\n", (int)x, (int)y);
         std::cout << "ATTRIBUTE: " << ((this->meta_info & 0x01) ? "MINE" : "ENEMY") << std::endl; 

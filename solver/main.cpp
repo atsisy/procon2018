@@ -73,9 +73,10 @@ void command_switching(char **argv)
                  */
                 FieldBuilder builder(new QRFormatParser(argv[2]));
                 Node *node = builder.create_root_node();
+                node->dump_json_file("root.json");
                 node->draw();
                 Montecarlo monte;
-                Node *ans = monte.let_me_monte(node);
+                const Node *ans = monte.let_me_monte(node);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete node;
@@ -83,7 +84,7 @@ void command_switching(char **argv)
                 
                 Node *json_node = new Node(argv[2]);
                 Montecarlo monte;
-                Node *ans = monte.let_me_monte(json_node);
+                const Node *ans = monte.let_me_monte(json_node);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete json_node;
