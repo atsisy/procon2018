@@ -218,6 +218,14 @@ void Node::expand_enemy_node()
         
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
+
+                        if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP)||
+                           this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP)){
+                                continue;
+                        }
+
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
@@ -238,6 +246,14 @@ void Node::expand_my_node()
         
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
+
+                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP)||
+                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP)){
+                                continue;
+                        }
+                        
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい

@@ -35,7 +35,7 @@ const Node *Montecarlo::let_me_monte(Node *node)
 {
         std::vector<PlayoutResult> result;
         
-        u16 win, lose, limit, i;
+        u16 limit;
         double avg_percentage;
 
         // 一個下のノードを展開
@@ -44,28 +44,14 @@ const Node *Montecarlo::let_me_monte(Node *node)
         std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()),
                       [&result](Node *child){ result.emplace_back(child); });
 
-        // 各ノードに対してシュミレーションを行う
-        
+        // 各ノードに対してシュミレーションを行う        
         limit = MONTE_MIN_TIMES;
 
         while(result.size() > 1){
                 for(PlayoutResult &p : result){
                         Node *child = p.node;
-                        win = lose = 0;
-                        for(i = 0;i < limit;i++){
-                                switch(faster_playout(child, MONTE_DEPTH)){
-                                case WIN:
-                                        win++;
-                                        break;
-                                case LOSE:
-                                        lose++;
-                                        break;
-                                default:
-                                        break;
-                                }
-                        }
-                
-                        p.update(i, win);
+                        LocalPlayoutResult &&result = playout_process(child, limit);
+                        p.update(result.times, result.win);
                 }
                 
                 // 勝率でソート
@@ -101,6 +87,27 @@ const Node *Montecarlo::let_me_monte(Node *node)
         // 一番いい勝率のやつを返す
         std::cout << (int)result.at(0).trying << "trying" << std::endl;
         return get_first_child(result.at(0).node);
+}
+
+LocalPlayoutResult Montecarlo::playout_process(Node *child, u16 limit)
+{
+        u16 win, lose, i;
+        
+        win = lose = 0;
+        for(i = 0;i < limit;i++){
+                switch(faster_playout(child, MONTE_DEPTH)){
+                case WIN:
+                        win++;
+                        break;
+                case LOSE:
+                        lose++;
+                        break;
+                default:
+                        break;
+                }
+        }
+
+        return LocalPlayoutResult(i, win);
 }
 
 /*

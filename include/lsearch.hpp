@@ -152,12 +152,20 @@ struct PlayoutResult {
         }
 };
 
+struct LocalPlayoutResult {
+
+        u16 times;
+        u16 win;
+
+        LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
+};
+
 class Montecarlo {
 private:
         std::mt19937 random;
 
         const Node *get_first_child(const Node *node);
-        
+        LocalPlayoutResult playout_process(Node *child, u16 limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
         std::array<Direction, 4> find_random_legal_direction(Node *node);
