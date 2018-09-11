@@ -129,12 +129,14 @@ enum Judge {
         DRAW = 2,
 };
 
+constexpr float UCB_C = 0.5;
 struct PlayoutResult {
 
         double percentage;
         Node *node;
         u16 trying;
         u16 win;
+        float ucb;
 
         PlayoutResult(Node *node)
         {
@@ -149,6 +151,18 @@ struct PlayoutResult {
                 this->trying += trying;
                 this->win += win;
                 this->percentage = (double)this->win / (double)this->trying;
+        }
+
+        /*
+          wi は i 番目の手での勝利数
+          ni は i 番目の手での試行回数
+          t は全ての手での試行回数
+          c は「勝率が良い手」と「試行回数が不十分な手」のどちらを優先するかの度合いを決めるパラメータ
+         */
+        float calc_ucb(u32 global_total_trying, u32 local_total_trying)
+        {
+                return (ucb = (win / local_total_trying)
+                                + (UCB_C * std::sqrt(std::log(global_total_trying) / local_total_trying)));
         }
 };
 
@@ -166,6 +180,7 @@ private:
 
         const Node *get_first_child(const Node *node);
         LocalPlayoutResult playout_process(Node *child, u16 limit);
+        void apply_playout_to_data(std::vector<PlayoutResult> &data, int limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
         std::array<Direction, 4> find_random_legal_direction(Node *node);
