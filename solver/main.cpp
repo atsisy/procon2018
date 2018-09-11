@@ -6,6 +6,8 @@
 #include <cstring>
 #include "types.hpp"
 
+constexpr u8 MONTE_DEPTH = 71;
+
 void command_switching(char **argv);
 
 int main(int argc, char **argv)
@@ -76,7 +78,7 @@ void command_switching(char **argv)
                 node->dump_json_file("root.json");
                 node->draw();
                 Montecarlo monte;
-                const Node *ans = monte.let_me_monte(node);
+                const Node *ans = monte.let_me_monte(node, MONTE_DEPTH - std::atoi(argv[3]));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete node;
@@ -84,7 +86,7 @@ void command_switching(char **argv)
                 
                 Node *json_node = new Node(argv[2]);
                 Montecarlo monte;
-                const Node *ans = monte.let_me_monte(json_node);
+                const Node *ans = monte.let_me_monte(json_node, MONTE_DEPTH - std::atoi(argv[3]));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete json_node;

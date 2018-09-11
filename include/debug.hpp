@@ -13,4 +13,7 @@
 //#define _ENABLE_YASUDA
 #define _ENABLE_TAKAI
 
+//#define I_AM_ENEMY
+#define I_AM_ME
+
 #endif

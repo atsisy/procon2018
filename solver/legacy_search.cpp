@@ -42,9 +42,14 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         field->make_at(enemy_agent2.x, enemy_agent2.y, ENEMY_ATTR);
 
         /*
-         * ルートのノードは敵
+         * ルートのノードは敵(デフォルト)
          */
+#ifdef I_AM_ENEMY
         turn = ENEMY_TURN;
+#endif
+#ifdef I_AM_ME
+        turn = MY_TURN;
+#endif
 
         parent = NULL;
         
@@ -121,9 +126,12 @@ Node::Node(const char *json_path)
                                                                                                           return ENEMY_ATTR;
                                                                                           }(object["attribute"].get<std::string>()));
         }
-
+#ifdef I_AM_ENEMY
         turn = ENEMY_TURN;
-        
+#endif
+#ifdef I_AM_ME
+        turn = MY_TURN;
+#endif
 }
 
 void Node::draw() const

@@ -14,7 +14,6 @@ constexpr u8 ENEMY_TURN = !MY_TURN;
  * 古典的探索法に見られるノードを表すクラス
  */
 class Node {
-
         friend FieldBuilder;
         friend FieldEvaluater;
         friend Search;
@@ -134,16 +133,20 @@ struct PlayoutResult {
 
         double percentage;
         Node *node;
+        PlayoutResult *parent;
         u16 trying;
         u16 win;
         float ucb;
+        bool expanded;
 
-        PlayoutResult(Node *node)
+        PlayoutResult(Node *node, PlayoutResult *p)
         {
                 this->node = node;
+                this->parent = p;
                 percentage = 0;
                 trying = 0;
                 win = 0;
+                expanded = false;
         }
         
         void update(u16 trying, u16 win)
@@ -151,6 +154,8 @@ struct PlayoutResult {
                 this->trying += trying;
                 this->win += win;
                 this->percentage = (double)this->win / (double)this->trying;
+                if(parent != nullptr)
+                        parent->update(trying, win);
         }
 
         /*
@@ -179,7 +184,7 @@ private:
         std::mt19937 random;
 
         const Node *get_first_child(const Node *node);
-        LocalPlayoutResult playout_process(Node *child, u16 limit);
+        LocalPlayoutResult playout_process(Node *child, u16 limit, u8 depth);
         void apply_playout_to_data(std::vector<PlayoutResult> &data, int limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
@@ -190,6 +195,6 @@ private:
         Node *simulation(Node *node);
         
 public:
-        const Node *let_me_monte(Node *node);
+        const Node *let_me_monte(Node *node, u8 depth);
         Montecarlo();
 };
