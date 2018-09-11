@@ -96,7 +96,8 @@ void command_switching(char **argv)
                 Node *json_node = new Node(argv[2]);
                 json_node->put_score_info();
                 delete json_node;
-                
+        }else if(!strcmp(argv[1], "who")){
+                who();
         }else if(!strcmp(argv[1], "debug")){
                 FieldBuilder builder(new QRFormatParser(argv[2]));
                 builder.print_status();

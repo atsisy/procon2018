@@ -13,7 +13,17 @@
 //#define _ENABLE_YASUDA
 #define _ENABLE_TAKAI
 
-//#define I_AM_ENEMY
-#define I_AM_ME
+#define I_AM_ENEMY
+//#define I_AM_ME
+
+inline void who()
+{
+#ifdef I_AM_ENEMY
+        puts("enemy");
+#endif
+#ifdef I_AM_ME
+        puts("me");
+#endif
+}
 
 #endif
