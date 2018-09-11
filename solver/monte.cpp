@@ -38,6 +38,7 @@ const Node *Montecarlo::let_me_monte(Node *node)
         std::vector<PlayoutResult> result;
         u16 limit;
         u8 i;
+        u64 total_trying = 0;
         double avg_percentage;
         double rate = MONTE_INCREASE_RATE;
 
@@ -55,7 +56,10 @@ const Node *Montecarlo::let_me_monte(Node *node)
                         Node *child = p.node;
                         LocalPlayoutResult &&result = playout_process(child, limit);
                         p.update(result.times, result.win);
+                        total_trying += result.times;
                 }
+                std::for_each(std::begin(result), std::end(result),
+                              [total_trying](PlayoutResult &p){ std::cout << "UCB = " << p.calc_ucb(total_trying) << std::endl;});
 
                 // 勝率でソート
                 std::sort(std::begin(result), std::end(result), [](const PlayoutResult r1, const PlayoutResult r2){ return r1.percentage > r2.percentage; });

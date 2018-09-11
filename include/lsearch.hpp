@@ -159,10 +159,10 @@ struct PlayoutResult {
           t は全ての手での試行回数
           c は「勝率が良い手」と「試行回数が不十分な手」のどちらを優先するかの度合いを決めるパラメータ
          */
-        float calc_ucb(u32 global_total_trying, u32 local_total_trying)
+        float calc_ucb(u32 global_total_trying)
         {
-                return (ucb = (win / local_total_trying)
-                                + (UCB_C * std::sqrt(std::log(global_total_trying) / local_total_trying)));
+                return (ucb = ((float)this->win / (float)this->trying)
+                        + (UCB_C * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
         }
 };
 
