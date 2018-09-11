@@ -128,7 +128,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.5;
+constexpr float UCB_C = 0.3;
 struct PlayoutResult {
 
         double percentage;

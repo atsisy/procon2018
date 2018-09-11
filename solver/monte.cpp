@@ -41,7 +41,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u8 i;
         u64 total_trying = 0;
         double avg_percentage;
-        double rate = MONTE_INCREASE_RATE;
         std::chrono::system_clock::time_point start, end;
         start = end = std::chrono::system_clock::now();
         
@@ -76,7 +75,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 {
                         PlayoutResult *target;
                         u8 index = 0;
-                        while(result.at(index)->expanded);
+                        while(result.at(index++)->expanded);
 
                         target = result.at(index);
                         Node *child = target->node;
