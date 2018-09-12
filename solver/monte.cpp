@@ -18,7 +18,7 @@ static inline double get_win_average(std::vector<PlayoutResult *> &data)
 {
         double avg_percentage = 0;
         for(u8 i = 0;i < data.size();i++){
-                avg_percentage += data.at(i)->percentage;
+                avg_percentage += data.at(i)->percentage();
         }
         return avg_percentage / (double)data.size();
 }
@@ -58,10 +58,12 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 
         // 各ノードに対してシュミレーションを行う        
         limit = MONTE_MIN_TIMES;
-        
-        while(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() <= MONTE_TIME_LIMIT){
 
-                printf("%ldnodes\n", result.size());
+        printf("thinking");
+        while(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() <= MONTE_TIME_LIMIT){
+                //printf("%ldnodes\n", result.
+                putchar('.');
+                fflush(stdout);
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -70,17 +72,21 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 
                 {
                         PlayoutResult *target;
-                        u8 index = 0;
-                        while(result.at(index++)->expanded);
+                        //u8 index = 0;
+                        //while(result.at(index++)->expanded);
 
-                        target = result.at(index);
+                        target = result.at(0);
+                        if(target->ucb == 0){
+                                puts("error");
+                                exit(0);
+                        }
                         Node *child = target->node;
                         LocalPlayoutResult &&presult = playout_process(child, limit, depth);
                         target->update(presult.times, presult.win);
                         total_trying += presult.times;
 
                         if(target->trying >= 5000){
-                                target->expanded = true;
+                                target->ucb = 0;
 
                                 expand_node(target->node, [&](Node *child){
                                                 PlayoutResult *tmp = new PlayoutResult(child, target);
@@ -100,12 +106,13 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::sort(std::begin(original), std::end(original), [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
         
 #ifdef __DEBUG_MODE
-        std::for_each(std::begin(original), std::end(original), [](PlayoutResult *r){ std::cout << "Win:" << r->percentage * 100 << "%" << std::endl; });
+        std::for_each(std::begin(original), std::end(original), [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
         return get_first_child(original.at(0)->node);
 }
+
 /*
 void Montecarlo::apply_playout_to_data(std::vector<PlayoutResult> &data, int limit)
 {
@@ -228,7 +235,7 @@ std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::a
         return {m1, m2, e1, e2};
 }
 
-void Montecarlo::random_half_play(Node *node, u8 turn)
+i8 Montecarlo::random_half_play(Node *node, u8 turn)
 {
         Direction d1, d2;
         
@@ -245,13 +252,15 @@ void Montecarlo::random_half_play(Node *node, u8 turn)
 
         if(IS_MYTURN(turn)){
                 if(node->my_agent1.check_conflict(d1, node->my_agent2, d2))
-                        d1 = d2 = STOP;
+                        return -1;
         }else{
                 if(node->enemy_agent1.check_conflict(d1, node->enemy_agent2, d2))
-                        d1 = d2 = STOP;
+                        return -1;
         }
         
         node->play_half(d1, d2, turn);
+
+        return 0;
 }
 
 Judge Montecarlo::faster_playout(Node *node, u8 depth)
@@ -262,7 +271,10 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
-        random_half_play(current, node->turn);
+        if(random_half_play(current, node->turn) == -1){
+                result = DRAW;
+                return result;
+        }
 
         while(depth--){
                 current->play(find_random_legal_direction(current));

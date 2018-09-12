@@ -132,31 +132,31 @@ enum Judge {
 constexpr float UCB_C = 0.3;
 struct PlayoutResult {
 
-        double percentage;
         Node *node;
         PlayoutResult *parent;
         u16 trying;
         u16 win;
         float ucb;
-        bool expanded;
 
         PlayoutResult(Node *node, PlayoutResult *p)
         {
                 this->node = node;
                 this->parent = p;
-                percentage = 0;
                 trying = 0;
                 win = 0;
-                expanded = false;
         }
         
         void update(u16 trying, u16 win)
         {
                 this->trying += trying;
                 this->win += win;
-                this->percentage = (double)this->win / (double)this->trying;
                 if(parent != nullptr)
                         parent->update(trying, win);
+        }
+
+        double percentage()
+        {
+                return (double)this->win / (double)this->trying;
         }
 
         /*
@@ -191,7 +191,7 @@ private:
         Judge faster_playout(Node *node, u8 depth);
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
-        void random_half_play(Node *node, u8 turn);
+        i8 random_half_play(Node *node, u8 turn);
         void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
         
