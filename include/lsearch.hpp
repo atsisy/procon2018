@@ -176,7 +176,7 @@ struct LocalPlayoutResult {
 
         u16 times;
         u16 win;
-
+        
         LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
 };
 
@@ -192,7 +192,7 @@ private:
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
         void random_half_play(Node *node, u8 turn);
-        
+        void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
         
 public:

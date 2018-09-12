@@ -54,7 +54,7 @@ namespace util {
                 unsigned operator()(){ return random(); }
                 xor128()
                 {
-                        std::random_device rd;x
+                        std::random_device rd;
                         w = rd();
                 }
                 xor128(u32 s){ w = s; }  // 与えられたシードで初期化
