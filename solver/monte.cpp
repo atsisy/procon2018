@@ -12,7 +12,6 @@ constexpr double MONTE_TIME_LIMIT = 7000;
 
 
 Montecarlo::Montecarlo()
-        : random(std::random_device()())
 {}
 
 static inline double get_win_average(std::vector<PlayoutResult *> &data)
@@ -37,7 +36,7 @@ const Node *Montecarlo::get_first_child(const Node *node)
 const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 {
         std::vector<PlayoutResult *> original, result;
-        u16 limit;
+        u16 limit;j
         u8 i;
         u64 total_trying = 0;
         double avg_percentage;

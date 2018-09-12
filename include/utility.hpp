@@ -1,8 +1,10 @@
 #pragma once
 
+#include <climits>
 #include <chrono>
 #include <functional>
 #include <vector>
+#include <random>
 #include <thread>
 
 namespace util {
@@ -34,4 +36,28 @@ namespace util {
                 return std::chrono::duration_cast<Unit>(end-start).count();
 
         }
+
+        class xor128 {
+        private:
+                u32 x = 123456789, y = 362436069u, z = 521288629, w;
+                unsigned random()
+                {
+                        u32 t;
+                        t = x ^ (x << 11);
+                        x = y;
+                        y = z;
+                        z = w;
+                        return w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+                }
+                
+        public:
+                unsigned operator()(){ return random(); }
+                xor128()
+                {
+                        std::random_device rd;x
+                        w = rd();
+                }
+                xor128(u32 s){ w = s; }  // 与えられたシードで初期化
+        };
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "utility.hpp"
 #include <random>
 #include <array>
 
@@ -181,7 +182,7 @@ struct LocalPlayoutResult {
 
 class Montecarlo {
 private:
-        std::mt19937 random;
+        util::xor128 random;
 
         const Node *get_first_child(const Node *node);
         LocalPlayoutResult playout_process(Node *child, u16 limit, u8 depth);
