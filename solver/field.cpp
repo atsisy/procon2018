@@ -297,7 +297,7 @@ void Field::dump_json_file(const char *file_name)
                 }                                                       \
 }                 
 
-i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list, std::vector<u8> & checking)
+i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, util::queue<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list, std::vector<u8> & checking)
 {
         const u8 x = point & 0x0f, y = point >> 4;
         i16 score = 0;
@@ -334,7 +334,7 @@ i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, std::deque<s
 }
 
 
-i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel panel, std::deque<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
+i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel panel, util::queue<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list)
 {
         i16 score = 0, tmp;
         std::vector<u8> checking;
@@ -370,7 +370,7 @@ i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel pa
 
 i16 FieldEvaluater::calc_local_area(const Field *field)
 {
-        std::deque<std::pair<Panel, u8>> queue;
+        util::queue<std::pair<Panel, u8>> queue;
         std::vector<u8> done_list;
         i16 score = 0, tmp_score;
 
@@ -380,12 +380,14 @@ i16 FieldEvaluater::calc_local_area(const Field *field)
         
         for(y = 1;y < y_range;y++){
                 for(x = 1;x < x_range;x++){
-                        const u8 point = MAKE_POINT(x, y);
+
                         const Panel panel = field->at(x, y);
                         
                         if(panel.are_you(meta_data & EXTRACT_PLAYER_INFO)){
                                 continue;
                         }
+                        
+                        const u8 point = MAKE_POINT(x, y);
                         
                         if(std::find(std::begin(done_list), std::end(done_list), point) != std::end(done_list)){
                                 continue;

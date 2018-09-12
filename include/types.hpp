@@ -28,6 +28,8 @@ constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
 constexpr i16 STOP_GET_SCORE = 0xDEAD;
 
+#include "utility.hpp"
+
 #define MAKE_HASH(x, y) ((y << 4) | x)
 
 class Field;
@@ -620,12 +622,12 @@ class FieldEvaluater {
 private:
         static u8 meta_data;
         static i16 calc_sub_local_area_score(const Field *field,
-                                         const Panel panel,
-                                         std::deque<std::pair<Panel, u8>> & queue,
-                                         std::vector<u8> & done_list);
+                                             const Panel panel,
+                                             util::queue<std::pair<Panel, u8>> & queue,
+                                             std::vector<u8> & done_list);
         static i16 expand_to_arounds(const Field *field,
                                      u8 point,
-                                     std::deque<std::pair<Panel, u8>> & queue,
+                                     util::queue<std::pair<Panel, u8>> & queue,
                                      std::vector<u8> & done_list,
                                      std::vector<u8> & checking);
 public:

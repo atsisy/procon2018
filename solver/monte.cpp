@@ -102,6 +102,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 
 //std::cout << "TOP -> WIN RATE = " << result.at(0)->percentage << ", UCB = " << result.at(0)->ucb << std::endl;
         }
+        putchar('\n');
 
         std::sort(std::begin(original), std::end(original), [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
         
@@ -109,6 +110,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::for_each(std::begin(original), std::end(original), [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
+        printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
         return get_first_child(original.at(0)->node);
 }

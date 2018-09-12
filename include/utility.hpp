@@ -6,6 +6,8 @@
 #include <vector>
 #include <random>
 #include <thread>
+#include <array>
+#include "types.hpp"
 
 namespace util {
 
@@ -60,4 +62,44 @@ namespace util {
                 xor128(u32 s){ w = s; }  // 与えられたシードで初期化
         };
 
+        template <class T>
+        class queue {
+        private:
+                std::array<T, 8192> buffer;
+                u64 head;
+                u64 tail;
+        public:
+                queue()
+                {
+                        head = 0;
+                        tail = 0;
+                }
+
+                void push_back(T obj)
+                {
+                        buffer[tail] = obj;
+                        tail++;
+                }
+
+                void clear()
+                {
+                        head = 0;
+                        tail = 0;  
+                }
+
+                size_t size()
+                {
+                        return tail - head;
+                }
+
+                T front()
+                {
+                        return buffer[head];
+                }
+
+                void pop_front()
+                {
+                        head++;
+                }
+        };
 }
