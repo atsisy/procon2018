@@ -98,8 +98,8 @@ void Agent::protected_move(Field  *field, Direction direction)
         if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
                 field->make_at(x, y, PURE_ATTR);
                 turn_back(direction);
-        }
-        field->make_at(this->x, this->y, extract_player_info());
+        }else
+                field->make_at(this->x, this->y, extract_player_info());
 }
 
 void Agent::draw() const

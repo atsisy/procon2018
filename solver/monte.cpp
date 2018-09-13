@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 #include <chrono>
+#include "utility.hpp"
 
 constexpr u32 MONTE_FINAL_TIMES = 2000;
 constexpr u32 MONTE_MIN_TIMES = 50;
@@ -46,13 +47,11 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u64 total_trying = 0;
         std::chrono::system_clock::time_point start, end;
         start = end = std::chrono::system_clock::now();
-        
+
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
                                   PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  LocalPlayoutResult &&presult = playout_process(child, 700, depth);
-                                  tmp->update(presult.times, presult.win);
-                                  total_trying += presult.times;
+                                  total_trying += playout_process(tmp, 700, depth);
                                   result.push_back(tmp);
                                   original.push_back(tmp); });
 
@@ -76,23 +75,18 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                         //while(result.at(index++)->expanded);
 
                         target = result.at(0);
+                        
                         if(target->ucb == 0){
                                 puts("error");
                                 exit(0);
                         }
-                        Node *child = target->node;
-                        LocalPlayoutResult &&presult = playout_process(child, limit, depth);
-                        target->update(presult.times, presult.win);
-                        total_trying += presult.times;
+                        total_trying += playout_process(target, limit, depth);
 
                         if(target->trying >= 5000){
                                 target->ucb = 0;
-
                                 expand_node(target->node, [&](Node *child){
                                                 PlayoutResult *tmp = new PlayoutResult(child, target);
-                                                LocalPlayoutResult &&presult = playout_process(tmp->node, 100, depth);
-                                                tmp->update(presult.times, presult.win);
-                                                total_trying += presult.times;
+                                                total_trying += playout_process(tmp, 100, depth);
                                                 result.push_back(tmp);
                                         });
                         }
@@ -127,25 +121,16 @@ void Montecarlo::apply_playout_to_data(std::vector<PlayoutResult> &data, int lim
 }
 */
 
-LocalPlayoutResult Montecarlo::playout_process(Node *child, u16 limit, u8 depth)
+u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit, u8 depth)
 {
-        u16 win, lose, i;
+        u16 win, i;
         
-        win = lose = 0;
-        for(i = 0;i < limit;i++){
-                switch(faster_playout(child, depth)){
-                case WIN:
+        win = 0;
+        for(i = 0;i < limit;i++)
+                if(faster_playout(tmp->node, depth) == WIN)
                         win++;
-                        break;
-                case LOSE:
-                        lose++;
-                        break;
-                default:
-                        break;
-                }
-        }
-
-        return LocalPlayoutResult(i, win);
+        tmp->update(i, win);
+        return i;
 }
 
 /*

@@ -276,6 +276,7 @@ void Node::expand_my_node()
 
 void Node::expand()
 {
+        this->children.reserve(81);
         if(turn){
                 /*
                  * 敵のノードを展開
@@ -302,7 +303,7 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
         return clone;
 }
 
-i64 Node::evaluate()
+i16 Node::evaluate()
 {
         static FieldEvaluater evaluater;
 

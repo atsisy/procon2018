@@ -160,41 +160,48 @@ Node *FieldBuilder::create_root_node()
  */
 i64 Field::calc_mypanels_score()
 {
-        i64 tmp_score = 0;
+        i16 tmp_score = 0;
+        Panel panel;
+        u8 i;
         
-        for(Panel panel : field){
+        for(i = 0;i < Field::field_size;i++){
+                panel = field.at(i);
                 if(panel.is_my_panel()){
                         tmp_score += panel.get_score_value();
                 }
         }
-
         return tmp_score;
 }
 
 /*
  * 敵のパネルが置かれている部分の合計得点を返す
  */
-i64 Field::calc_enemypanels_score()
+i16 Field::calc_enemypanels_score()
 {
-        i64 tmp_score = 0;
+        i16 tmp_score = 0;
+        Panel panel;
+        u8 i;
         
-        for(Panel panel : field){
+        for(i = 0;i < Field::field_size;i++){
+                panel = field.at(i);
                 if(panel.is_enemy_panel()){
                         tmp_score += panel.get_score_value();
                 }
         }
-
         return tmp_score;
 }
 
 /*
  * 自分の合計と敵の合計の差を返す。上記２つの関数を使って差を求めるよりも高速
  */
-i64 Field::calc_sumpanel_score()
+i16 Field::calc_sumpanel_score()
 {
-        i64 tmp_score = 0;
+        i16 tmp_score = 0;
+        Panel panel;
+        u8 i;
         
-        for(Panel panel : field){
+        for(i = 0;i < Field::field_size;i++){
+                panel = field.at(i);
                 if(panel.is_my_panel()){
                         tmp_score += panel.get_score_value();
                 }else if(panel.is_enemy_panel()){
@@ -372,7 +379,7 @@ i16 FieldEvaluater::calc_local_area(const Field *field)
 {
         util::queue<std::pair<Panel, u8>> queue;
         std::vector<u8> done_list;
-        i16 score = 0, tmp_score;
+        i16 score = 0;
 
         const u8 y_range = Field::field_size_y - 1;
         const u8 x_range = Field::field_size_x - 1;
@@ -395,9 +402,7 @@ i16 FieldEvaluater::calc_local_area(const Field *field)
                         
                         queue.push_back(std::make_pair(panel, point));
 
-                        tmp_score = calc_sub_local_area_score(field, panel, queue, done_list);
-                        score += tmp_score;
-                        tmp_score = 0;
+                        score += calc_sub_local_area_score(field, panel, queue, done_list);
                 }
         }
 

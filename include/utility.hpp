@@ -42,7 +42,7 @@ namespace util {
         class xor128 {
         private:
                 u32 x = 123456789, y = 362436069u, z = 521288629, w;
-                unsigned random()
+                u32 random()
                 {
                         u32 t;
                         t = x ^ (x << 11);
@@ -53,7 +53,7 @@ namespace util {
                 }
                 
         public:
-                unsigned operator()(){ return random(); }
+                u32 operator()(){ return random(); }
                 xor128()
                 {
                         std::random_device rd;

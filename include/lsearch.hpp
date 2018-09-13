@@ -23,7 +23,7 @@ private:
         // フィールド
         Field *field;
         // 評価値
-        i64 score;
+        i16 score;
         u8 turn;
 
         const Node *parent;
@@ -78,7 +78,7 @@ public:
         /*
          * 自分自身を評価するメソッド
          */
-        i64 evaluate();
+        i16 evaluate();
 
         void put_score_info();
         
@@ -94,7 +94,7 @@ public:
                 this->score = score;
         }
 
-        i64 get_score() const
+        i16 get_score() const
         {
                 return score;
         }
@@ -134,8 +134,8 @@ struct PlayoutResult {
 
         Node *node;
         PlayoutResult *parent;
-        u16 trying;
-        u16 win;
+        u32 trying;
+        u32 win;
         float ucb;
 
         PlayoutResult(Node *node, PlayoutResult *p)
@@ -185,7 +185,7 @@ private:
         util::xor128 random;
 
         const Node *get_first_child(const Node *node);
-        LocalPlayoutResult playout_process(Node *child, u16 limit, u8 depth);
+        u64 playout_process(PlayoutResult *child, u16 limit, u8 depth);
         void apply_playout_to_data(std::vector<PlayoutResult> &data, int limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
