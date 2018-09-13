@@ -10,6 +10,7 @@ constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 constexpr double MONTE_INCREASE_RATE = 1.07;
 constexpr double MONTE_TIME_LIMIT = 7000;
+constexpr u8 MONTE_MT_LIMIT = 25;
 
 
 Montecarlo::Montecarlo()
@@ -31,10 +32,30 @@ const Node *Montecarlo::get_first_child(const Node *node)
         return get_first_child(node->parent);
 }
 
-void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child)
+static inline void put_dot()
+{
+        putchar('.');
+        fflush(stdout);
+}
+
+static void expand_node_sub(std::vector<Node *>::iterator begin, std::vector<Node *>::iterator end, std::function<void(Node *)> apply_child)
+{
+        std::for_each(begin, end, apply_child);
+}
+
+void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child, u8 depth)
 {
         node->expand();
-        std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
+        if(depth >= MONTE_MT_LIMIT){
+                std::thread
+                        th1(expand_node_sub, std::begin(node->ref_children()), std::begin(node->ref_children()) + (node->ref_children().size() / 3), apply_child),
+                        th2(expand_node_sub, std::begin(node->ref_children()) + (node->ref_children().size() / 3), std::begin(node->ref_children()) + (int)((node->ref_children().size() << 1) / 3), apply_child),
+                        th3(expand_node_sub, std::begin(node->ref_children()) + (int)((node->ref_children().size() << 1) / 3), std::end(node->ref_children()), apply_child);
+                th1.join();
+                th2.join();
+                th3.join();
+        }else
+                std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
 }
 
 /*
@@ -61,8 +82,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         printf("thinking");
         while(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() <= MONTE_TIME_LIMIT){
                 //printf("%ldnodes\n", result.
-                putchar('.');
-                fflush(stdout);
+                put_dot();
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -70,20 +90,11 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 std::sort(std::begin(result), std::end(result), [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
 
                 {
-                        PlayoutResult *target;
-                        //u8 index = 0;
-                        //while(result.at(index++)->expanded);
-
-                        target = result.at(0);
-                        
-                        if(target->ucb == 0){
-                                puts("error");
-                                exit(0);
-                        }
+                        PlayoutResult *target = result.at(0);
                         total_trying += playout_process(target, limit, depth);
 
                         if(target->trying >= 5000){
-                                target->ucb = 0;
+                                target->ucb = -1;
                                 expand_node(target->node, [&](Node *child){
                                                 PlayoutResult *tmp = new PlayoutResult(child, target);
                                                 total_trying += playout_process(tmp, 100, depth);

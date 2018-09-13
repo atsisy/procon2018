@@ -167,6 +167,8 @@ struct PlayoutResult {
          */
         float calc_ucb(u32 global_total_trying)
         {
+                if(ucb == -1)
+                        return -1;
                 return (ucb = ((float)this->win / (float)this->trying)
                         + (UCB_C * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
         }
@@ -192,7 +194,7 @@ private:
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
         i8 random_half_play(Node *node, u8 turn);
-        void expand_node(Node *node, std::function<void(Node *)> apply_child);
+        void expand_node(Node *node, std::function<void(Node *)> apply_child, u8 depth);
         Node *simulation(Node *node);
         
 public:
