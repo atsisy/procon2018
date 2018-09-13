@@ -5,11 +5,11 @@
 #include "utility.hpp"
 
 constexpr u32 MONTE_FINAL_TIMES = 2000;
-constexpr u32 MONTE_MIN_TIMES = 50;
+constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 constexpr double MONTE_INCREASE_RATE = 1.07;
-constexpr double MONTE_TIME_LIMIT = 7000;
+constexpr double MONTE_TIME_LIMIT = 8000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
 
@@ -43,7 +43,7 @@ static void expand_node_sub(std::vector<Node *>::iterator begin, std::vector<Nod
         std::for_each(begin, end, apply_child);
 }
 
-void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child, u8 depth)
+void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child)
 {
         node->expand();
         if(depth >= MONTE_MT_LIMIT){
@@ -58,61 +58,63 @@ void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child
                 std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
 }
 
+u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target)
+{
+        u64 trying = 0;
+        trying += playout_process(target, limit);
+
+        if(target->trying >= 5000){
+                target->ucb = -1;
+                expand_node(target->node, [&, this](Node *child){
+                                PlayoutResult *tmp = new PlayoutResult(child, target);
+                                trying += playout_process(tmp, 350);
+                                result.push_back(tmp);
+                        });
+        }
+
+        return trying;
+}
+
 /*
  * モンテカルロ法のアルゴリズム
  */
 const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 {
         std::vector<PlayoutResult *> original, result;
-        u16 limit;
         u64 total_trying = 0;
-        std::chrono::system_clock::time_point start, end;
-        start = end = std::chrono::system_clock::now();
+        this->depth = depth;
+        this->limit = MONTE_MIN_TIMES;
+        const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
                                   PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  total_trying += playout_process(tmp, 700, depth);
+                                  total_trying += playout_process(tmp, 800);
                                   result.push_back(tmp);
                                   original.push_back(tmp); });
 
         // 各ノードに対してシュミレーションを行う        
-        limit = MONTE_MIN_TIMES;
-
         printf("thinking");
-        while(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() <= MONTE_TIME_LIMIT){
+        while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 //printf("%ldnodes\n", result.
                 put_dot();
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
                 // UCBでソート
-                std::sort(std::begin(result), std::end(result), [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
-
-                {
-                        PlayoutResult *target = result.at(0);
-                        total_trying += playout_process(target, limit, depth);
-
-                        if(target->trying >= 5000){
-                                target->ucb = -1;
-                                expand_node(target->node, [&](Node *child){
-                                                PlayoutResult *tmp = new PlayoutResult(child, target);
-                                                total_trying += playout_process(tmp, 100, depth);
-                                                result.push_back(tmp);
-                                        });
-                        }
-
-                        end = std::chrono::system_clock::now();
-                }
-
-//std::cout << "TOP -> WIN RATE = " << result.at(0)->percentage << ", UCB = " << result.at(0)->ucb << std::endl;
+                std::sort(std::begin(result), std::end(result),
+                          [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
+                
+                total_trying += select_and_play(result, result.at(0));
         }
         putchar('\n');
 
-        std::sort(std::begin(original), std::end(original), [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
+        std::sort(std::begin(original), std::end(original),
+                  [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
         
 #ifdef __DEBUG_MODE
-        std::for_each(std::begin(original), std::end(original), [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
+        std::for_each(std::begin(original), std::end(original),
+                      [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
 #endif
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
@@ -132,7 +134,7 @@ void Montecarlo::apply_playout_to_data(std::vector<PlayoutResult> &data, int lim
 }
 */
 
-u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit, u8 depth)
+u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
 {
         u16 win, i;
         

@@ -185,17 +185,20 @@ struct LocalPlayoutResult {
 class Montecarlo {
 private:
         util::xor128 random;
+        u8 depth;
+        u32 limit;
 
         const Node *get_first_child(const Node *node);
-        u64 playout_process(PlayoutResult *child, u16 limit, u8 depth);
+        u64 playout_process(PlayoutResult *child, u16 limit);
         void apply_playout_to_data(std::vector<PlayoutResult> &data, int limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
         i8 random_half_play(Node *node, u8 turn);
-        void expand_node(Node *node, std::function<void(Node *)> apply_child, u8 depth);
+        void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
+        u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);

@@ -20,6 +20,6 @@ do
     ./bin.d/bin continue ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json $i
     echo your turn
     read
-    ./bin.d/bin gnuscore ./cdump.json $i >> score.dat
+    ./bin.d/bin gnuscore ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json $i >> score.dat
     
 done
