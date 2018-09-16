@@ -68,7 +68,7 @@ static void synchronized_adding(std::vector<PlayoutResult *> &dst, std::vector<P
         }
 }
 
-u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target)
+u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim)
 {
         u64 trying = 0;
         trying += playout_process(target, limit);
@@ -79,7 +79,7 @@ u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutRes
                 target->ucb = -1;
                 expand_node(target->node, [&, this](Node *child){
                                 PlayoutResult *tmp = new PlayoutResult(child, target);
-                                trying += playout_process(tmp, 210);
+                                trying += playout_process(tmp, llim);
                                 buf.push_back(tmp);
                         });
                 synchronized_adding(result, buf);
@@ -156,13 +156,13 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
 
                 std::thread th1([&](){
-                                        add_trying(&total_trying, select_and_play(result, result.at(0)));
+                                        add_trying(&total_trying, select_and_play(result, result.at(0), 300));
                                 }),
                         th2([&](){
-                                    add_trying(&total_trying, select_and_play(result, result.at(1)));
+                                    add_trying(&total_trying, select_and_play(result, result.at(1), 150));
                             });
-                th1.join();
                 th2.join();
+                th1.join();
         }
         putchar('\n');
 

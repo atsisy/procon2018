@@ -198,7 +198,7 @@ private:
         i8 random_half_play(Node *node, u8 turn);
         void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
-        u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target);
+        u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
         
 public:
