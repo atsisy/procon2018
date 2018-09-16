@@ -76,7 +76,7 @@ Node::Node(const Node *parent)
          * クローン生成して即代入
          */
         this->field = parent->field->clone();
-        score = -1000000;
+        score = -10000;
         turn = parent->toggled_turn();
         this->parent = parent;
 }

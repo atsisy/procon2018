@@ -6,7 +6,7 @@
 #include <cstring>
 #include "types.hpp"
 
-constexpr u8 MONTE_DEPTH = 71;
+constexpr u8 MONTE_DEPTH = 70;
 
 void command_switching(char **argv);
 

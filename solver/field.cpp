@@ -354,7 +354,8 @@ i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel pa
                         checking.push_back(panel_pair.second);
                 if((field->is_edge(panel_pair.second & 0x0f, panel_pair.second >> 4)
                    && !panel_pair.first.are_you(meta_data & EXTRACT_PLAYER_INFO))
-                   || std::find(std::begin(done_list), std::end(done_list), panel_pair.second) != std::end(done_list)){
+                   ||
+                   std::find(std::begin(done_list), std::end(done_list), panel_pair.second) != std::end(done_list)){
                         queue.clear();
                         std::for_each(std::begin(checking), std::end(checking), [&done_list](u8 val){done_list.push_back(val);});
                         return 0;

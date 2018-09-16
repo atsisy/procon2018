@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 #include <chrono>
+#include <mutex>
 #include "utility.hpp"
 
 constexpr u32 MONTE_FINAL_TIMES = 2000;
@@ -12,6 +13,7 @@ constexpr double MONTE_INCREASE_RATE = 1.07;
 constexpr double MONTE_TIME_LIMIT = 8000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
+#define MOD_RANDOM(val) (val & 7)
 
 Montecarlo::Montecarlo()
 {}
@@ -48,14 +50,22 @@ void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child
         node->expand();
         if(depth >= MONTE_MT_LIMIT){
                 std::thread
-                        th1(expand_node_sub, std::begin(node->ref_children()), std::begin(node->ref_children()) + (node->ref_children().size() / 3), apply_child),
-                        th2(expand_node_sub, std::begin(node->ref_children()) + (node->ref_children().size() / 3), std::begin(node->ref_children()) + (int)((node->ref_children().size() << 1) / 3), apply_child),
-                        th3(expand_node_sub, std::begin(node->ref_children()) + (int)((node->ref_children().size() << 1) / 3), std::end(node->ref_children()), apply_child);
+                        th1(expand_node_sub, std::begin(node->ref_children()), std::begin(node->ref_children()) + (node->ref_children().size() >> 1), apply_child),
+                        th2(expand_node_sub, std::begin(node->ref_children()) + (int)((node->ref_children().size() >> 1)), std::end(node->ref_children()), apply_child);
                 th1.join();
                 th2.join();
-                th3.join();
         }else
                 std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
+}
+
+static void synchronized_adding(std::vector<PlayoutResult *> &dst, std::vector<PlayoutResult *> &data)
+{
+        std::mutex mtx;
+        {
+                std::lock_guard<std::mutex> lock(mtx);
+                for(PlayoutResult *node : data)
+                        dst.push_back(node);
+        }
 }
 
 u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target)
@@ -64,15 +74,45 @@ u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutRes
         trying += playout_process(target, limit);
 
         if(target->trying >= 5000){
+                std::vector<PlayoutResult *> buf;
+                buf.reserve(81);
                 target->ucb = -1;
                 expand_node(target->node, [&, this](Node *child){
                                 PlayoutResult *tmp = new PlayoutResult(child, target);
-                                trying += playout_process(tmp, 350);
-                                result.push_back(tmp);
+                                trying += playout_process(tmp, 210);
+                                buf.push_back(tmp);
                         });
+                synchronized_adding(result, buf);
         }
 
         return trying;
+}
+
+static void add_trying(u64 *total, u64 val)
+{
+        std::mutex mtx;
+        {
+                std::lock_guard<std::mutex> lock(mtx);
+                *total += val;
+        }
+}
+
+const Node *Montecarlo::select_final(Node *node)
+{
+        std::vector<Node *> nodes;
+        node->expand();
+        for(Node *child : node->ref_children()){
+                child->expand();
+                for(Node *gcn : child->ref_children()){
+                        gcn->evaluate();
+                        nodes.push_back(gcn);
+                }
+        }
+
+        std::sort(std::begin(nodes), std::end(nodes),
+                  [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score(); });
+
+        return get_first_child(nodes.at(0));
 }
 
 /*
@@ -85,6 +125,9 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
+        if(!depth)
+                return select_final(node);
 
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
@@ -104,8 +147,15 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 // UCBでソート
                 std::sort(std::begin(result), std::end(result),
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
-                
-                total_trying += select_and_play(result, result.at(0));
+
+                std::thread th1([&](){
+                                        add_trying(&total_trying, select_and_play(result, result.at(0)));
+                                }),
+                        th2([&](){
+                                    add_trying(&total_trying, select_and_play(result, result.at(1)));
+                            });
+                th1.join();
+                th2.join();
         }
         putchar('\n');
 
@@ -154,12 +204,12 @@ Node *Montecarlo::simulation(Node *node)
         Direction d1, d2;
         
         do{
-                d1 = int_to_direction(random() % 9);
+                d1 = int_to_direction(MOD_RANDOM(random()));
         }while(
                 (node->turn && !node->enemy_agent1.is_movable(node->field, d1)) ||
                 (!node->turn && !node->my_agent1.is_movable(node->field, d1)));
         do{
-                d2 = int_to_direction(random() % 9);
+                d2 = int_to_direction(MOD_RANDOM(random()));
         }while(
                 (node->turn && !node->enemy_agent2.is_movable(node->field, d2)) ||
                 (!node->turn && !node->my_agent2.is_movable(node->field, d2)));
@@ -195,16 +245,16 @@ std::array<Direction, 4> Montecarlo::find_random_legal_direction(Node *node)
         Direction m1, m2, e1, e2;
         
         do{
-                m1 = int_to_direction(random() % 9);
+                m1 = int_to_direction(MOD_RANDOM(random()));
         }while(!node->my_agent1.is_movable(node->field, m1));
         do{
-                m2 = int_to_direction(random() % 9);
+                m2 = int_to_direction(MOD_RANDOM(random()));
         }while(!node->my_agent2.is_movable(node->field, m2));
         do{
-                e1 = int_to_direction(random() % 9);
+                e1 = int_to_direction(MOD_RANDOM(random()));
         }while(!node->enemy_agent1.is_movable(node->field, e1));
         do{
-                e2 = int_to_direction(random() % 9);
+                e2 = int_to_direction(MOD_RANDOM(random()));
         }while(!node->enemy_agent2.is_movable(node->field, e2));
 
         return check_direction_legality(node, {m1, m2, e1, e2});
@@ -240,12 +290,12 @@ i8 Montecarlo::random_half_play(Node *node, u8 turn)
         Direction d1, d2;
         
         do{
-                d1 = int_to_direction(random() % 9);
+                d1 = int_to_direction(MOD_RANDOM(random()));
         }while(
                 (turn && !node->enemy_agent1.is_movable(node->field, d1)) ||
                 (!turn && !node->my_agent1.is_movable(node->field, d1)));
         do{
-                d2 = int_to_direction(random() % 9);
+                d2 = int_to_direction(MOD_RANDOM(random()));
         }while(
                 (turn && !node->enemy_agent2.is_movable(node->field, d2)) ||
                 (!turn && !node->my_agent2.is_movable(node->field, d2)));
@@ -271,10 +321,8 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
-        if(random_half_play(current, node->turn) == -1){
-                result = DRAW;
-                return result;
-        }
+        if(random_half_play(current, node->turn) == -1)
+                return DRAW;
 
         while(depth--){
                 current->play(find_random_legal_direction(current));

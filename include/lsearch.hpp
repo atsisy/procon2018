@@ -129,7 +129,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.3;
+constexpr float UCB_C = 0.35;
 struct PlayoutResult {
 
         Node *node;
@@ -199,6 +199,7 @@ private:
         void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target);
+        const Node *select_final(Node *node);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);

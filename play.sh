@@ -8,7 +8,7 @@ read
 echo your turn
 read
 
-./bin.d/bin gnuscore ./cdump.json 1 >> score.dat
+./bin.d/bin gnuscore ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json 1 >> score.dat
 
 for i in `seq 2 70`
 do

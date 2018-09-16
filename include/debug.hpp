@@ -24,6 +24,7 @@ inline void who()
 #ifdef I_AM_ME
         puts("me");
 #endif
+        puts("ver3.x\nexpand MT = enable, unstable MOD & 7");
 }
 
 #endif
