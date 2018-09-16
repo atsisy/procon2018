@@ -110,7 +110,14 @@ const Node *Montecarlo::select_final(Node *node)
         }
 
         std::sort(std::begin(nodes), std::end(nodes),
-                  [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score(); });
+                  [](const Node *n1, const Node *n2){
+#ifdef I_AM_ENEMY
+                          return n1->get_score() < n2->get_score();
+#endif
+#ifdef I_AM_ME
+                          return n1->get_score() > n2->get_score();
+#endif
+                  });
 
         return get_first_child(nodes.at(0));
 }
