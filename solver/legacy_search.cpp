@@ -247,6 +247,16 @@ void Node::expand_enemy_node()
         }
 }
 
+bool Node::has_same_pos(const Node *node)
+{
+        return
+                this->my_agent1.same_location(node->my_agent1) &&
+                this->my_agent2.same_location(node->my_agent2) &&
+                this->enemy_agent1.same_location(node->enemy_agent1) &&
+                this->enemy_agent2.same_location(node->enemy_agent2);
+                
+}
+
 void Node::expand_my_node()
 {
         //children.reserve(81);

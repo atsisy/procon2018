@@ -122,6 +122,31 @@ const Node *Montecarlo::select_final(Node *node)
         return get_first_child(nodes.at(0));
 }
 
+const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_children)
+{
+        u8 i = 0;
+        std::vector<const Node *> same_pos;
+        const PlayoutResult *top = sorted_children.at(i++);
+        same_pos.push_back(top->node);
+
+        for(; i < sorted_children.size();++i)
+                if(top->node->has_same_pos(sorted_children.at(i)->node))
+                        same_pos.push_back(sorted_children.at(i)->node);
+
+        std::sort(std::begin(same_pos), std::end(same_pos),
+                  [](const Node *n1, const Node *n2){
+#ifdef I_AM_ENEMY
+                          return n1->get_score() < n2->get_score();
+#endif
+#ifdef I_AM_ME
+                          return n1->get_score() > n2->get_score();
+#endif
+                  });
+
+        return get_first_child(same_pos.at(0));
+        
+}
+
 /*
  * モンテカルロ法のアルゴリズム
  */
@@ -176,7 +201,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
-        return get_first_child(original.at(0)->node);
+        return get_first_child(select_better_node(original));
 }
 
 /*

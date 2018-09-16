@@ -51,6 +51,8 @@ private:
 
         void play(std::array<Direction, 4> dirs);
         void play_half(Direction d1, Direction d2, u8 turn);
+
+        bool has_same_pos(const Node *node);
         
         std::string dump_json() const;
         
@@ -200,6 +202,7 @@ private:
         Node *simulation(Node *node);
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
+        const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
