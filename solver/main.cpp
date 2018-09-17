@@ -76,36 +76,19 @@ void command_switching(char **argv)
                 node->dump_json_file("root.json");
                 node->draw();
                 Montecarlo monte;
-                const Node *ans = monte.let_me_monte(node, MONTE_DEPTH - std::atoi(argv[3]));
+                const Node *ans = monte.greedy_montecarlo(node, MONTE_DEPTH - std::atoi(argv[3]));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
-                
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
-                if(json_node->get_score()
-#ifdef I_AM_ENEMY
-                   <
-#endif
-#ifdef I_AM_ME
-                   >
-#endif
-                   0)
-                {
-                        Montecarlo monte;
-                        u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                        const Node *ans = monte.let_me_monte(json_node, (d >= 40 ? 40 : d));
-                        ans->draw();
-                        ans->dump_json_file("cdump.json");
-                        delete ans;
-                }else{
-                        Montecarlo monte;
-                        const Node *ans = monte.greedy(json_node);
-                        ans->draw();
-                        ans->dump_json_file("cdump.json");
-                        delete ans;
-                }
+                Montecarlo monte;
+                u8 d = MONTE_DEPTH - std::atoi(argv[3]);
+                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 40 ? 40 : d));
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete ans;
                 delete json_node;
                 
         }else if(!strcmp(argv[1], "score")){

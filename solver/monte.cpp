@@ -3,6 +3,7 @@
 #include <numeric>
 #include <chrono>
 #include <mutex>
+#include <unordered_map>
 #include "utility.hpp"
 
 constexpr u32 MONTE_FINAL_TIMES = 2000;
@@ -10,7 +11,7 @@ constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 constexpr double MONTE_INCREASE_RATE = 1.07;
-constexpr double MONTE_TIME_LIMIT = 12000;
+constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
 #define MOD_RANDOM(val) (val & 7)
@@ -97,7 +98,7 @@ static void add_trying(u64 *total, u64 val)
         }
 }
 
-const Node *Montecarlo::select_final(Node *node)
+std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
 {
         std::vector<Node *> nodes;
         node->expand();
@@ -108,7 +109,7 @@ const Node *Montecarlo::select_final(Node *node)
                         nodes.push_back(gcn);
                 }
         }
-
+        
         std::sort(std::begin(nodes), std::end(nodes),
                   [](const Node *n1, const Node *n2){
 #ifdef I_AM_ENEMY
@@ -118,13 +119,97 @@ const Node *Montecarlo::select_final(Node *node)
                           return n1->get_score() > n2->get_score();
 #endif
                   });
+        return nodes;
+}
 
+std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
+{
+        std::vector<Node *> nodes;
+        i64 local;
+        node->expand();
+        for(Node *child : node->ref_children()){
+                child->expand();
+                local = 0;
+                nodes.push_back(child);
+                for(Node *gcn : child->ref_children()){
+                        local += gcn->evaluate();
+                }
+                child->set_score(local);
+        }
+
+        std::sort(std::begin(nodes), std::end(nodes),
+                  [](const Node *n1, const Node *n2){
+#ifdef I_AM_ENEMY
+                          return n1->get_score() < n2->get_score();
+#endif
+#ifdef I_AM_ME
+                          return n1->get_score() > n2->get_score();
+#endif
+          });
+
+        return nodes;
+}
+
+const Node *Montecarlo::select_final(Node *node)
+{
+        std::vector<Node *> &&nodes = listup_node_greedy(node);
         return get_first_child(nodes.at(0));
 }
 
 const Node *Montecarlo::greedy(Node *node)
 {
         return select_final(node);
+}
+
+const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
+{
+        std::vector<Node *> &&nodes = listup_node_greedy2(node);
+        if(nodes.size() == 1) return get_first_child(nodes.at(0));
+        std::vector<PlayoutResult *> original, result;
+        u64 total_trying = 0;
+        this->depth = depth;
+        this->limit = MONTE_MIN_TIMES;
+        const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
+        i64 max = nodes.at(0)->get_score();
+        for(Node *child : nodes){
+                if(child->get_score() == max){
+                        PlayoutResult *tmp = new PlayoutResult(child, nullptr);
+                        total_trying += playout_process(tmp, 800);
+                        result.push_back(tmp);
+                        original.push_back(tmp);
+                }
+        }
+        if(result.size() == 1) return get_first_child(result.at(0)->node);
+        
+        while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
+                put_dot();
+                std::for_each(std::begin(result), std::end(result),
+                              [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
+
+                // UCBでソート
+                std::sort(std::begin(result), std::end(result),
+                          [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
+
+                std::thread th1([&](){
+                                        add_trying(&total_trying, select_and_play(result, result.at(0), 300));
+                                }),
+                        th2([&](){
+                                    add_trying(&total_trying, select_and_play(result, result.at(1), 150));
+                            });
+                th2.join();
+                th1.join();
+        }
+        putchar('\n');
+
+        std::sort(std::begin(original), std::end(original),
+                  [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
+
+        printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
+        std::cout << (int)original.at(0)->trying << "trying" << std::endl;
+        std::for_each(std::begin(original), std::end(original),
+                      [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
+        return get_first_child(select_better_node(original));
 }
 
 const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_children)
@@ -149,7 +234,6 @@ const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_
                   });
 
         return get_first_child(same_pos.at(0));
-        
 }
 
 
@@ -165,13 +249,13 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        if(!depth || depth >= (MONTE_DEPTH - 7))
+        if(!depth)
                 return select_final(node);
 
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
                                   PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  total_trying += playout_process(tmp, 800);
+                                  total_trying += playout_process(tmp, 1000);
                                   result.push_back(tmp);
                                   original.push_back(tmp); });
 
