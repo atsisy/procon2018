@@ -204,9 +204,12 @@ private:
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
+        std::vector<Node *> listup_node_greedy(Node *node);
+        std::vector<Node *> listup_node_greedy2(Node *node);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
+        const Node *greedy_montecarlo(Node *node, u8 depth);
         Montecarlo();
 };
