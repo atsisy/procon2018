@@ -13,8 +13,8 @@
 //#define _ENABLE_YASUDA
 #define _ENABLE_TAKAI
 
-#define I_AM_ENEMY
-//#define I_AM_ME
+//#define I_AM_ENEMY
+#define I_AM_ME
 
 inline void who()
 {
@@ -24,7 +24,7 @@ inline void who()
 #ifdef I_AM_ME
         puts("me");
 #endif
-        puts("ver3.x\nexpand MT = enable, unstable MOD & 7");
+        puts("ver3.x\nexpand MT = enable, unstable MOD & 7 limited depth 40");
 }
 
 #endif

@@ -10,7 +10,7 @@ constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 constexpr double MONTE_INCREASE_RATE = 1.07;
-constexpr double MONTE_TIME_LIMIT = 8000;
+constexpr double MONTE_TIME_LIMIT = 12000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
 #define MOD_RANDOM(val) (val & 7)
@@ -122,6 +122,11 @@ const Node *Montecarlo::select_final(Node *node)
         return get_first_child(nodes.at(0));
 }
 
+const Node *Montecarlo::greedy(Node *node)
+{
+        return select_final(node);
+}
+
 const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_children)
 {
         u8 i = 0;
@@ -147,6 +152,8 @@ const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_
         
 }
 
+
+
 /*
  * モンテカルロ法のアルゴリズム
  */
@@ -158,7 +165,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        if(!depth)
+        if(!depth || depth >= (MONTE_DEPTH - 7))
                 return select_final(node);
 
         // 一個下のノードを展開

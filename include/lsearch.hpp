@@ -184,6 +184,7 @@ struct LocalPlayoutResult {
         LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
 };
 
+constexpr u8 MONTE_DEPTH = 70;
 class Montecarlo {
 private:
         util::xor128 random;
@@ -206,5 +207,6 @@ private:
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
+        const Node *greedy(Node *node);
         Montecarlo();
 };
