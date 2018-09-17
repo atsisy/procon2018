@@ -35,22 +35,22 @@ int main(int argc, char **argv)
 				std::cout << "search direction..." << std::endl;
 				search1 = search.slantsearch(a3, mainField, 10);
 				search2 = search.slantsearch(a4, mainField, 10);
-				std::cout << "search1: " << (int)search1 << std::endl;
-				std::cout << "search2: " << (int)search2 << std::endl;
 				a3.setblockdirection(search1);
 				a4.setblockdirection(search2);
 				
 				for(int i=0; i<3; i++) {	
+					getc(stdin);
 					a3.moveblock(mainField);
 					a4.moveblock(mainField);
+			//		getc(stdin);
 					node->setAgentField(a1, a2, a3, a4, &mainField);
 					node->dump_json_file("cdump.json");
 					a3.draw();
 					a4.draw();
 					mainField.draw_status();
-					getc(stdin);
 					delete node;
-					node = new Node("jdump.json");
+			//		getc(stdin);
+					node = new Node("cdump.json");					
 				}
 			}
 			delete node;

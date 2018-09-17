@@ -205,14 +205,6 @@ u64 Field::calc_sumpanel_score()
         return tmp_score;
 }
 
-u64 Field::score()
-{
-        /*
-         * 未実装
-         */
-        return 0;
-}
-
 /*
  * フィールドのパネルの得点をランダムにセットします
  * -16 ~ 16
@@ -243,7 +235,7 @@ void Field::draw_status()
 {
         for(u8 y = 0;y < field_size_y;y++){
                 for(u8 x = 0;x < field_size_x;x++){
-                        printf(" %c", (at(x, y).is_pure_panel() ? 'P' : at(x, y).is_my_panel() ? 'M' : 'E'));
+                        printf(" %s", (at(x, y).is_pure_panel() ? "P" : at(x, y).is_my_panel() ? "\x1b[34mM\x1b[39m" : "\x1b[31mE\x1b[39m"));
                 }
                 printf("\n");
         }

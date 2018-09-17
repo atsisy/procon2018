@@ -204,8 +204,6 @@ public:
          */
         Field *clone() const;
 
-        u64 score();
-
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
 
