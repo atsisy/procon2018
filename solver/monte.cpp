@@ -6,12 +6,9 @@
 #include <unordered_map>
 #include "utility.hpp"
 
-constexpr u32 MONTE_FINAL_TIMES = 2000;
+constexpr u32 MONTE_INITIAL_TIMES = 6000;
 constexpr u32 MONTE_MIN_TIMES = 100;
-constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
 constexpr u32 MONTE_EXPAND_LIMIT = 7500;
-constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
-constexpr double MONTE_INCREASE_RATE = 1.07;
 constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
@@ -189,7 +186,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 
         for(Node *child : nodes){ 
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                total_trying += playout_process(tmp, 800);
+                total_trying += playout_process(tmp, MONTE_INITIAL_TIMES);
                 result.push_back(tmp);
                 original.push_back(tmp);       
         }
