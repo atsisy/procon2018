@@ -9,6 +9,7 @@
 constexpr u32 MONTE_FINAL_TIMES = 2000;
 constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_ADDITIONAL_SIM_TIMES = 20;
+constexpr u32 MONTE_EXPAND_LIMIT = 7500;
 constexpr double MONTE_THD_WIN_PERCENTAGE = 0.7;
 constexpr double MONTE_INCREASE_RATE = 1.07;
 constexpr double MONTE_TIME_LIMIT = 10000;
@@ -74,7 +75,7 @@ u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutRes
         u64 trying = 0;
         trying += playout_process(target, limit);
 
-        if(target->trying >= 5000){
+        if(target->trying >= MONTE_EXPAND_LIMIT){
                 std::vector<PlayoutResult *> buf;
                 buf.reserve(81);
                 target->ucb = -1;
@@ -125,6 +126,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
 std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
 {
         std::vector<Node *> nodes;
+        std::vector<Node *> result;
         i64 local;
         node->expand();
         for(Node *child : node->ref_children()){
@@ -147,7 +149,21 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
 #endif
           });
 
-        return nodes;
+        bool flag = false;
+        i64 max_score = nodes.at(0)->get_score();;
+        for(Node *n : nodes){
+                if(max_score == n->get_score()){
+                        if(flag)
+                                break;
+
+                }else{
+                        flag = true;
+                        max_score = n->get_score();
+                }
+                result.push_back(n);
+        }
+
+        return result;
 }
 
 const Node *Montecarlo::select_final(Node *node)
@@ -171,14 +187,11 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        i64 max = nodes.at(0)->get_score();
-        for(Node *child : nodes){
-                if(child->get_score() == max){
-                        PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                        total_trying += playout_process(tmp, 800);
-                        result.push_back(tmp);
-                        original.push_back(tmp);
-                }
+        for(Node *child : nodes){ 
+                PlayoutResult *tmp = new PlayoutResult(child, nullptr);
+                total_trying += playout_process(tmp, 800);
+                result.push_back(tmp);
+                original.push_back(tmp);       
         }
         if(result.size() == 1) return get_first_child(result.at(0)->node);
         
@@ -255,7 +268,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
                                   PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  total_trying += playout_process(tmp, 1000);
+                                  total_trying += playout_process(tmp, 4500);
                                   result.push_back(tmp);
                                   original.push_back(tmp); });
 
