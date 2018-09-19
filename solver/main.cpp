@@ -25,8 +25,7 @@ int main(int argc, char **argv)
 		Search search;
 		
 		mainField.draw_status();
-        
-                /*
+                        /*
                  * 安田式アルゴリズムテストコード
                  */
                 std::vector<Closed> myclosed;	//閉路を格納するベクター
@@ -80,34 +79,12 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef __DEBUG_MODE
-        builder.print_status();
-        test_generate_agent_meta();
-
-
-                /* モンテカルロ法
-        {
-                Node *node = builder.create_root_node();
-                node->draw();
-<<<<<<< HEAD
-                //Search search;
-                //search.search(node)->draw();
-                Montecarlo monte;
-                monte.let_me_monte(node)->draw();
-=======
-                Search search;
-                
-                Node *ans = search.search(node);
-                ans->draw();
-                ans->dump_json_file("dump.json");
->>>>>>> origin/json
-                delete node;
-        }
-                */
-
+	builder.print_status();
+	test_generate_agent_meta();
 #endif
-        builder.release_resource();
-        
-        return 0;
+
+	builder.release_resource();
+	return 0;
 }
 
         /*****

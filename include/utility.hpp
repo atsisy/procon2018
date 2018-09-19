@@ -1,7 +1,13 @@
 #pragma once
 
+#include <climits>
 #include <chrono>
 #include <functional>
+#include <vector>
+#include <random>
+#include <thread>
+#include <array>
+#include "types.hpp"
 
 namespace util {
 
@@ -33,4 +39,67 @@ namespace util {
 
         }
 
+        class xor128 {
+        private:
+                u32 x = 123456789, y = 362436069u, z = 521288629, w;
+                u32 random()
+                {
+                        u32 t;
+                        t = x ^ (x << 11);
+                        x = y;
+                        y = z;
+                        z = w;
+                        return w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+                }
+                
+        public:
+                u32 operator()(){ return random(); }
+                xor128()
+                {
+                        std::random_device rd;
+                        w = rd();
+                }
+                xor128(u32 s){ w = s; }  // 与えられたシードで初期化
+        };
+
+        template <class T>
+        class queue {
+        private:
+                std::array<T, 8192> buffer;
+                u64 head;
+                u64 tail;
+        public:
+                queue()
+                {
+                        head = 0;
+                        tail = 0;
+                }
+
+                void push_back(T obj)
+                {
+                        buffer[tail] = obj;
+                        tail++;
+                }
+
+                void clear()
+                {
+                        head = 0;
+                        tail = 0;  
+                }
+
+                size_t size()
+                {
+                        return tail - head;
+                }
+
+                T front()
+                {
+                        return buffer[head];
+                }
+
+                void pop_front()
+                {
+                        head++;
+                }
+        };
 }

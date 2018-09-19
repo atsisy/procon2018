@@ -26,6 +26,10 @@ constexpr u8 PURE_ATTR = 0b00;
 
 constexpr u8 EXTRACT_PLAYER_INFO = 0b00000011;
 
+constexpr i16 STOP_GET_SCORE = 0xDEAD;
+
+#include "utility.hpp"
+
 #define MAKE_HASH(x, y) ((y << 4) | x)
 
 class Field;
@@ -144,7 +148,6 @@ class Field {
         friend FieldEvaluater;
 
         friend bool is_edge(u8 value);
-        friend bool is_out(u8 value);
         friend Closed;
 
 private:
@@ -164,11 +167,11 @@ private:
          * フィールド上の得点を計算するメソッド
          */
         // 自分のパネルが置かれている部分の合計得点
-      u64 calc_mypanels_score();
+        i16 calc_mypanels_score();
         // 敵のパネルが置かれている部分の合計得点
-        u64 calc_enemypanels_score();
+        i16 calc_enemypanels_score();
         // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
-        u64 calc_sumpanel_score();
+        i16 calc_sumpanel_score();
 
 /*
  * make_atメソッド フィールド情報のアクセサメソッド
@@ -211,15 +214,20 @@ public:
         std::string dump_json();
 
         void dump_json_file(const char *file_name);
-       
+
         // フィールドの描画関数
         void Draw();
 
         void draw_status();
 
-        bool is_within(i8 x, i8 y)
+        bool is_within(i8 x, i8 y) const
         {
                 return (x >= 0 && x < field_size_x) && (y >= 0 && y < field_size_y);
+        }
+
+        bool is_edge(i8 x, i8 y) const
+        {
+                return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
         }
 };
 
@@ -236,12 +244,15 @@ inline bool is_edge(u8 value)
 /*
  * 渡された座標（MAKE_POINTでつくったやつ）がエッジまたはOUTの場合trueを返す
  */
+/*
 inline bool is_out(u8 value)
 {
         return ((u8)((value & 0x0f) - Field::field_size_x) < (u8)(-Field::field_size_x))
                 ||
                 ((u8)((value >> 4) - Field::field_size_y) < (u8)(-Field::field_size_y));
 }
+*/
+
 
 class QRFormatParser;
 
@@ -416,7 +427,7 @@ private:
 
         Direction blockdirection;
         u8 blocktern;
-
+        
         void move_up()
                 {
                         y--;
@@ -464,6 +475,8 @@ private:
         void move_stop()
                 {}
 
+        void just_move(Direction direction);
+        void turn_back(Direction direction);
         /*
          *自分の位置からdirectionの方向を見て色が存在するか判定する関数
          *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
@@ -523,14 +536,30 @@ public:
         // direction block check
         bool checkblock(Field &field, Direction direction);
 
-        void draw();
+        bool check_conflict(Direction mine, Agent enemy, Direction es);
+
+        void draw() const;
 
         void move(Field & field, Direction direction);
+        void protected_move(Field *field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
 
         bool is_mine();
         bool is_enemy();
+
+        bool operator==(const Agent &agent)
+        {
+                return this->x == agent.x &&
+                        this->y == agent.y &&
+                        this->meta_info == agent.meta_info;
+        }
+
+        bool same_location(const Agent &agent)
+        {
+                return this->x == agent.x &&
+                        this->y == agent.y;
+        }
 };
 
 
@@ -610,13 +639,14 @@ class FieldEvaluater {
 private:
         static u8 meta_data;
         static i16 calc_sub_local_area_score(const Field *field,
-                                         const Panel panel,
-                                         std::deque<std::pair<Panel, u8>> & queue,
-                                         std::vector<u8> & done_list);
+                                             const Panel panel,
+                                             util::queue<std::pair<Panel, u8>> & queue,
+                                             std::vector<u8> & done_list);
         static i16 expand_to_arounds(const Field *field,
                                      u8 point,
-                                     std::deque<std::pair<Panel, u8>> & queue,
-                                     std::vector<u8> & done_list);
+                                     util::queue<std::pair<Panel, u8>> & queue,
+                                     std::vector<u8> & done_list,
+                                     std::vector<u8> & checking);
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);

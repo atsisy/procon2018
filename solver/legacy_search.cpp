@@ -1,6 +1,5 @@
 #include "lsearch.hpp"
 #include "types.hpp"
-#include <algorithm>
 #include <vector>
 #include "picojson.h"
 #include <fstream>
@@ -42,9 +41,16 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         field->make_at(enemy_agent2.x, enemy_agent2.y, ENEMY_ATTR);
 
         /*
-         * ルートのノードは敵
+         * ルートのノードは敵(デフォルト)
          */
+#ifdef I_AM_ENEMY
+        turn = ENEMY_TURN;
+#endif
+#ifdef I_AM_ME
         turn = MY_TURN;
+#endif
+
+        parent = NULL;
         
         score = 0;
 }
@@ -69,8 +75,9 @@ Node::Node(const Node *parent)
          * クローン生成して即代入
          */
         this->field = parent->field->clone();
-        score = -1000000;
+        score = -10000;
         turn = parent->toggled_turn();
+        this->parent = parent;
 }
 
 Node::Node(const char *json_path)
@@ -118,12 +125,15 @@ Node::Node(const char *json_path)
                                                                                                           return ENEMY_ATTR;
                                                                                           }(object["attribute"].get<std::string>()));
         }
-
+#ifdef I_AM_ENEMY
         turn = ENEMY_TURN;
-        
+#endif
+#ifdef I_AM_ME
+        turn = MY_TURN;
+#endif
 }
 
-void Node::draw()
+void Node::draw() const
 {
         puts("Field Info");
         field->Draw();
@@ -139,7 +149,26 @@ void Node::draw()
         enemy_agent2.draw();
 }
 
-std::string Node::dump_json()
+void Node::play(std::array<Direction, 4> dirs)
+{
+        my_agent1.protected_move(this->field, dirs[0]);
+        my_agent2.protected_move(this->field, dirs[1]);
+        enemy_agent1.protected_move(this->field, dirs[2]);
+        enemy_agent2.protected_move(this->field, dirs[3]);
+}
+
+void Node::play_half(Direction d1, Direction d2, u8 turn)
+{
+        if(IS_MYTURN(turn)){
+                my_agent1.move(this->field, d1);
+                my_agent2.move(this->field, d2);
+        }else{
+                enemy_agent1.move(this->field, d1);
+                enemy_agent2.move(this->field, d2);
+        }
+}
+
+std::string Node::dump_json() const
 {
         picojson::object root;
         picojson::array array;
@@ -181,7 +210,7 @@ std::string Node::dump_json()
         return picojson::value(root).serialize();
 }
 
-void Node::dump_json_file(const char *file_name)
+void Node::dump_json_file(const char *file_name) const
 {
         std::ofstream f(file_name);
         f << dump_json();
@@ -196,13 +225,22 @@ void Node::expand_enemy_node()
         
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
+
+                        if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
+                           this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
+                                continue;
+                        }
+
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->enemy_agent1.move(clone->field, (Direction)dir1);
-                        clone->enemy_agent2.move(clone->field, (Direction)dir2);
+                        clone->enemy_agent1.protected_move(clone->field, (Direction)dir1);
+                        clone->enemy_agent2.protected_move(clone->field, (Direction)dir2);
                         children.push_back(clone);
                 }
         }
@@ -216,13 +254,22 @@ void Node::expand_my_node()
         
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
+
+                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
+                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
+                                continue;
+                        }
+                        
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->my_agent1.move(clone->field, (Direction)dir1);
-                        clone->my_agent2.move(clone->field, (Direction)dir2);
+                        clone->my_agent1.protected_move(clone->field, (Direction)dir1);
+                        clone->my_agent2.protected_move(clone->field, (Direction)dir2);
                         children.push_back(clone);
                 }
         }
@@ -230,6 +277,7 @@ void Node::expand_my_node()
 
 void Node::expand()
 {
+        this->children.reserve(81);
         if(turn){
                 /*
                  * 敵のノードを展開
@@ -256,7 +304,7 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
         return clone;
 }
 
-i64 Node::evaluate()
+i16 Node::evaluate()
 {
         static FieldEvaluater evaluater;
 
@@ -280,6 +328,15 @@ i64 Node::evaluate()
         score += this->field->calc_sumpanel_score();
         
         return score;
+}
+
+void Node::put_score_info()
+{
+        puts("** SCORE INFORMATION **");
+        std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
+        std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Total*: " << evaluate() << std::endl;
 }
 
 /*
