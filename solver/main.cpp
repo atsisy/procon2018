@@ -13,7 +13,8 @@ int main(int argc, char **argv)
          */
         FieldBuilder builder(new QRFormatParser(argv[1]));
 		
-        Node *node = builder.create_root_node();
+//        Node *node = builder.create_root_node();
+		Node *node = new Node("jdump.json");
 		
 		Field mainField = *node->mitgetField();
 		Search search;
@@ -30,33 +31,41 @@ int main(int argc, char **argv)
                 Agent a3 = node->mitgetAgent(3);
                 Agent a4 = node->mitgetAgent(4);
                        
-                Direction search1, search2;
-           while(1) {
-				std::cout << "search direction..." << std::endl;
-				search1 = search.slantsearch(a3, mainField, 10);
-				search2 = search.slantsearch(a4, mainField, 10);
-				a3.setblockdirection(search1);
-				a4.setblockdirection(search2);
-				std::cout << "end searching!" << std::endl;
-				
-				for(int i=0; i<3; i++) {	
-					a3.moveblock(mainField);
-					a4.moveblock(mainField);
-					node->setAgentField(a1, a2, a3, a4, &mainField);
-					node->dump_json_file("cdump.json");
-					a3.draw();
-					a4.draw();
-					mainField.draw_status();
-					delete node;
-					std::cout << "Please input F5 in SimpleViewer and move your agents" << std::endl;
-					getc(stdin);
-					node = new Node("jdump.json");			
-					mainField = *node->mitgetField();	
-					a1 = node->mitgetAgent(1);
-					a2 = node->mitgetAgent(2);	
-				}
-			}
-			delete node;
+    Direction search1, search2;	
+	int tern = 0;
+	FILE *save = fopen("slantsave.dat", "r");
+	if(save == NULL) {
+		save = fopen("slantsave.dat", "w");
+		fprintf(save, "0,0,0");
+	} else {
+		fscanf(save, "%d,%d,%d", &tern, &search1, &search2);
+	}
+	fclose(save);
+	
+	if(tern == 0) {
+		std::cout << "search direction..." << std::endl;
+		search1 = search.slantsearch(a3, mainField, 10);
+		search2 = search.slantsearch(a4, mainField, 10);
+		save = fopen("slantsave.dat", "w");
+		fprintf(save, "1,%d,%d", search1, search2);
+		fclose(save);
+		std::cout << "end searching!" << std::endl;
+	}
+	
+	a3.setblockdirection(search1);
+	a4.setblockdirection(search2);
+	a3.moveblock_mytern(mainField, tern);
+	a4.moveblock_mytern(mainField, tern);
+	node->setAgentField(a1, a2, a3, a4, &mainField);
+	node->dump_json_file("cdump.json");
+	a3.draw();
+	a4.draw();
+	mainField.draw_status();
+	
+	save = fopen("slantsave.dat", "w");
+	tern = (tern+1)%3;
+	fprintf(save, "%d,%d,%d", tern, search1, search2);
+	delete node;
                 
 #ifdef __DEBUG_MODE
                 std::cout << "myclosed.size() :" << myclosed.size() << std::endl;

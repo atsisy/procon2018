@@ -497,6 +497,10 @@ public:
                 this->blockdirection = direction;
         }
 
+		void moveblock_mytern(Field &field, int tern) {
+                this->move(&field, int_to_direction(((7+blockdirection)%8+2*tern)%8));
+		}
+			
         void moveblock(Field &field) {
                 // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
                 this->move(&field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
