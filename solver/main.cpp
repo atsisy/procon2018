@@ -12,6 +12,7 @@ int main(int argc, char **argv)
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
+        FILE *save;
         Node *node;
     	FieldBuilder builder(1,1);
         if(!strcmp(argv[1], "-l")) {
@@ -19,6 +20,9 @@ int main(int argc, char **argv)
 		} else {
 			builder = FieldBuilder(new QRFormatParser(argv[1]));
 			node = builder.create_root_node();
+			save = fopen("slantsave.dat", "w");
+			fprintf(save, "0,0,0");
+			fclose(save);
 		}
 		
 		Field mainField = *node->mitgetField();
@@ -37,7 +41,7 @@ int main(int argc, char **argv)
                        
     Direction search1, search2;	
 	int tern = 0;
-	FILE *save = fopen("slantsave.dat", "r");
+	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
 		save = fopen("slantsave.dat", "w");
 		fprintf(save, "0,0,0");
