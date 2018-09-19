@@ -37,20 +37,23 @@ int main(int argc, char **argv)
 				search2 = search.slantsearch(a4, mainField, 10);
 				a3.setblockdirection(search1);
 				a4.setblockdirection(search2);
+				std::cout << "end searching!" << std::endl;
 				
 				for(int i=0; i<3; i++) {	
-					getc(stdin);
 					a3.moveblock(mainField);
 					a4.moveblock(mainField);
-			//		getc(stdin);
 					node->setAgentField(a1, a2, a3, a4, &mainField);
 					node->dump_json_file("cdump.json");
 					a3.draw();
 					a4.draw();
 					mainField.draw_status();
 					delete node;
-			//		getc(stdin);
-					node = new Node("cdump.json");					
+					std::cout << "Please input F5 in SimpleViewer and move your agents" << std::endl;
+					getc(stdin);
+					node = new Node("jdump.json");			
+					mainField = *node->mitgetField();	
+					a1 = node->mitgetAgent(1);
+					a2 = node->mitgetAgent(2);	
 				}
 			}
 			delete node;
