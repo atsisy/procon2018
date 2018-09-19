@@ -3,6 +3,7 @@
 #include "utility.hpp"
 #include <chrono>
 #include <vector>
+#include <string.h>
 #include "types.hpp"
 
 int main(int argc, char **argv)
@@ -11,10 +12,14 @@ int main(int argc, char **argv)
         /*
          * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
          */
-        FieldBuilder builder(new QRFormatParser(argv[1]));
-		
-//        Node *node = builder.create_root_node();
-		Node *node = new Node("jdump.json");
+        Node *node;
+    	FieldBuilder builder(1,1);
+        if(!strcmp(argv[1], "-l")) {
+			node = new Node(argv[2]);
+		} else {
+			builder = FieldBuilder(new QRFormatParser(argv[1]));
+			node = builder.create_root_node();
+		}
 		
 		Field mainField = *node->mitgetField();
 		Search search;
