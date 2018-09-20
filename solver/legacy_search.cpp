@@ -286,6 +286,16 @@ void Node::expand_my_node()
         }
 }
 
+std::vector<Rect<i8>> Node::agent_diff(Node *node)
+{
+        return {
+                this->my_agent1.diff(node->my_agent1),
+                this->my_agent2.diff(node->my_agent2),
+                this->enemy_agent1.diff(node->enemy_agent1),
+                this->enemy_agent2.diff(node->enemy_agent2)
+        };
+}
+
 void Node::expand()
 {
         this->children.reserve(81);

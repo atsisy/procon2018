@@ -110,6 +110,8 @@ public:
         {
                 return children;
         }
+
+        std::vector<Rect<i8>> agent_diff(Node *node); 
 };
 
 class Search {
@@ -205,11 +207,11 @@ private:
         const Node *select_final(Node *node);
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
         std::vector<Node *> listup_node_greedy(Node *node);
-        std::vector<Node *> listup_node_greedy2(Node *node);
+        std::vector<Node *> listup_node_greedy2(Node *node, std::vector<Rect<u8>> blacklist);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
-        const Node *greedy_montecarlo(Node *node, u8 depth);
+        const Node *greedy_montecarlo(Node *node, u8 depth, std::vector<Rect<u8>> blacklist);
         Montecarlo();
 };

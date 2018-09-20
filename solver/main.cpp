@@ -5,13 +5,46 @@
 #include <vector>
 #include <cstring>
 #include "types.hpp"
+#include <string>
+#include <sstream>
 
 void command_switching(char **argv);
+
+std::vector<Rect<u8>> blacklist(char **argv, int index)
+{
+        std::vector<Rect<u8>> result;
+        int tmp, limit = index + 2;
+        
+        while(index < limit){
+                Rect<u8> rect;
+                std::string word = std::string(argv[index++]);
+                std::replace(std::begin(word), std::end(word), ':', ' ');
+                std::stringstream ss(word);
+                ss >> tmp;
+                if(tmp == -1) continue;
+                rect.width = tmp;
+                ss >> tmp;
+                if(tmp == -1) continue;
+                rect.height = tmp;
+                result.push_back(rect);
+        }
+        
+        for(Rect<u8> rect : result)
+                std::cout << (int)rect.width << ":" << (int)rect.height << std::endl;
+
+        return result;
+}
+
+int break_index(char **argv)
+{
+        int n = 0;
+        while(strcmp(argv[n++], "break"));
+        return n;
+}
 
 int main(int argc, char **argv)
 {
         command_switching(argv);
-        
         Field mainField;	//メインとなるフィールドのインスタンス
         Search search;
 
@@ -20,13 +53,12 @@ int main(int argc, char **argv)
                  * 安田式アルゴリズムテストコード
                  */
                 std::vector<Closed> myclosed;	//閉路を格納するベクター
-
 	
                 mainField.randSetPanel();
                 
                 Agent a1(2,2,generate_agent_meta(MINE_ATTR));
                 Agent a2(5,5,generate_agent_meta(MINE_ATTR));
-	
+                
 // a1を動かす
                 a1.move(&mainField,DOWN);
                 a1.move(&mainField,DOWN);
@@ -42,8 +74,8 @@ int main(int argc, char **argv)
                 a2.move(&mainField,LEFT);
                 a2.move(&mainField,LEFT);
                 Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
-	
                 myclosed.emplace_back(Closed(a1, a2));
+        
                 myclosed[0].CalcScore(mainField);
                 
                 mainField.Draw();
@@ -64,6 +96,7 @@ int main(int argc, char **argv)
         return 0;
 }
 
+
 void command_switching(char **argv)
 {
         if(!strcmp(argv[1], "init")){
@@ -76,7 +109,7 @@ void command_switching(char **argv)
                 node->dump_json_file("root.json");
                 node->draw();
                 Montecarlo monte;
-                const Node *ans = monte.greedy_montecarlo(node, MONTE_DEPTH - std::atoi(argv[3]));
+                const Node *ans = monte.greedy_montecarlo(node, MONTE_DEPTH - std::atoi(argv[3]), blacklist(argv, break_index(argv)));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete node;
@@ -85,7 +118,7 @@ void command_switching(char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 40 ? 40 : d));
+                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 40 ? 40 : d), blacklist(argv, break_index(argv)));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 delete ans;
@@ -110,7 +143,6 @@ void command_switching(char **argv)
                 std::cerr << "the command is missing: you may have experience a problem" << std::endl;
                 return;
         }
-
         exit(0);
 }
 

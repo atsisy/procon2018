@@ -120,7 +120,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
         return nodes;
 }
 
-std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
+std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, std::vector<Rect<u8>> blacklist)
 {
         std::vector<Node *> nodes;
         std::vector<Node *> result;
@@ -147,7 +147,10 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
           });
 
         bool flag = false;
-        i64 max_score = nodes.at(0)->get_score();;
+        i64 max_score = nodes.at(0)->get_score();
+        const auto &&black_begin = std::begin(blacklist);
+        const auto &&black_end = std::end(blacklist);
+        
         for(Node *n : nodes){
                 if(max_score == n->get_score()){
                         if(flag)
@@ -157,6 +160,20 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
                         flag = true;
                         max_score = n->get_score();
                 }
+
+                if(
+                        blacklist.size() >= 1 &&
+#ifdef I_AM_ENEMY
+                        (std::find(black_begin, black_end, n->my_agent1.rect<u8>()) == black_end ||
+                         std::find(black_begin, black_end, n->my_agent2.rect<u8>()) == black_end)
+#endif
+#ifdef I_AM_ME
+                        (std::find(black_begin, black_end, n->enemy_agent1.rect<u8>()) == black_end ||
+                         std::find(black_begin, black_end, n->enemy_agent2.rect<u8>()) == black_end)
+#endif
+                )
+                        continue;
+
                 result.push_back(n);
         }
 
@@ -174,9 +191,9 @@ const Node *Montecarlo::greedy(Node *node)
         return select_final(node);
 }
 
-const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
+const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth, std::vector<Rect<u8>> blacklist)
 {
-        std::vector<Node *> &&nodes = listup_node_greedy2(node);
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, blacklist);
         if(nodes.size() == 1) return get_first_child(nodes.at(0));
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
@@ -188,7 +205,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
                 total_trying += playout_process(tmp, MONTE_INITIAL_TIMES);
                 result.push_back(tmp);
-                original.push_back(tmp);       
+                original.push_back(tmp);
         }
         if(result.size() == 1) return get_first_child(result.at(0)->node);
         

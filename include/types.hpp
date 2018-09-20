@@ -198,6 +198,7 @@ public:
 
         /*
          * atメソッド フィールド情報のアクセサメソッド
+
          * このメソッドは、fieldメンバを変更することはできない
          */
         Panel at(u8 x, u8 y) const;
@@ -317,6 +318,16 @@ public:
         {
                 this->width = 0;
                 this->height = 0;
+        }
+
+        Rect<T> operator-() const
+        {
+                return Rect<T>(-width, -height);
+        }
+
+        bool operator==(const Rect &r) const
+        {
+                return r.width == this->width && r.height == this->height;
         }
 };
 
@@ -542,6 +553,27 @@ public:
         {
                 return this->x == agent.x &&
                         this->y == agent.y;
+        }
+
+        bool same_location(const u8 x, const u8 y)
+        {
+                return this->x == x &&
+                        this->y == y;
+        }
+
+        
+        Rect<i8> diff(Agent a)
+        {
+                return Rect<i8>(
+                        this->x - a.x,
+                        this->y - a.y
+                        );
+        }
+
+        template <typename T>
+        Rect<T> rect()
+        {
+                return Rect<T>((T)x, (T)y);
         }
 };
 
