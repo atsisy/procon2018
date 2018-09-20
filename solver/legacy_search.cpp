@@ -441,7 +441,7 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	std::mt19937 mt(rnd());
 	ind = 0;
 	for(int i=0; i<4; i++) {
-		discore[i] *= (mt()%14)/10.0+0.1;
+		discore[i] *= (mt()%3)/10.0+0.9;
 		if(discore[i] > discore[ind]) ind = i;
 	}
 
