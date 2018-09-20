@@ -3,6 +3,7 @@
 #include <vector>
 #include "picojson.h"
 #include <fstream>
+#include <random>
 
 /*
  * Nodeクラスのコンストラクタ
@@ -401,7 +402,7 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
 int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	int ds = -10000;
 	Direction *resultsave = result;
-	std::vector<int> discore(4, 0);
+	std::vector<double> discore(4, 0);
 	int ind;
 	if(depth == 0) {
 		for(int i=0; i<4; i++) {
@@ -436,9 +437,11 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 		}
 	}
 	
-	
+	std::random_device rnd;
+	std::mt19937 mt(rnd());
 	ind = 0;
-	for(int i=1; i<4; i++) {
+	for(int i=0; i<4; i++) {
+		discore[i] *= (mt()%14)/10.0+0.1;
 		if(discore[i] > discore[ind]) ind = i;
 	}
 
