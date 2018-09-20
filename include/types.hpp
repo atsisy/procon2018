@@ -523,7 +523,7 @@ public:
         int get4dirScore(Field &field) {
 			int score = 0;
 			for(int i=0; i<4; i++) {
-				if(field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).is_pure_panel()) score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
+				if(!field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).is_my_panel()) score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
 			}
 			return score;
 		}
