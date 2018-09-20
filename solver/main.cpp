@@ -15,13 +15,38 @@ int main(int argc, char **argv)
         FILE *save;
         Node *node;
     	FieldBuilder builder(1,1);
-        if(!strcmp(argv[1], "-l")) {
-			node = new Node(argv[2]);
-		} else {
-			builder = FieldBuilder(new QRFormatParser(argv[1]));
+    	if(!strcmp(argv[1], "--init")) {
+			builder = FieldBuilder(new QRFormatParser(argv[2]));
 			node = builder.create_root_node();
 			save = fopen("slantsave.dat", "w");
-			fprintf(save, "0,0,0");
+			fprintf(save, "-1,0,0,0");
+			fclose(save);
+			node->dump_json_file("cdump.json");
+			node->mitgetField()->draw_status();
+			std::cout << "\n[\x1b[31m+\x1b[39m] Field initialized\n" << std::endl;
+			return 0;
+		} else if(!strcmp(argv[1], "-l")) {
+			int a[4];
+			node = new Node(argv[2]);
+			save = fopen("slantsave.dat", "r");
+			fscanf(save, "%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3]);
+			fclose(save);
+			if(a[0] == -1) {
+				save = fopen("slantsave.dat", "w");
+				fprintf(save, "0,0,0,0");
+				fclose(save);	
+			}
+		} else {
+			int a[4];
+			save = fopen("slantsave.dat", "r");
+			fscanf(save, "%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3]);
+			fclose(save);
+			if(a[0] != -1) node = new Node(argv[1]);
+			else {
+				node = new Node("cdump.json");
+				save = fopen("slantsave.dat", "w");
+				fprintf(save, "0,0,0,0");
+			}
 			fclose(save);
 		}
 		
@@ -40,30 +65,31 @@ int main(int argc, char **argv)
                 Agent a4 = node->mitgetAgent(4);
                        
     Direction search1, search2;	
-	int tern = 0;
+	int tern1 = 0, tern2 = 0;
 	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
-		save = fopen("slantsave.dat", "w");
-		fprintf(save, "0,0,0");
+		std::cout << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
+		exit(-1);
 	} else {
-		fscanf(save, "%d,%d,%d", &tern, &search1, &search2);
+		fscanf(save, "%d,%d,%d,%d", &tern1, &tern2, &search1, &search2);
+		printf("tern1 = %d\ntern2 = %d\n", tern1, tern2);
 	}
 	fclose(save);
 	
-	if(tern == 0) {
-		std::cout << "search direction..." << std::endl;
+	if(tern1 == 0) {
+		std::cout << "[\x1b[31m+\x1b[39m] search direction..." << std::endl;
 		search1 = search.slantsearch(a3, mainField, 10);
 		search2 = search.slantsearch(a4, mainField, 10);
 		save = fopen("slantsave.dat", "w");
-		fprintf(save, "1,%d,%d", search1, search2);
+		fprintf(save, "0,0,%d,%d", search1, search2);
 		fclose(save);
-		std::cout << "end searching!" << std::endl;
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 	}
 	
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
-	a3.moveblock_mytern(mainField, tern);
-	a4.moveblock_mytern(mainField, tern);
+	a3.moveblock_mytern(mainField, tern1);
+	a4.moveblock_mytern(mainField, tern2);
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
 	a3.draw();
@@ -71,8 +97,9 @@ int main(int argc, char **argv)
 	mainField.draw_status();
 	
 	save = fopen("slantsave.dat", "w");
-	tern = (tern+1)%3;
-	fprintf(save, "%d,%d,%d", tern, search1, search2);
+	tern1 = (tern1+1)%3;
+	tern2 = (tern2+1)%3;
+	fprintf(save, "%d,%d,%d,%d", tern1, tern2, search1, search2);
 	delete node;
                 
 #ifdef __DEBUG_MODE
