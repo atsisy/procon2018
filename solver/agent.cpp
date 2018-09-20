@@ -93,14 +93,17 @@ void Agent::move(Field *field, Direction direction)
         field->make_at(this->x, this->y, extract_player_info());
 }
 
-void Agent::protected_move(Field  *field, Direction direction)
-{
-        just_move(direction);
-        if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
-                field->make_at(x, y, PURE_ATTR);
-                turn_back(direction);
-        }else
-                field->make_at(this->x, this->y, extract_player_info());
+Panel Agent::protected_move(Field  *field, Direction direction) {
+	Panel p = field->at(x, y);
+	
+    just_move(direction);
+    if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
+            field->make_at(x, y, PURE_ATTR);
+            p = field->at(x, y);
+            turn_back(direction);
+    }else
+            field->make_at(this->x, this->y, extract_player_info());
+    return p;
 }
 
 void Agent::draw() const

@@ -6,12 +6,7 @@
 #include <string.h>
 #include "types.hpp"
 
-int main(int argc, char **argv)
-{
-        
-        /*
-         * コマンドライン引数の添字1にQRへのファイルパスが含まれているとする。
-         */
+int main(int argc, char **argv) {
         FILE *save;
         Node *node;
     	FieldBuilder builder(1,1);
@@ -86,10 +81,11 @@ int main(int argc, char **argv)
 		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 	}
 	
+	Panel moved[2];
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
-	a3.moveblock_mytern(mainField, tern1);
-	a4.moveblock_mytern(mainField, tern2);
+	moved[0] = a3.moveblock_mytern(mainField, tern1);
+	moved[1] = a4.moveblock_mytern(mainField, tern2);
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
 	a3.draw();
@@ -97,16 +93,17 @@ int main(int argc, char **argv)
 	mainField.draw_status();
 	
 	save = fopen("slantsave.dat", "w");
-	tern1 = (tern1+1)%3;
-	tern2 = (tern2+1)%3;
+	
+	if(moved[0].is_not_pure_panel()) tern1 = (tern1+1)%3;
+	if(moved[1].is_not_pure_panel()) tern2 = (tern2+1)%3;
 	fprintf(save, "%d,%d,%d,%d", tern1, tern2, search1, search2);
 	delete node;
                 
 #ifdef __DEBUG_MODE
-                std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
-                for(Closed closed:myclosed){
-                        closed.print_closed(mainField);
-                }
+    std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
+    for(Closed closed:myclosed){
+		closed.print_closed(mainField);
+    }
 #endif
 
 #ifdef __DEBUG_MODE

@@ -417,7 +417,7 @@ inline void test_generate_agent_meta()
 
 
 class Agent {
-
+	
         friend Node;
 
 private:
@@ -510,8 +510,8 @@ public:
                 this->blockdirection = direction;
         }
 
-		void moveblock_mytern(Field &field, int tern) {
-                this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*tern)%8));
+		Panel moveblock_mytern(Field &field, int tern) {
+                return this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*tern)%8));
 		}
 			
         void moveblock(Field &field) {
@@ -541,7 +541,8 @@ public:
         void draw() const;
 
         void move(Field & field, Direction direction);
-        void protected_move(Field *field, Direction direction);
+        
+        Panel protected_move(Field *field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
 
