@@ -161,11 +161,11 @@ void Node::play(std::array<Direction, 4> dirs)
 void Node::play_half(Direction d1, Direction d2, u8 turn)
 {
         if(IS_MYTURN(turn)){
-                my_agent1.move(this->field, d1);
-                my_agent2.move(this->field, d2);
+                my_agent1.protected_move(this->field, d1);
+                my_agent2.protected_move(this->field, d2);
         }else{
-                enemy_agent1.move(this->field, d1);
-                enemy_agent2.move(this->field, d2);
+                enemy_agent1.protected_move(this->field, d1);
+                enemy_agent2.protected_move(this->field, d2);
         }
 }
 
@@ -259,7 +259,6 @@ bool Node::has_same_pos(const Node *node)
 
 void Node::expand_my_node()
 {
-        //children.reserve(81);
         std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
         
