@@ -95,7 +95,8 @@ void Agent::move(Field *field, Direction direction)
 void Agent::protected_move(Field  *field, Direction direction)
 {
         just_move(direction);
-        if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
+        const Panel panel = field->at(x, y);
+        if(panel.is_not_pure_panel() && panel.get_meta() != extract_player_info()){
                 field->make_at(x, y, PURE_ATTR);
                 turn_back(direction);
         }else
