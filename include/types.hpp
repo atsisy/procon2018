@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <bits/stdc++.h>
 #include <vector>
 #include <initializer_list>
 #include <type_traits>
@@ -19,6 +20,7 @@ using u32 = std::uint_fast32_t;
 using i32 = std::int_fast32_t;
 using u64 = std::uint_fast64_t;
 using i64 = std::int_fast64_t;
+using i128 = __int128;
 
 constexpr u8 MINE_ATTR = 0b01;
 constexpr u8 ENEMY_ATTR = 0b10;
