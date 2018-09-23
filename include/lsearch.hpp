@@ -205,7 +205,7 @@ private:
         const Node *select_final(Node *node);
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
         std::vector<Node *> listup_node_greedy(Node *node);
-        std::vector<Node *> listup_node_greedy2(Node *node);
+        std::vector<Node *> listup_node_greedy2(Node *node, u8 rank);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);

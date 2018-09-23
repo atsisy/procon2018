@@ -120,7 +120,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
         return nodes;
 }
 
-std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
+std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, u8 rank)
 {
         std::vector<Node *> nodes;
         std::vector<Node *> result;
@@ -146,16 +146,12 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node)
 #endif
           });
 
-        bool flag = false;
-        i64 max_score = nodes.at(0)->get_score();;
+        i64 max_score = nodes.at(0)->get_score();
         for(Node *n : nodes){
-                if(max_score == n->get_score()){
-                        if(flag)
-                                break;
-
-                }else{
-                        flag = true;
+                if(max_score != n->get_score()){
                         max_score = n->get_score();
+                        if(!--rank)
+                                break;
                 }
                 result.push_back(n);
         }
@@ -176,7 +172,7 @@ const Node *Montecarlo::greedy(Node *node)
 
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
-        std::vector<Node *> &&nodes = listup_node_greedy2(node);
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, 2);
         if(nodes.size() == 1) return get_first_child(nodes.at(0));
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
