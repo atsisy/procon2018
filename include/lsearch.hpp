@@ -75,6 +75,8 @@ public:
         void draw() const;
 
         void dump_json_file(const char *file_name) const;
+        
+        i8 check_panel_score(Direction d, Agent agent);
 
         
         /*
@@ -131,7 +133,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.35;
+constexpr float UCB_C = 0.39;
 struct PlayoutResult {
 
         Node *node;

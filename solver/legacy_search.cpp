@@ -169,6 +169,12 @@ void Node::play_half(Direction d1, Direction d2, u8 turn)
         }
 }
 
+i8 Node::check_panel_score(Direction d, Agent agent)
+{
+        agent.just_move(d);
+        return field->at(agent.x, agent.y).get_score_value();
+}
+
 std::string Node::dump_json() const
 {
         picojson::object root;

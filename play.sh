@@ -14,12 +14,12 @@ for i in `seq 2 70`
 do
     echo ---------------------------------------------
     echo TURN $i
-    ./bin.d/bin score ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json $i
+    ./bin.d/bin score ./jdump.json $i
     echo Type enter key
     read
-    ./bin.d/bin continue ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json $i
+    ./bin.d/bin continue ./jdump.json $i
     echo your turn
     read
-    ./bin.d/bin gnuscore ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/jdump.json $i >> score.dat
+    ./bin.d/bin gnuscore ./jdump.json $i >> score.dat
     
 done
