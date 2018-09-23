@@ -124,6 +124,11 @@ public:
         {
                 return meta_info & flag;
         }
+
+        u8 get_meta() const
+        {
+                return meta_info;
+        }
 };
 
 class FieldBuilder;
