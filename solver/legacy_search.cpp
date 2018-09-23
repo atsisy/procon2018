@@ -158,14 +158,37 @@ void Node::play(std::array<Direction, 4> dirs)
         enemy_agent2.protected_move(this->field, dirs[3]);
 }
 
-void Node::play_half(Direction d1, Direction d2, u8 turn)
+std::pair<Panel, Panel> Node::play_half(Direction d1, Direction d2, u8 turn)
 {
         if(IS_MYTURN(turn)){
-                my_agent1.protected_move(this->field, d1);
-                my_agent2.protected_move(this->field, d2);
+                return std::make_pair(
+                        my_agent1.protected_move(this->field, d1),
+                        my_agent2.protected_move(this->field, d2)
+                        );
         }else{
-                enemy_agent1.protected_move(this->field, d1);
-                enemy_agent2.protected_move(this->field, d2);
+                return std::make_pair(
+                        enemy_agent1.protected_move(this->field, d1),
+                        enemy_agent2.protected_move(this->field, d2)
+                        );
+        }
+}
+
+void Node::reset_play_half(Direction d1, Direction d2, u8 turn, std::pair<Panel, Panel> origin)
+{
+        if(IS_MYTURN(turn)){
+                field->make_at(my_agent1.x, my_agent1.y, origin.first.get_meta());
+                field->make_at(my_agent2.x, my_agent2.y, origin.second.get_meta());
+                if(origin.first.get_meta() != ENEMY_ATTR)
+                        my_agent1.turn_back(d1);
+                if(origin.second.get_meta() != ENEMY_ATTR)
+                        my_agent2.turn_back(d2);
+        }else{
+                field->make_at(enemy_agent1.x, enemy_agent1.y, origin.first.get_meta());
+                field->make_at(enemy_agent2.x, enemy_agent2.y, origin.second.get_meta());
+                if(origin.first.get_meta() != MINE_ATTR)
+                        enemy_agent1.turn_back(d1);
+                if(origin.second.get_meta() != MINE_ATTR)
+                        enemy_agent2.turn_back(d2);
         }
 }
 

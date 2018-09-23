@@ -50,7 +50,8 @@ private:
         void expand_my_node();
 
         void play(std::array<Direction, 4> dirs);
-        void play_half(Direction d1, Direction d2, u8 turn);
+        std::pair<Panel, Panel> play_half(Direction d1, Direction d2, u8 turn);
+        void reset_play_half(Direction d1, Direction d2, u8 turn, std::pair<Panel, Panel> origin);
 
         bool has_same_pos(const Node *node);
         
@@ -206,6 +207,9 @@ private:
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
         std::vector<Node *> listup_node_greedy(Node *node);
         std::vector<Node *> listup_node_greedy2(Node *node, u8 rank);
+        std::pair<Direction, Direction> enemy_greedy_direction(Node *node, u8 turn);
+        std::pair<Direction, Direction> my_greedy_direction(Node *node, u8 turn);
+        std::pair<Direction, Direction> greedy_direction(Node *node, u8 turn);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);

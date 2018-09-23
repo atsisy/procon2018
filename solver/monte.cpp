@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include "utility.hpp"
 
-constexpr u32 MONTE_INITIAL_TIMES = 6000;
+constexpr u32 MONTE_INITIAL_TIMES = 10;
 constexpr u32 MONTE_MIN_TIMES = 100;
-constexpr u32 MONTE_EXPAND_LIMIT = 7500;
+constexpr u32 MONTE_EXPAND_LIMIT = 200;
 constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 
@@ -198,10 +198,10 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
 
                 std::thread th1([&](){
-                                        add_trying(&total_trying, select_and_play(result, result.at(0), 300));
+                                        add_trying(&total_trying, select_and_play(result, result.at(0), 10));
                                 }),
                         th2([&](){
-                                    add_trying(&total_trying, select_and_play(result, result.at(1), 150));
+                                    add_trying(&total_trying, select_and_play(result, result.at(1), 5));
                             });
                 th2.join();
                 th1.join();
@@ -323,6 +323,111 @@ u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
                         win++;
         tmp->update(i, win);
         return i;
+}
+
+std::pair<Direction, Direction> Montecarlo::enemy_greedy_direction(Node *node, u8 turn)
+{
+        i16 max_score = 1000, tmp;
+        std::pair<Direction, Direction> ret;
+        std::vector<Direction> &&directions1 = node->enemy_agent1.movable_direction(node->field);
+        std::vector<Direction> &&directions2 = node->enemy_agent2.movable_direction(node->field);
+/*
+        node->draw();
+        for(Direction d : directions1) printf("%d\n", d);
+        puts("--");
+        for(Direction d : directions2) printf("%d\n", d);
+*/
+        
+        for(const Direction dir1 : directions1){
+                for(const Direction dir2 : directions2){
+
+                        if(node->enemy_agent1.check_conflict(((Direction)dir1), node->my_agent1, STOP) ||
+                           node->enemy_agent1.check_conflict(((Direction)dir1), node->my_agent2, STOP) ||
+                           node->enemy_agent2.check_conflict(((Direction)dir2), node->my_agent1, STOP) ||
+                           node->enemy_agent2.check_conflict(((Direction)dir2), node->my_agent2, STOP) ||
+                           node->enemy_agent2.check_conflict(((Direction)dir2), node->enemy_agent1, (Direction)dir1)){
+                                continue;
+                        }
+                        
+                        /** FIXME
+                         * fieldがポインタ参照になってる。
+                         * moveメソッドに直接fieldのポインタを渡したい
+                         */
+                        const auto &&pair = node->play_half(dir1, dir2, turn);
+                        tmp = node->evaluate();
+                        if(tmp <= max_score){
+                                max_score = tmp;
+                                ret.first = dir1;
+                                ret.second = dir2;
+                        }
+                        
+                        node->reset_play_half(dir1, dir2, turn, pair);
+                        /*
+                        if(!ba1.same_location(node->enemy_agent1) || !ba2.same_location(node->enemy_agent2)){
+                                puts("*****error********");
+                                printf("d1=%d, d2=%d\n", dir1, dir2);
+                                ba1.draw();
+                                ba2.draw();
+                                node->enemy_agent1.draw();
+                                node->enemy_agent2.draw();
+                                exit(0);
+                        }
+                        */
+                }
+        }
+
+        return ret;
+}
+
+std::pair<Direction, Direction> Montecarlo::my_greedy_direction(Node *node, u8 turn)
+{
+        i16 max_score = -1000, tmp;
+        std::pair<Direction, Direction> ret;
+        std::vector<Direction> &&directions1 = node->my_agent1.movable_direction(node->field);
+        std::vector<Direction> &&directions2 = node->my_agent2.movable_direction(node->field);
+        
+        for(const Direction dir1 : directions1){
+                for(const Direction dir2 : directions2){
+
+                        if(node->my_agent1.check_conflict(((Direction)dir1), node->enemy_agent1, STOP) ||
+                           node->my_agent1.check_conflict(((Direction)dir1), node->enemy_agent2, STOP) ||
+                           node->my_agent2.check_conflict(((Direction)dir2), node->enemy_agent1, STOP) ||
+                           node->my_agent2.check_conflict(((Direction)dir2), node->enemy_agent2, STOP) ||
+                           node->my_agent2.check_conflict(((Direction)dir2), node->my_agent1, (Direction)dir1)){
+                                continue;
+                        }
+                        
+                        /** FIXME
+                         * fieldがポインタ参照になってる。
+                         * moveメソッドに直接fieldのポインタを渡したい
+                         */
+                        const auto &&pair = node->play_half(dir1, dir2, turn);
+                        tmp = node->evaluate();
+                        if(tmp >= max_score){
+                                max_score = tmp;
+                                ret.first = dir1;
+                                ret.second = dir2;
+                        }
+                        node->reset_play_half(dir1, dir2, turn, pair);
+                }
+        }
+
+        return ret;
+}
+
+std::pair<Direction, Direction> Montecarlo::greedy_direction(Node *node, u8 turn)
+{
+        if(IS_MYTURN(turn)){
+                /*
+                 * 味方のgreedy play
+                 */
+                return my_greedy_direction(node, turn);
+        }else{
+                /*
+                 * 敵のgreedy play
+                 */
+                return enemy_greedy_direction(node, turn);
+        }
 }
 
 /*
@@ -454,7 +559,16 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
                 return DRAW;
 
         while(depth--){
-                current->play(find_random_legal_direction(current));
+                if(depth & 15){
+                        current->play(find_random_legal_direction(current));
+                }else{
+                        const auto &&pair1 = greedy_direction(current, MY_TURN);
+                        const auto &&pair2 = greedy_direction(current, ENEMY_TURN);
+                        current->play(check_direction_legality(current, {
+                                                pair1.first, pair1.second,
+                                                pair2.first, pair2.second
+                                        }));
+                }
         }
 
         if(current->evaluate() < 0){

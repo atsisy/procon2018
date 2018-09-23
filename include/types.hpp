@@ -124,6 +124,11 @@ public:
         {
                 return meta_info & flag;
         }
+
+        u8 get_meta() const
+        {
+                return meta_info;
+        }
 };
 
 class FieldBuilder;
@@ -484,7 +489,6 @@ private:
 
         void just_move(Direction direction);
         void turn_back(Direction direction);
-        std::vector<Direction> movable_direction(Field *field) const;
 
         /*
          *自分の位置からdirectionの方向を見て色が存在するか判定する関数
@@ -499,6 +503,7 @@ public:
         void move(Field *field, Direction direction);
 
         bool is_movable(Field *field, Direction dir);
+        std::vector<Direction> movable_direction(Field *field) const;
 
         i8 get_blockscore(Field &field, Direction k) {
                 u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
@@ -525,7 +530,7 @@ public:
         void draw() const;
 
         void move(Field & field, Direction direction);
-        void protected_move(Field *field, Direction direction);
+        Panel protected_move(Field *field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
         bool is_mine();

@@ -92,14 +92,31 @@ void Agent::move(Field *field, Direction direction)
         field->make_at(this->x, this->y, extract_player_info());
 }
 
-void Agent::protected_move(Field  *field, Direction direction)
+/*
+ * protected_move関数
+ * 移動先のパネルが移動するエージェントのチームのものではない場合、pureにする処理が行われる
+ */
+Panel Agent::protected_move(Field *field, Direction direction)
 {
+        // エージェントの座標が変わるだけ
         just_move(direction);
-        if(field->at(x, y).are_you(((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR))){
+
+        // 新しくエージェントが移動した先のパネル情報
+        const Panel panel = field->at(x, y);
+        if(panel.get_meta() == ((extract_player_info() & MINE_ATTR) ? ENEMY_ATTR : MINE_ATTR)){
+                /*
+                 * 移動先のパネルが相手チームのものだった
+                 */
+                // PUREにする
                 field->make_at(x, y, PURE_ATTR);
+                // 座標を戻す
                 turn_back(direction);
-        }else
+        }else{
+                // 移動先にマーク
                 field->make_at(this->x, this->y, extract_player_info());
+        }
+        
+        return panel;
 }
 
 void Agent::draw() const
