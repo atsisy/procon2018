@@ -10,7 +10,7 @@ struct te {
         te(Direction dir) { direction = dir; total = 0; percentage = 0; }
         float calc_percentage(u64 global_total)
         {
-                return (percentage = ((double)total / (double)global_total));
+                return (percentage = (((double)total / (double)global_total) * 100.0));
         }
 };
 
