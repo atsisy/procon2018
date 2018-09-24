@@ -5,6 +5,13 @@
 #include <random>
 #include <array>
 
+struct action {
+        u64 state_hash;
+        Direction act;
+
+        action(u64 hash) { state_hash = hash; act = STOP; }
+};
+
 class Search;
 class Montecarlo;
 
@@ -55,6 +62,7 @@ private:
         bool has_same_pos(const Node *node);
         
         std::string dump_json() const;
+        std::vector<action> __generate_state_hash(std::vector<Agent> agents) const;
         
 public:
         /*
@@ -112,6 +120,10 @@ public:
         {
                 return children;
         }
+
+        std::vector<action> generate_state_hash(u8 turn) const;
+
+        bool nobody(i8 x, i8 y) const;
 };
 
 class Search {

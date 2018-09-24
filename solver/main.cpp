@@ -79,6 +79,9 @@ void command_switching(char **argv)
                 const Node *ans = monte.greedy_montecarlo(node, MONTE_DEPTH - std::atoi(argv[3]));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
+                auto ha = ans->generate_state_hash(MY_TURN);
+                for(action a : ha)
+                        std::cout << a.state_hash << std::endl;
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
