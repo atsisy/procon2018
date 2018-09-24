@@ -223,6 +223,49 @@ void Node::dump_json_file(const char *file_name) const
         f << dump_json();
 }
 
+bool Node::nobody(i8 x, i8 y) const
+{
+        return !my_agent1.same_location(x, y) && !my_agent2.same_location(x, y) &&
+                !enemy_agent1.same_location(x, y) && !enemy_agent2.same_location(x, y);
+}
+
+std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
+{
+        i8 x, y;
+        std::vector<action> ret;
+        
+        for(Agent agent : agents){
+                u64 hash = 0;
+                for(x = agent.x - 1;x <= agent.x + 1;x++){
+                        for(y = agent.y - 1;y <= agent.y + 1;y++){
+                                hash <<= 5;
+                                if(!field->is_within(x, y))
+                                        continue;
+                                hash |= field->at(x, y).simplified_hash(!nobody(x, y));
+                                std::cout << (int)x << ":" << (int)y << std::endl;
+                        }
+                }
+                ret.emplace_back(hash);
+        }
+
+        return ret;
+}
+
+std::vector<action> Node::generate_state_hash(u8 turn) const
+{
+        std::vector<Agent> agents;
+        
+        if(IS_MYTURN(turn)){
+                puts("qqq");
+                agents.push_back(my_agent1);
+                agents.push_back(my_agent2);
+        }else{
+                agents.push_back(my_agent1);
+                agents.push_back(my_agent2);
+        }
+
+        return __generate_state_hash(agents);
+}
 
 void Node::expand_enemy_node()
 {

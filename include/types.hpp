@@ -131,6 +131,34 @@ public:
         {
                 return meta_info;
         }
+
+        u8 simplified_hash(bool on_agent) const
+        {
+                u8 ret = 0, tmp = 0;
+                if(get_score_value() < 0)
+                        tmp = 0;
+                else if(get_score_value() == 0)
+                        tmp = 1;
+                else
+                        tmp = 2;
+                ret |= tmp;
+                ret <<= 2;
+
+                if(is_my_panel())
+                        tmp = 1;
+                else if(is_enemy_panel())
+                        tmp = 2;
+                else
+                        tmp = 0;
+                ret |= tmp;
+                ret <<= 1;
+
+                if(on_agent){
+                        ret |= 1;
+                }
+
+                return ret;
+        }
 };
 
 class FieldBuilder;
@@ -545,11 +573,17 @@ public:
                         this->meta_info == agent.meta_info;
         }
 
-        bool same_location(const Agent &agent)
+        bool same_location(const Agent &agent) const
         {
                 return this->x == agent.x &&
                         this->y == agent.y;
         }
+
+        bool same_location(i8 x, i8 y) const
+                {
+                        return this->x == x &&
+                                this->y == y;
+                }
 };
 
 
