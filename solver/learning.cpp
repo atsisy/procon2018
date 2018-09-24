@@ -1,4 +1,5 @@
 #include "learn.hpp"
+#include "utility.hpp"
 #include <unordered_map>
 #include <cstdio>
 
@@ -28,9 +29,19 @@ void te_list::sort()
 
 te te_list::random_select()
 {
-        /*
-         * あとで実装
-         */
+        xor128 random;
+        double random_variable = (double)(random() % 101);
+        te ret;
+
+        for(te t : list){
+                ret = t;
+                random_variable -= t.percentage;
+                if(random_variable < 0)
+                        break;
+        }
+
+        return ret;
+        
 }
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
