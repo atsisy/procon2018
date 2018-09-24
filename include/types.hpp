@@ -132,7 +132,7 @@ public:
                 return meta_info;
         }
 
-        u8 simplified_hash(bool on_agent) const
+        u8 simplified_hash(u8 who, bool on_agent) const
         {
                 u8 ret = 0, tmp = 0;
                 if(get_score_value() < 0)
@@ -144,12 +144,12 @@ public:
                 ret |= tmp;
                 ret <<= 2;
 
-                if(is_my_panel())
-                        tmp = 1;
-                else if(is_enemy_panel())
-                        tmp = 2;
-                else
+                if(is_pure_panel())
                         tmp = 0;
+                else if(are_you(who))
+                        tmp = 1;
+                else
+                        tmp = 2;
                 ret |= tmp;
                 ret <<= 1;
 

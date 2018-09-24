@@ -277,7 +277,7 @@ std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
                                 hash <<= 5;
                                 if(!field->is_within(x, y))
                                         continue;
-                                hash |= field->at(x, y).simplified_hash(!nobody(x, y));
+                                hash |= field->at(x, y).simplified_hash(agent.extract_player_info(), !nobody(x, y));
                         }
                 }
                 ret.emplace_back(hash);

@@ -9,7 +9,7 @@ for i in `seq 1 70`
 do
     echo ---------------------------------------------
     ./bin continue ./cdump.json $i
-    ./bin.d/bin continue ./cdump.json $
+    ./bin.d/bin continue ./cdump.json $i
     ./bin.d/bin gnuscore ./cdump.json $i >> score.dat
     echo turn $i
 done
