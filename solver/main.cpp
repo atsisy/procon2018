@@ -119,6 +119,10 @@ void command_switching(char **argv)
                 Node *json_node = new Node(argv[2]);
                 json_node->put_score_info();
                 delete json_node;
+        }else if(!strcmp(argv[1], "final-score")){
+                Node *json_node = new Node(argv[2]);
+                std::cout << json_node->evaluate() << std::endl;
+                delete json_node;
         }else if(!strcmp(argv[1], "gnuscore")){
                 Node *json_node = new Node(argv[2]);
                 printf("%d %d\n", std::atoi(argv[3]), json_node->evaluate());
