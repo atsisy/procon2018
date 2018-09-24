@@ -259,7 +259,6 @@ std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
                                 if(!field->is_within(x, y))
                                         continue;
                                 hash |= field->at(x, y).simplified_hash(!nobody(x, y));
-                                std::cout << (int)x << ":" << (int)y << std::endl;
                         }
                 }
                 ret.emplace_back(hash);

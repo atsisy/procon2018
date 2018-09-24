@@ -3,6 +3,7 @@
 #include "utility.hpp"
 #include <chrono>
 #include <vector>
+#include <fstream>
 #include <cstring>
 #include "types.hpp"
 
@@ -64,6 +65,30 @@ int main(int argc, char **argv)
         return 0;
 }
 
+void write_learning_data(const Node *before, const Node *after)
+{
+        std::ofstream ofs("learning.dat", std::ios::app);
+        if(!ofs){
+                std::cerr << "Failed to open file." << std::endl;
+        }
+
+        std::array<Direction, 4> agent_directions = after->agent_diff(before);
+
+        Direction d1, d2;
+#ifdef I_AM_ME
+        std::vector<action> &&states = before->generate_state_hash(MY_TURN);
+        d1 = agent_directions.at(0);
+        d2 = agent_directions.at(1);
+#endif
+#ifdef I_AM_ENEMY
+        std::vector<action> &&states = before->generate_state_hash(ENEMY_TURN);
+        d1 = agent_directions.at(2);
+        d2 = agent_directions.at(3);
+#endif
+        ofs << states.at(0).state_hash << "\t" << (int)d1 << std::endl;
+        ofs << states.at(1).state_hash << "\t" << (int)d2 << std::endl;
+}
+
 void command_switching(char **argv)
 {
         if(!strcmp(argv[1], "init")){
@@ -79,12 +104,7 @@ void command_switching(char **argv)
                 const Node *ans = monte.greedy_montecarlo(node, MONTE_DEPTH - std::atoi(argv[3]));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
-                auto ha = ans->generate_state_hash(MY_TURN);
-                for(action a : ha)
-                        std::cout << a.state_hash << std::endl;
-                auto diff = ans->agent_diff(node);
-                for(Direction d : diff)
-                        std::cout << (int)d << std::endl;
+                write_learning_data(node, ans);
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
@@ -94,6 +114,7 @@ void command_switching(char **argv)
                 const Node *ans = monte.greedy_montecarlo(json_node, (d >= 40 ? 40 : d));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
+                write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "score")){
