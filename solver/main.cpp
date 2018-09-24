@@ -74,17 +74,15 @@ void write_learning_data(const Node *before, const Node *after)
 
         std::array<Direction, 4> agent_directions = after->agent_diff(before);
 
-        Direction d1, d2;
 #ifdef I_AM_ME
         std::vector<action> &&states = before->generate_state_hash(MY_TURN);
-        d1 = agent_directions.at(0);
-        d2 = agent_directions.at(1);
 #endif
 #ifdef I_AM_ENEMY
         std::vector<action> &&states = before->generate_state_hash(ENEMY_TURN);
-        d1 = agent_directions.at(2);
-        d2 = agent_directions.at(3);
 #endif
+        Direction d1 = after->get_last_action(0);
+        Direction d2 = after->get_last_action(1);
+        
         ofs << states.at(0).state_hash << "\t" << (int)d1 << std::endl;
         ofs << states.at(1).state_hash << "\t" << (int)d2 << std::endl;
 }

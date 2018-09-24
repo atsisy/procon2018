@@ -43,6 +43,8 @@ private:
         Agent enemy_agent1;
         Agent enemy_agent2;
 
+        std::array<Direction, 2> last_action;
+
         std::vector<Node *> children;
         
         /*
@@ -63,6 +65,9 @@ private:
         
         std::string dump_json() const;
         std::vector<action> __generate_state_hash(std::vector<Agent> agents) const;
+
+        void first_step_enemy(Direction dir1, Direction dir2);
+        void first_step_mine(Direction dir1, Direction dir2);
         
 public:
         /*
@@ -125,6 +130,11 @@ public:
 
         bool nobody(i8 x, i8 y) const;
         std::array<Direction, 4> agent_diff(const Node *node) const;
+
+        Direction get_last_action(u8 index) const
+        {
+                return last_action[index];
+        }
 };
 
 class Search {

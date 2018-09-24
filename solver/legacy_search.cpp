@@ -134,6 +134,25 @@ Node::Node(const char *json_path)
 #endif
 }
 
+void Node::first_step_enemy(Direction dir1, Direction dir2)
+{
+        last_action[0] = dir1;
+        last_action[1] = dir2;
+
+        enemy_agent1.protected_move(this->field, (Direction)dir1);
+        enemy_agent2.protected_move(this->field, (Direction)dir2);
+}
+
+
+void Node::first_step_mine(Direction dir1, Direction dir2)
+{
+        last_action[0] = dir1;
+        last_action[1] = dir2;
+
+        my_agent1.protected_move(this->field, (Direction)dir1);
+        my_agent2.protected_move(this->field, (Direction)dir2);
+}
+
 void Node::draw() const
 {
         puts("Field Info");
@@ -304,8 +323,7 @@ void Node::expand_enemy_node()
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->enemy_agent1.protected_move(clone->field, (Direction)dir1);
-                        clone->enemy_agent2.protected_move(clone->field, (Direction)dir2);
+                        clone->first_step_enemy(dir1, dir2);
                         children.push_back(clone);
                 }
         }
@@ -342,8 +360,7 @@ void Node::expand_my_node()
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
                         Node *clone = new Node(this);
-                        clone->my_agent1.protected_move(clone->field, (Direction)dir1);
-                        clone->my_agent2.protected_move(clone->field, (Direction)dir2);
+                        clone->first_step_mine(dir1, dir2);
                         children.push_back(clone);
                 }
         }
