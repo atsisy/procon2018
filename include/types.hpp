@@ -425,6 +425,34 @@ inline Direction int_to_direction(int num) {
 	};
 }
 
+inline Direction which_direction(i8 x, i8 y)
+{
+        if(x == -1 && y == -1)
+                return LUP;
+        else if(x == 0 && y == -1)
+                return UP;
+        else if(x == 1 && y == -1)
+                return RUP;
+        else if(x == -1 && y == 0)
+                return LEFT;
+        else if(x == 0 && y == 0)
+                return STOP;
+        else if(x == 1 && y == 0)
+                return RIGHT;
+        else if(x == -1 && y == 1)
+                return LDOWN;
+        else if(x == 0 && y == 1)
+                return DOWN;
+        else if(x == 1 && y == 1)
+                return RDOWN;
+        else{
+                puts("BUG in which_direction");
+                std::cout << (int)x << ":" << (int)y << std::endl;
+        }
+        return STOP;
+}
+
+
 template <typename Head, typename ... Tail>
 constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
 {
@@ -584,6 +612,14 @@ public:
                         return this->x == x &&
                                 this->y == y;
                 }
+
+        std::pair<i8, i8> diff(const Agent agent) const
+        {
+                return std::make_pair(
+                        this->x - agent.x,
+                        this->y - agent.y
+                        );
+        }
 };
 
 
