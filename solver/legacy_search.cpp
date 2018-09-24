@@ -229,6 +229,23 @@ bool Node::nobody(i8 x, i8 y) const
                 !enemy_agent1.same_location(x, y) && !enemy_agent2.same_location(x, y);
 }
 
+std::array<Direction, 4> Node::agent_diff(const Node *node) const
+{
+        std::array<Direction, 4> ret;
+        std::pair<i8, i8> tmp;
+
+        tmp = my_agent1.diff(node->my_agent1);
+        ret[0] = which_direction(tmp.first, tmp.second);
+        tmp = my_agent2.diff(node->my_agent2);
+        ret[1] = which_direction(tmp.first, tmp.second);
+        tmp = enemy_agent1.diff(node->enemy_agent1);
+        ret[2] = which_direction(tmp.first, tmp.second);
+        tmp = enemy_agent2.diff(node->enemy_agent2);
+        ret[3] = which_direction(tmp.first, tmp.second);
+        
+        return ret;
+}
+
 std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
 {
         i8 x, y;
@@ -256,7 +273,6 @@ std::vector<action> Node::generate_state_hash(u8 turn) const
         std::vector<Agent> agents;
         
         if(IS_MYTURN(turn)){
-                puts("qqq");
                 agents.push_back(my_agent1);
                 agents.push_back(my_agent2);
         }else{

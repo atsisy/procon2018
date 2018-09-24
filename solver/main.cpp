@@ -82,6 +82,9 @@ void command_switching(char **argv)
                 auto ha = ans->generate_state_hash(MY_TURN);
                 for(action a : ha)
                         std::cout << a.state_hash << std::endl;
+                auto diff = ans->agent_diff(node);
+                for(Direction d : diff)
+                        std::cout << (int)d << std::endl;
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
@@ -93,7 +96,6 @@ void command_switching(char **argv)
                 ans->dump_json_file("cdump.json");
                 delete ans;
                 delete json_node;
-                
         }else if(!strcmp(argv[1], "score")){
                 Node *json_node = new Node(argv[2]);
                 json_node->put_score_info();

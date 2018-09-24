@@ -124,6 +124,7 @@ public:
         std::vector<action> generate_state_hash(u8 turn) const;
 
         bool nobody(i8 x, i8 y) const;
+        std::array<Direction, 4> agent_diff(const Node *node) const;
 };
 
 class Search {
