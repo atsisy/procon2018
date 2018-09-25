@@ -1,4 +1,5 @@
-OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/legacy_search.o $(DST)/load_qr_format.o $(DST)/monte.o $(DST)/main.o
+OBJS = $(DST)/field.o $(DST)/agent.o $(DST)/legacy_search.o $(DST)/load_qr_format.o $(DST)/monte.o $(DST)/main.o \
+$(DST)/learning.o
 SLV_AOUT = bin
 DST = ../dst.d
 INCLUDE = ../include

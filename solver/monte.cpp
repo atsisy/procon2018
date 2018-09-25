@@ -5,8 +5,9 @@
 #include <mutex>
 #include <unordered_map>
 #include "utility.hpp"
+#include "learn.hpp"
 
-constexpr u32 MONTE_INITIAL_TIMES = 50;
+constexpr u32 MONTE_INITIAL_TIMES = 20;
 constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_EXPAND_LIMIT = 500;
 constexpr double MONTE_TIME_LIMIT = 10000;
@@ -168,7 +169,7 @@ const Node *Montecarlo::select_final(Node *node)
 
 const Node *Montecarlo::greedy(Node *node)
 {
-        return select_final(node);
+        return listup_node_greedy2(node, 1).at(0);
 }
 
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
@@ -183,7 +184,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        const u16 init_times = 17000 / nodes.size();
+        const u16 init_times = 3000 / nodes.size();
         for(Node *child : nodes){ 
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
                 total_trying += playout_process(tmp, init_times);
@@ -219,7 +220,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
-        return get_first_child(select_better_node(original));
+        return original.at(0)->node;
 }
 
 const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_children)
@@ -265,7 +266,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 一個下のノードを展開
         expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
                                   PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  total_trying += playout_process(tmp, 800);
+                                  total_trying += playout_process(tmp, MONTE_INITIAL_TIMES);
                                   result.push_back(tmp);
                                   original.push_back(tmp); });
 
@@ -302,7 +303,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
-        return get_first_child(select_better_node(original));
+        return original.at(0)->node;
 }
 
 /*
@@ -376,19 +377,41 @@ Judge Montecarlo::playout(Node *node, u8 depth)
 std::array<Direction, 4> Montecarlo::find_random_legal_direction(Node *node)
 {
         Direction m1, m2, e1, e2;
+
+        std::vector<action> &&actions = node->generate_state_hash();
+
+        try{
+                m1 = learning_map.at(actions[0].state_hash)->random_select().direction;
+        }catch(const std::out_of_range &e){
+                do{
+                        m1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent1.is_movable(node->field, m1));
+        }
         
-        do{
-                m1 = int_to_direction(MOD_RANDOM(random()));
-        }while(!node->my_agent1.is_movable(node->field, m1) || !(node->check_panel_score(m1, node->my_agent1) >= 0));
-        do{
-                m2 = int_to_direction(MOD_RANDOM(random()));
-        }while(!node->my_agent2.is_movable(node->field, m2) || !(node->check_panel_score(m2, node->my_agent2) >= 0));
-        do{
-                e1 = int_to_direction(MOD_RANDOM(random()));
-        }while(!node->enemy_agent1.is_movable(node->field, e1) || !(node->check_panel_score(e1, node->enemy_agent1) >= 0));
-        do{
-                e2 = int_to_direction(MOD_RANDOM(random()));
-        }while(!node->enemy_agent2.is_movable(node->field, e2) || !(node->check_panel_score(e2, node->enemy_agent2) >= 0));
+        try{
+                m2 = learning_map.at(actions[1].state_hash)->random_select().direction;
+        }catch(const std::out_of_range &e){
+                do{            
+                        m2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent2.is_movable(node->field, m2));
+        }
+
+        try{
+                e1 = learning_map.at(actions[2].state_hash)->random_select().direction;
+        }catch(const std::out_of_range &e){
+                do{            
+                        e1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent1.is_movable(node->field, e1));
+        }
+
+        
+        try{
+                e2 = learning_map.at(actions[3].state_hash)->random_select().direction;
+        }catch(const std::out_of_range &e){
+                do{            
+                        e2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent2.is_movable(node->field, e2));
+        }
 
         return check_direction_legality(node, {m1, m2, e1, e2});
 }
