@@ -5,6 +5,7 @@
 #include <vector>
 #include <string.h>
 #include "types.hpp"
+#include <cmath>
 
 int main(int argc, char **argv) {
         FILE *save;
@@ -14,17 +15,17 @@ int main(int argc, char **argv) {
 			builder = FieldBuilder(new QRFormatParser(argv[2]));
 			node = builder.create_root_node();
 			save = fopen("slantsave.dat", "w");
-			fprintf(save, "-1,0,0,0");
+			fprintf(save, "-1,0,0,0,0,0");
 			fclose(save);
 			node->dump_json_file("cdump.json");
 			node->mitgetField()->draw_status();
 			std::cout << "\n[\x1b[31m+\x1b[39m] Field initialized\n" << std::endl;
 			return 0;
 		} else if(!strcmp(argv[1], "-l")) {
-			int a[4];
+			int a[6];
 			node = new Node(argv[2]);
 			save = fopen("slantsave.dat", "r");
-			fscanf(save, "%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3]);
+			fscanf(save, "%d,%d,%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5]);
 			fclose(save);
 			if(a[0] == -1) {
 				save = fopen("slantsave.dat", "w");
@@ -32,15 +33,15 @@ int main(int argc, char **argv) {
 				fclose(save);	
 			}
 		} else {
-			int a[4];
+			int a[6];
 			save = fopen("slantsave.dat", "r");
-			fscanf(save, "%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3]);
+			fscanf(save, "%d,%d,%d,%d,%d,%d", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5]);
 			fclose(save);
 			if(a[0] != -1) node = new Node(argv[1]);
 			else {
 				node = new Node("cdump.json");
 				save = fopen("slantsave.dat", "w");
-				fprintf(save, "0,0,0,0");
+				fprintf(save, "0,0,0,0,0,0");
 			}
 			fclose(save);
 		}
@@ -61,22 +62,63 @@ int main(int argc, char **argv) {
                        
     Direction search1, search2;	
 	int tern1 = 0, tern2 = 0;
+	int wise1 = 0, wise2 = 0;
 	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
 		std::cout << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
 		exit(-1);
 	} else {
-		fscanf(save, "%d,%d,%d,%d", &tern1, &tern2, &search1, &search2);
-		printf("tern1 = %d\ntern2 = %d\n", tern1, tern2);
+		fscanf(save, "%d,%d,%d,%d,%d,%d", &tern1, &tern2, &search1, &search2, &wise1, &wise2);
+		printf("tern1 = %d\ntern2 = %d\nwise1 = %d\nwise2 = %d\n", tern1, tern2, wise1, wise2);
 	}
 	fclose(save);
 	
+	if(tern1 == 2) {
+		int myx = direction_to_dX(a3.getNextMove_mytern(tern1, wise1));
+		int myy = direction_to_dY(a3.getNextMove_mytern(tern1, wise1));
+		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) tern1 = 0;
+		printf("2:tern1 = %d\n", tern1);
+	}
+	
+	if(tern2 == 2) {
+		int myx = direction_to_dX(a4.getNextMove_mytern(tern2, wise2));
+		int myy = direction_to_dY(a4.getNextMove_mytern(tern2, wise2));
+		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) tern2 = 0;
+		printf("2:tern2 = %d\n", tern2);
+	}
+	
 	if(tern1 == 0) {
-		std::cout << "[\x1b[31m+\x1b[39m] search direction..." << std::endl;
-		search1 = search.slantsearch(a3, mainField, 10);
-		search2 = search.slantsearch(a4, mainField, 10);
+		// サーチ
+		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
+		search1 = search.slantsearch(a3, mainField, 1);
+		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
+		if(mainField.at(a3.mitgetX()+(((search1/2)%3+1)/2)*2-1, a3.mitgetY()+(search1/4)*2-1).is_enemy_panel()) {
+			std::cout << "a3:CounterClockWise" << std::endl;
+			wise1 = CounterClockWise;
+		} else {
+			std::cout << "a3:ClockWise" << std::endl;
+			wise1 = ClockWise;
+		}
 		save = fopen("slantsave.dat", "w");
-		fprintf(save, "0,0,%d,%d", search1, search2);
+		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+		fclose(save);
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
+	}
+
+	if(tern2 == 0) {
+		// サーチ
+		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
+		search2 = search.slantsearch(a4, mainField, 1);
+		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
+		if(mainField.at(a4.mitgetX()+(((search2/2)%3+1)/2)*2-1, a4.mitgetY()+(search2/4)*2-1).is_enemy_panel()) {
+			std::cout << "a4:CounterClockWise" << std::endl;
+			wise2 = CounterClockWise;
+		} else {
+			std::cout << "a4:ClockWise" << std::endl;
+			wise2 = ClockWise;
+		}
+		save = fopen("slantsave.dat", "w");
+		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
 		fclose(save);
 		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 	}
@@ -84,8 +126,10 @@ int main(int argc, char **argv) {
 	Panel moved[2];
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
-	moved[0] = a3.moveblock_mytern(mainField, tern1);
-	moved[1] = a4.moveblock_mytern(mainField, tern2);
+	
+	moved[0] = a3.moveblock_mytern(mainField, tern1, wise1);
+	moved[1] = a4.moveblock_mytern(mainField, tern2, wise2);
+	
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
 	a3.draw();
@@ -96,7 +140,7 @@ int main(int argc, char **argv) {
 	
 	if(moved[0].is_not_pure_panel()) tern1 = (tern1+1)%3;
 	if(moved[1].is_not_pure_panel()) tern2 = (tern2+1)%3;
-	fprintf(save, "%d,%d,%d,%d", tern1, tern2, search1, search2);
+	fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
 	delete node;
                 
 #ifdef __DEBUG_MODE

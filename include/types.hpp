@@ -388,6 +388,38 @@ inline Direction int_to_direction(int num) {
 	};
 }
 
+inline int direction_to_dX(Direction dir) {
+	switch(dir) {
+		case 0:
+		case 4:
+			return 0;
+		case 1:
+		case 2:
+		case 3:
+			return 1;
+		case 5:
+		case 6:
+		case 7:
+			return -1;
+	}
+}
+
+inline int direction_to_dY(Direction dir) {
+	switch(dir) {
+		case 7:
+		case 0:
+		case 1:
+			return -1;
+		case 2:
+		case 6:
+			return 0;;
+		case 3:
+		case 4:
+		case 5:
+			return 1;
+	}
+}
+
 template <typename Head, typename ... Tail>
 constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
 {
@@ -416,6 +448,8 @@ inline void test_generate_agent_meta()
 #endif
 
 
+const int ClockWise = 0;
+const int CounterClockWise = 1;
 class Agent {
 	
         friend Node;
@@ -510,20 +544,30 @@ public:
                 this->blockdirection = direction;
         }
 
-		Panel moveblock_mytern(Field &field, int tern) {
+		Panel moveblock_mytern(Field &field, int tern, int wise) {
+			if(wise == ClockWise) 
                 return this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*tern)%8));
+            else 
+				return this->protected_move(&field, int_to_direction(((1+blockdirection)%8-2*tern+8)%8));
+		}
+			
+		Direction getNextMove_mytern(int tern, int wise) {
+			if(wise == ClockWise) 
+				return int_to_direction(((7+blockdirection)%8+2*tern)%8);
+			else 
+				return int_to_direction(((1+blockdirection)%8-2*tern+8)%8);
 		}
 			
         void moveblock(Field &field) {
                 // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
-                this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
-                this->blocktern = (blocktern+1)%3;
+            this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
+            this->blocktern = (blocktern+1)%3;
         }
         
         int get4dirScore(Field &field) {
 			int score = 0;
 			for(int i=0; i<4; i++) {
-				if(!field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).is_my_panel()) score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
+				if(!field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).is_enemy_panel()) score += field.at(this->x+((i+1)%4-1)%2, this->y+(i-1)%2).get_score_value();
 			}
 			return score;
 		}
