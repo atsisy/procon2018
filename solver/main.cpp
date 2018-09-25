@@ -7,6 +7,8 @@
 #include "types.hpp"
 #include <cmath>
 
+const int depth = 10;
+
 int main(int argc, char **argv) {
         FILE *save;
         Node *node;
@@ -90,7 +92,7 @@ int main(int argc, char **argv) {
 	if(tern1 == 0) {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
-		search1 = search.slantsearch(a3, mainField, 1);
+		search1 = search.slantsearch(a3, mainField, depth);
 		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
 		if(mainField.at(a3.mitgetX()+(((search1/2)%3+1)/2)*2-1, a3.mitgetY()+(search1/4)*2-1).is_enemy_panel()) {
 			std::cout << "a3:CounterClockWise" << std::endl;
@@ -108,7 +110,7 @@ int main(int argc, char **argv) {
 	if(tern2 == 0) {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
-		search2 = search.slantsearch(a4, mainField, 1);
+		search2 = search.slantsearch(a4, mainField, depth);
 		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
 		if(mainField.at(a4.mitgetX()+(((search2/2)%3+1)/2)*2-1, a4.mitgetY()+(search2/4)*2-1).is_enemy_panel()) {
 			std::cout << "a4:CounterClockWise" << std::endl;
