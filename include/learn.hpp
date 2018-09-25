@@ -7,6 +7,7 @@ struct te {
         u64 total;
         float percentage;
 
+        te() {}
         te(Direction dir) { direction = dir; total = 0; percentage = 0; }
         float calc_percentage(u64 global_total)
         {
@@ -23,3 +24,5 @@ struct te_list {
 
         te random_select();
 };
+
+extern std::unordered_map<u64, te_list *> learning_map;
