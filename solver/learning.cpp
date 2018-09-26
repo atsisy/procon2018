@@ -29,7 +29,7 @@ void te_list::sort()
 
 te te_list::random_select()
 {
-        xor128 random;
+        util::xor128 random;
         double random_variable = (double)(random() % 101);
         te ret;
 
@@ -41,7 +41,24 @@ te te_list::random_select()
         }
 
         return ret;
-        
+}
+
+void test(std::unordered_map<u64, te_list *> &&map)
+{
+        i64 hash;
+        puts("hello");
+        while(true){
+                std::cin >> hash;
+                try{
+                        te t = map.at(hash)->random_select();
+                        std::cout << "Direction: " << t.direction << "\t"
+                                "Percentage: " << t.percentage << "%\t"
+                                "Total: " << t.total << std::endl;
+                }catch(const std::out_of_range &e){
+                        std::cout << "out" << std::endl;
+                        continue;
+                }
+        }
 }
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
@@ -62,12 +79,12 @@ std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
                 if(map.find(hash) == std::end(map)){
                         te_list *tmp = new te_list;
                         map[hash] = tmp;
-                        tmp->add(int_to_direction(dir));
                 }
+                map[hash]->add(int_to_direction(dir));
         }
 
         for(std::pair<const long unsigned int, te_list*> &pair : map){
-                for(te t : pair.second->list){
+                for(te &t : pair.second->list){
                         t.calc_percentage(pair.second->total);
                 }
                 pair.second->sort();
@@ -76,8 +93,10 @@ std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
         return map;
 }
 
+/*
 int main(int argc, char **argv)
 {
-        analyze_learning_data(argv[1]);
+        test(analyze_learning_data(argv[1]));
         return 0;
 }
+*/

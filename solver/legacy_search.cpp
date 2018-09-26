@@ -294,11 +294,16 @@ std::vector<action> Node::generate_state_hash(u8 turn) const
                 agents.push_back(my_agent1);
                 agents.push_back(my_agent2);
         }else{
-                agents.push_back(my_agent1);
-                agents.push_back(my_agent2);
+                agents.push_back(enemy_agent1);
+                agents.push_back(enemy_agent2);
         }
 
         return __generate_state_hash(agents);
+}
+
+std::vector<action> Node::generate_state_hash() const
+{
+        return __generate_state_hash({ my_agent1, my_agent2, enemy_agent1, enemy_agent2 });
 }
 
 void Node::expand_enemy_node()
