@@ -175,7 +175,7 @@ const Node *Montecarlo::greedy(Node *node)
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
-                current_eval = node->get_score() >> 2;
+                current_eval = node->get_score() >> 1;
         std::vector<Node *> &&nodes = listup_node_greedy2(node, 2);
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
@@ -184,8 +184,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        const u16 init_times = 3500 / nodes.size();
-        for(Node *child : nodes){ 
+        const u16 init_times = (20000 + ((i64)depth << 5)) / nodes.size();
+        for(Node *child : nodes){
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
                 total_trying += playout_process(tmp, init_times);
                 result.push_back(tmp);
@@ -217,7 +217,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
         std::for_each(std::begin(original), std::end(original),
-                      [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
+                      [](PlayoutResult *r){ r->draw(); });
         return original.at(0)->node;
 }
 
@@ -398,16 +398,11 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         Direction m1, m2, e1, e2;
 
         std::vector<action> &&actions = node->generate_state_hash();
-<<<<<<< HEAD
 
         try{
                 m1 = learning_map.at(actions[0].state_hash)->random_select().direction;
-=======
-        try{
-                m1 = learning_map.at(actions[0].state_hash)->random_select().direction;
 		if(!node->my_agent1.is_movable(node->field, m1))
-		  throw std::out_of_range("unko");
->>>>>>> origin/stable-monte
+                        throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
                 do{
                         m1 = int_to_direction(MOD_RANDOM(random()));
@@ -416,45 +411,23 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         
         try{
                 m2 = learning_map.at(actions[1].state_hash)->random_select().direction;
-<<<<<<< HEAD
-=======
 		if(!node->my_agent2.is_movable(node->field, m2))
-		  throw std::out_of_range("unko");
->>>>>>> origin/stable-monte
+                        throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
                 do{            
                         m2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent2.is_movable(node->field, m2));
         }
-<<<<<<< HEAD
-
-        try{
-                e1 = learning_map.at(actions[2].state_hash)->random_select().direction;
-=======
-	
+        
         try{
                 e1 = learning_map.at(actions[2].state_hash)->random_select().direction;
 		if(!node->enemy_agent1.is_movable(node->field, e1))
-		  throw std::out_of_range("unko");
->>>>>>> origin/stable-monte
+                        throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
                 do{            
                         e1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, e1));
         }
-<<<<<<< HEAD
-
-        
-        try{
-                e2 = learning_map.at(actions[3].state_hash)->random_select().direction;
-        }catch(const std::out_of_range &e){
-                do{            
-                        e2 = int_to_direction(MOD_RANDOM(random()));
-                }while(!node->enemy_agent2.is_movable(node->field, e2));
-        }
-=======
->>>>>>> origin/stable-monte
-
 		
         try{
                 e2 = learning_map.at(actions[3].state_hash)->random_select().direction;
@@ -493,32 +466,77 @@ std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::a
         return {m1, m2, e1, e2};
 }
 
-i8 Montecarlo::random_half_play(Node *node, u8 turn)
+i8 Montecarlo::my_random_half_play(Node *node)
 {
         Direction d1, d2;
-        
-        do{
-                d1 = int_to_direction(MOD_RANDOM(random()));
-        }while(
-                (turn && !node->enemy_agent1.is_movable(node->field, d1)) ||
-                (!turn && !node->my_agent1.is_movable(node->field, d1)));
-        do{
-                d2 = int_to_direction(MOD_RANDOM(random()));
-        }while(
-                (turn && !node->enemy_agent2.is_movable(node->field, d2)) ||
-                (!turn && !node->my_agent2.is_movable(node->field, d2)));
 
-        if(IS_MYTURN(turn)){
-                if(node->my_agent1.check_conflict(d1, node->my_agent2, d2))
-                        return -1;
-        }else{
-                if(node->enemy_agent1.check_conflict(d1, node->enemy_agent2, d2))
-                        return -1;
+        std::vector<action> &&actions = node->generate_state_hash(MY_TURN);
+
+        try{
+                d1 = learning_map.at(actions[0].state_hash)->random_select().direction;
+		if(!node->my_agent1.is_movable(node->field, d1))
+                        throw std::out_of_range("unko");
+        }catch(const std::out_of_range &e){
+                do{
+                        d1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent1.is_movable(node->field, d1));
         }
         
-        node->play_half(d1, d2, turn);
+        try{
+                d2 = learning_map.at(actions[1].state_hash)->random_select().direction;
+		if(!node->my_agent2.is_movable(node->field, d2))
+                        throw std::out_of_range("unko");
+        }catch(const std::out_of_range &e){
+                do{            
+                        d2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent2.is_movable(node->field, d2));
+        }
 
+        if(node->my_agent1.check_conflict(d1, node->my_agent2, d2))
+                return -1;
+        
         return 0;
+}
+
+i8 Montecarlo::enemy_random_half_play(Node *node)
+{
+        Direction d1, d2;
+
+        std::vector<action> &&actions = node->generate_state_hash(ENEMY_TURN);
+
+        
+        try{
+                d1 = learning_map.at(actions[2].state_hash)->random_select().direction;
+		if(!node->enemy_agent1.is_movable(node->field, d1))
+                        throw std::out_of_range("unko");
+        }catch(const std::out_of_range &e){
+                do{            
+                        d1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent1.is_movable(node->field, d1));
+        }
+		
+        try{
+                d2 = learning_map.at(actions[3].state_hash)->random_select().direction;
+		if(!node->enemy_agent2.is_movable(node->field, d2))
+                        throw std::out_of_range("unko");
+        }catch(const std::out_of_range &e){
+                do{            
+                        d2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent2.is_movable(node->field, d2));
+        }
+
+        if(node->enemy_agent1.check_conflict(d1, node->enemy_agent2, d2))
+                return -1;
+        
+        return 0;
+}
+
+i8 Montecarlo::random_half_play(Node *node, u8 turn)
+{
+        if(IS_MYTURN(turn))
+                return my_random_half_play(node);
+        else
+                return enemy_random_half_play(node);
 }
 
 Judge Montecarlo::faster_playout(Node *node, u8 depth)
@@ -530,16 +548,16 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
          * ここで一回ランダムに片方が行う必要がある
          */
         if(random_half_play(current, node->turn) == -1)
-                return DRAW;
+                return LOSE;
 
         while(depth--){
-	  if(depth & 1)
-	    current->play(find_random_legal_direction(current));
-	  else
-	    current->play(get_learning_direction(current));
+                if(depth & 1)
+                        current->play(find_random_legal_direction(current));
+                else
+                        current->play(get_learning_direction(current));
         }
 
-        if((current->evaluate() + std::abs(current_eval)) < 0){
+        if((current->evaluate()) < 0){
 #ifdef I_AM_ENEMY
                 result = WIN;
 #endif

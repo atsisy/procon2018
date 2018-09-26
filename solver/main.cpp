@@ -116,7 +116,7 @@ void command_switching(char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 15 ? 15 : d));
+                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 20 ? 20 : d));
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_learning_data(json_node, ans);

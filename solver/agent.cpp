@@ -116,7 +116,7 @@ std::vector<Direction> Agent::movable_direction(Field *field) const
         /*
          * ストップはどこでもできる
          */
-        dst.push_back(STOP);
+        //dst.push_back(STOP);
 
         if(field->is_within(x - 1, y - 1))
                 dst.push_back(LUP);
