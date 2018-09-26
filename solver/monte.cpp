@@ -176,8 +176,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
                 current_eval = node->get_score() >> 2;
-        std::vector<Node *> &&nodes = listup_node_greedy2(node, 3);
-        if(nodes.size() == 1) return get_first_child(nodes.at(0));
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, 2);
+        if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
         this->depth = depth;
@@ -374,6 +374,27 @@ Judge Montecarlo::playout(Node *node, u8 depth)
 
 std::array<Direction, 4> Montecarlo::find_random_legal_direction(Node *node)
 {
+  Direction m1, m2, e1, e2;
+        
+  do{
+    m1 = int_to_direction(MOD_RANDOM(random()));
+  }while(!node->my_agent1.is_movable(node->field, m1) || !(node->check_panel_score(m1, node->my_agent1) >= 0));
+  do{
+    m2 = int_to_direction(MOD_RANDOM(random()));
+  }while(!node->my_agent2.is_movable(node->field, m2) || !(node->check_panel_score(m2, node->my_agent2) >= 0));
+  do{
+    e1 = int_to_direction(MOD_RANDOM(random()));
+  }while(!node->enemy_agent1.is_movable(node->field, e1) || !(node->check_panel_score(e1, node->enemy_agent1) >= 0));
+  do{
+    e2 = int_to_direction(MOD_RANDOM(random()));
+  }while(!node->enemy_agent2.is_movable(node->field, e2) || !(node->check_panel_score(e2, node->enemy_agent2) >= 0));
+
+  return check_direction_legality(node, {m1, m2, e1, e2});
+}
+
+
+std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
+{
         Direction m1, m2, e1, e2;
 
         std::vector<action> &&actions = node->generate_state_hash();
@@ -485,7 +506,10 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
                 return DRAW;
 
         while(depth--){
-                current->play(find_random_legal_direction(current));
+	  if(depth & 1)
+	    current->play(find_random_legal_direction(current));
+	  else
+	    current->play(get_learning_direction(current));
         }
 
         if((current->evaluate() + std::abs(current_eval)) < 0){
