@@ -10,10 +10,10 @@ do
     echo ---------------------------------------------
     ./bin continue ./cdump.json $i
     ./bin.d/bin continue ./cdump.json $i ./good_learning.dat 
-    ./bin.d/bin gnuscore ./cdump.json $i >> score.dat
+    ./bin.d/bin gnuscore ./cdump.json $i ./good_learning.dat  >> score.dat
     echo turn $i
 done
 
-./bin.d/bin score ./cdump.json
+./bin.d/bin score ./cdump.json ./good_learning.dat 
 
 #/usr/java/default/bin/java -jar ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/simple_viewer.jar ./cdump.json

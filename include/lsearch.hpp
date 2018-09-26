@@ -200,6 +200,13 @@ struct PlayoutResult {
                 return (ucb = ((float)this->win / (float)this->trying)
                         + (UCB_C * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
         }
+
+        void draw()
+        {
+                std::cout << "\tWin: " << percentage() * 100 << "%"
+                          << "\tUCB: " << ucb
+                          << "\ttrying: " << trying << std::endl;
+        }
 };
 
 struct LocalPlayoutResult {
@@ -225,6 +232,8 @@ private:
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> get_learning_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
+        i8 enemy_random_half_play(Node *node);
+        i8 my_random_half_play(Node *node);
         i8 random_half_play(Node *node, u8 turn);
         void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
