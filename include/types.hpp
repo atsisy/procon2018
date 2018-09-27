@@ -448,7 +448,7 @@ inline void test_generate_agent_meta()
 #endif
 
 
-const int ClockWise = 0;
+const int ClockWise = 0; 
 const int CounterClockWise = 1;
 class Agent {
 	

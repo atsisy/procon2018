@@ -418,7 +418,7 @@ inline int Slant::slantEvaluate(Field &field, Agent agent) {
 	int basescore = field.at(agent.mitgetX(), agent.mitgetY()).get_score_value();
 	evalscore += basescore*(-1);
 	
-	/* range 0.9,1.1 */
+	/* range 0.9,1.1  yey */
 	evalscore *= (this->random() %3)/10.0+0.9;
 	
 	return (evalscore >= 0) ? evalscore : evalscore*10;
