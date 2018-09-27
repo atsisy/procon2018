@@ -415,6 +415,9 @@ Node *Search::absearch(Node *root)
 inline int Slant::slantEvaluate(Field &field, Agent agent) {
 	int evalscore = agent.get4dirScore(field);
 	
+	int basescore = field.at(agent.mitgetX(), agent.mitgetY()).get_score_value();
+	evalscore += basescore*(-1);
+	
 	/* range 0.9,1.1 */
 	evalscore *= (this->random() %3)/10.0+0.9;
 	
