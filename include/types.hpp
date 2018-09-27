@@ -536,6 +536,7 @@ public:
 		}
 		
 		int turn;
+		int wise;
 		
 		void turninc() {
 			this->turn = (turn+1)%3;
