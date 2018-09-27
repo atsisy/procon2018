@@ -268,7 +268,6 @@ public:
         void run()
         {
                 monte->playout_process(pr, times);
-                std::cout << "aaaaaaaaaaaaaaaaaaaaaa" << std::endl;
         }
 
         initial_playout(Montecarlo *m, PlayoutResult *p, u16 t)

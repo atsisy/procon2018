@@ -201,6 +201,9 @@ std::string Node::dump_json() const
 
         root.insert(std::make_pair("width", picojson::value((double)Field::field_size_x)));
         root.insert(std::make_pair("height", picojson::value((double)Field::field_size_y)));
+        std::cout << (double)get_score() << std::endl;
+        root.insert(std::make_pair("total_score", picojson::value((double)get_score())));
+        
 
         for(u8 y = 0;y < Field::field_size_y;y++){
                 for(u8 x = 0;x < Field::field_size_x;x++){
