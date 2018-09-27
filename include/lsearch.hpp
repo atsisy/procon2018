@@ -147,7 +147,7 @@ class Slant {
 private:
 	util::xor128 random;
 	int slant(Agent agent, Field &field, u8 depth, Direction *result);
-	int slantEvaluate(int blockscore, Panel blockbase);
+	int slantEvaluate(Field &field, Agent agent);
 public:
 	Direction search(Agent agent, Field &field, u8 depth);
 };

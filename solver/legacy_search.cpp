@@ -412,8 +412,8 @@ Node *Search::absearch(Node *root)
 }
 
 
-inline int Slant::slantEvaluate(int blockscore, Panel blockbase) {
-	int evalscore = blockscore;
+inline int Slant::slantEvaluate(Field &field, Agent agent) {
+	int evalscore = agent.get4dirScore(field);
 	
 	/* range 0.9,1.1 */
 	evalscore *= (this->random() %3)/10.0+0.9;
@@ -431,7 +431,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 			if(!agent.checkblock(field, int_to_direction(i*2))) {
 				discore[i] = ds;
 			} else {
-				 discore[i] = slantEvaluate(agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).get4dirScore(field));
+				 discore[i] = slantEvaluate(field, agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2));
 			 }
 		 }
 		 
@@ -451,7 +451,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 		dir = int_to_direction(i*2);
 		if(agent.checkblock(field, dir)) {
 			buf = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2);
-			discore[i] += slantEvaluate(buf.get4dirScore(field));
+			discore[i] += slantEvaluate(field, buf);
 			buf.move(&imfield, int_to_direction((dir+2)%8));
 			discore[i] += slant(buf, field, depth-1, &waste);
 		} else {
