@@ -485,7 +485,7 @@ int Slant::setwise(Field &field, Agent agent, Direction search) {
 
 Direction Slant::search(Agent agent, Field &field, u8 depth, int *wise) {
 	Direction ret;
-	slant(agent, field, depth, &ret);
+	int eval = slant(agent, field, depth, &ret);
 	*wise = setwise(field, agent, ret);
 	
 	return ret;

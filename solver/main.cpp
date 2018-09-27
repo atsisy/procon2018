@@ -63,36 +63,35 @@ int main(int argc, char **argv) {
     Agent a4 = node->mitgetAgent(4);
                        
     Direction search1, search2;	
-	int tern1 = 0, tern2 = 0;
 	int wise1 = 0, wise2 = 0;
 	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
 		std::cout << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
 		exit(-1);
 	} else {
-		fscanf(save, "%d,%d,%d,%d,%d,%d", &tern1, &tern2, &search1, &search2, &wise1, &wise2);
-		printf("tern1 = %d\ntern2 = %d\nwise1 = %d\nwise2 = %d\n", tern1, tern2, wise1, wise2);
+		fscanf(save, "%d,%d,%d,%d,%d,%d", &a3.turn, &a4.turn, &search1, &search2, &wise1, &wise2);
+		printf("turn1 = %d\nturn2 = %d\nwise1 = %d\nwise2 = %d\n", a3.turn, a4.turn, wise1, wise2);
 	}
 	fclose(save);
 	
-	if(tern1 == 0)  {
+	if(a3.turn == 0)  {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
 		search1 = slant.search(a3, mainField, depth, &wise1);
 		
 		save = fopen("slantsave.dat", "w");
-		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+		fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, wise1, wise2);
 		fclose(save);
 		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
 	}
 	
-	if(tern2 == 0) {
+	if(a4.turn == 0) {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
 		search2 = slant.search(a4, mainField, depth, &wise2);
 		
 		save = fopen("slantsave.dat", "w");
-		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+		fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, wise1, wise2);
 		fclose(save);
 		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
 	}
@@ -102,42 +101,42 @@ int main(int argc, char **argv) {
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
 	
-	if(tern1 == 2) {
-		int myx = direction_to_dX(a3.getNextMove_mytern(tern1, wise1));
-		int myy = direction_to_dY(a3.getNextMove_mytern(tern1, wise1));
+	if(a3.turn == 2) {
+		int myx = direction_to_dX(a3.getNextMove_mytern(a3.turn, wise1));
+		int myy = direction_to_dY(a3.getNextMove_mytern(a3.turn, wise1));
 		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) {
-			tern1 = 0;
+			a3.turn = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
 			search1 = slant.search(a3, mainField, depth, &wise1);
 
 			save = fopen("slantsave.dat", "w");
-			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+			fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, wise1, wise2);
 			fclose(save);
 			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
 		}
-		printf("2:tern1 = %d\n", tern1);
+		printf("2:a3.turn = %d\n", a3.turn);
 	}
 	
-	if(tern2 == 2) {
-		int myx = direction_to_dX(a4.getNextMove_mytern(tern2, wise2));
-		int myy = direction_to_dY(a4.getNextMove_mytern(tern2, wise2));
+	if(a4.turn == 2) {
+		int myx = direction_to_dX(a4.getNextMove_mytern(a4.turn, wise2));
+		int myy = direction_to_dY(a4.getNextMove_mytern(a4.turn, wise2));
 		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) {
-			tern2 = 0;
+			a4.turn = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
 			search2 = slant.search(a4, mainField, depth, &wise2);
 			
 			save = fopen("slantsave.dat", "w");
-			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+			fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, wise1, wise2);
 			fclose(save);
 			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
 		}
-		printf("2:tern2 = %d\n", tern2);
+		printf("2:a4.turn = %d\n", a4.turn);
 	}
 	
-	moved[0] = a3.moveblock_mytern(mainField, tern1, wise1);
-	moved[1] = a4.moveblock_mytern(mainField, tern2, wise2);
+	moved[0] = a3.moveblock_mytern(mainField, a3.turn, wise1);
+	moved[1] = a4.moveblock_mytern(mainField, a4.turn, wise2);
 	
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
@@ -147,9 +146,9 @@ int main(int argc, char **argv) {
 	
 	save = fopen("slantsave.dat", "w");
 	
-	if(moved[0].is_not_pure_panel()) tern1 = (tern1+1)%3;
-	if(moved[1].is_not_pure_panel()) tern2 = (tern2+1)%3;
-	fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+	if(moved[0].is_not_pure_panel()) a3.turninc();
+	if(moved[1].is_not_pure_panel()) a4.turninc();
+	fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, wise1, wise2);
 	delete node;
                 
 #ifdef __DEBUG_MODE

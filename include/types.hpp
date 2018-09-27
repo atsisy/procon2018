@@ -461,7 +461,7 @@ private:
 
         Direction blockdirection;
         u8 blocktern;
-        
+                
         void move_up()
                 {
                         y--;
@@ -534,8 +534,13 @@ public:
 		u8 mitgetY() {
 			return this->y;
 		}
-
-
+		
+		int turn;
+		
+		void turninc() {
+			this->turn = (turn+1)%3;
+		}
+		
         Agent aftermove_agent(u8 addx, u8 addy) {
                 return Agent(this->x+addx, this->y+addy, generate_agent_meta(this->extract_player_info()));
         }
