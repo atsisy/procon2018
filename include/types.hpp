@@ -552,10 +552,12 @@ public:
 		}
 			
 		Direction getNextMove_mytern(int tern, int wise) {
-			if(wise == ClockWise) 
+			if(wise == ClockWise) {
 				return int_to_direction(((7+blockdirection)%8+2*tern)%8);
-			else 
+			} else {
+				printf("getNextMove = %d\n", int_to_direction(((1+blockdirection)%8-2*tern+8)%8));
 				return int_to_direction(((1+blockdirection)%8-2*tern+8)%8);
+			}
 		}
 			
         void moveblock(Field &field) {

@@ -9,6 +9,8 @@
 
 const int depth = 12;
 
+int mywise(Field &field, Agent agent, Direction search);
+
 int main(int argc, char **argv) {
         FILE *save;
         Node *node;
@@ -49,7 +51,7 @@ int main(int argc, char **argv) {
 		}
 		
 		Field mainField = *node->mitgetField();
-		Slant search;
+		Slant slant;
 		
 		mainField.draw_status();
                         /*
@@ -75,59 +77,70 @@ int main(int argc, char **argv) {
 	}
 	fclose(save);
 	
+	if(tern1 == 0)  {
+		// サーチ
+		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
+		search1 = slant.search(a3, mainField, depth);
+		wise1 = mywise(mainField, a3, search1);
+		
+		save = fopen("slantsave.dat", "w");
+		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+		fclose(save);
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+	}
+	
+	if(tern2 == 0) {
+		// サーチ
+		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
+		search2 = slant.search(a4, mainField, depth);
+		wise2 = mywise(mainField, a4, search2);		
+		
+		save = fopen("slantsave.dat", "w");
+		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+		fclose(save);
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+	}
+		
+	
+	Panel moved[2];
+	a3.setblockdirection(search1);
+	a4.setblockdirection(search2);
+	
 	if(tern1 == 2) {
 		int myx = direction_to_dX(a3.getNextMove_mytern(tern1, wise1));
 		int myy = direction_to_dY(a3.getNextMove_mytern(tern1, wise1));
-		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) tern1 = 0;
+		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) {
+			tern1 = 0;
+			// サーチ
+			std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
+			search1 = slant.search(a3, mainField, depth);
+			wise1 = mywise(mainField, a3, search1);
+		
+			save = fopen("slantsave.dat", "w");
+			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+			fclose(save);
+			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+		}
 		printf("2:tern1 = %d\n", tern1);
 	}
 	
 	if(tern2 == 2) {
 		int myx = direction_to_dX(a4.getNextMove_mytern(tern2, wise2));
 		int myy = direction_to_dY(a4.getNextMove_mytern(tern2, wise2));
-		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) tern2 = 0;
+		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) {
+			tern2 = 0;
+			// サーチ
+			std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
+			search2 = slant.search(a4, mainField, depth);
+			wise2 = mywise(mainField, a4, search2);		
+		
+			save = fopen("slantsave.dat", "w");
+			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
+			fclose(save);
+			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+		}
 		printf("2:tern2 = %d\n", tern2);
 	}
-	
-	if(tern1 == 0) {
-		// サーチ
-		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
-		search1 = search.search(a3, mainField, depth);
-		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
-		if(mainField.at(a3.mitgetX()+(((search1/2)%3+1)/2)*2-1, a3.mitgetY()+(search1/4)*2-1).is_enemy_panel()) {
-			std::cout << "a3:CounterClockWise" << std::endl;
-			wise1 = CounterClockWise;
-		} else {
-			std::cout << "a3:ClockWise" << std::endl;
-			wise1 = ClockWise;
-		}
-		save = fopen("slantsave.dat", "w");
-		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
-		fclose(save);
-		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
-	}
-
-	if(tern2 == 0) {
-		// サーチ
-		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
-		search2 = search.search(a4, mainField, depth);
-		// 時計周りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
-		if(mainField.at(a4.mitgetX()+(((search2/2)%3+1)/2)*2-1, a4.mitgetY()+(search2/4)*2-1).is_enemy_panel()) {
-			std::cout << "a4:CounterClockWise" << std::endl;
-			wise2 = CounterClockWise;
-		} else {
-			std::cout << "a4:ClockWise" << std::endl;
-			wise2 = ClockWise;
-		}
-		save = fopen("slantsave.dat", "w");
-		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
-		fclose(save);
-		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
-	}
-	
-	Panel moved[2];
-	a3.setblockdirection(search1);
-	a4.setblockdirection(search2);
 	
 	moved[0] = a3.moveblock_mytern(mainField, tern1, wise1);
 	moved[1] = a4.moveblock_mytern(mainField, tern2, wise2);
@@ -160,6 +173,19 @@ int main(int argc, char **argv) {
 	builder.release_resource();
 	return 0;
 }
+
+int mywise(Field &field, Agent agent, Direction search) {
+	// 時計回りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
+	if(field.at(agent.mitgetX()+(((search/2)%3+1)/2)*2-1, agent.mitgetY()+(search/4)*2-1).is_enemy_panel()) {	
+		std::cout << "agent:CounterClockWise" << std::endl;
+		return CounterClockWise;
+	} else {
+		std::cout << "agent:ClockWise" << std::endl;
+		return ClockWise;
+	}
+}
+
+
 
         /*****
               FieldEvaluaterテストコード
