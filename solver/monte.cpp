@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 20;
 constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_EXPAND_LIMIT = 500;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr double MONTE_TIME_LIMIT = 15000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -176,7 +176,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
                 current_eval = node->get_score() >> 1;
-        std::vector<Node *> &&nodes = listup_node_greedy2(node, 2);
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, 3);
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
@@ -184,8 +184,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        u16 init_times = (50000 + ((i64)depth << 5)) / nodes.size();
-        total_trying += 50000;
+        u16 init_times = (51000 + ((i64)depth << 5)) / nodes.size();
+        total_trying += 51000;
 
         for(Node *child : nodes){
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
@@ -231,6 +231,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         std::cout << (int)original.at(0)->trying << "trying" << std::endl;
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
+        original.at(0)->node->evaluate();
         return original.at(0)->node;
 }
 
