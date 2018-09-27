@@ -399,7 +399,29 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         return b;
 }
 
-int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
+Node *Search::absearch(Node *root)
+{
+        ab_max(root, 4, -10000, 10000);
+        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+        std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
+        /*
+         * FIXME
+         * 先頭に必ずぶっ壊れたデータが入っている
+         */
+        return root->ref_children().at(1);
+}
+
+
+inline int Slant::slantEvaluate(int blockscore, Panel blockbase) {
+	int evalscore = blockscore;
+	
+	/* range 0.9,1.1 */
+	evalscore *= (this->random() %3)/10.0+0.9;
+	
+	return (evalscore >= 0) ? evalscore : evalscore*10;
+}
+
+int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	int ds = -10000;
 	Direction *resultsave = result;
 	std::vector<double> discore(4, 0);
@@ -409,7 +431,7 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 			if(!agent.checkblock(field, int_to_direction(i*2))) {
 				discore[i] = ds;
 			} else {
-				 discore[i] = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).get4dirScore(field);
+				 discore[i] = slantEvaluate(agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2).get4dirScore(field));
 			 }
 		 }
 		 
@@ -429,7 +451,7 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 		dir = int_to_direction(i*2);
 		if(agent.checkblock(field, dir)) {
 			buf = agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2);
-			discore[i] += buf.get4dirScore(field);
+			discore[i] += slantEvaluate(buf.get4dirScore(field));
 			buf.move(&imfield, int_to_direction((dir+2)%8));
 			discore[i] += slant(buf, field, depth-1, &waste);
 		} else {
@@ -437,11 +459,8 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 		}
 	}
 	
-	std::random_device rnd;
-	std::mt19937 mt(rnd());
 	ind = 0;
 	for(int i=0; i<4; i++) {
-		discore[i] *= (mt()%3)/10.0+0.9;
 		if(discore[i] > discore[ind]) ind = i;
 	}
 
@@ -449,19 +468,8 @@ int Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	return discore[ind];
 }
 
-Node *Search::absearch(Node *root)
-{
-        ab_max(root, 4, -10000, 10000);
-        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
-        std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
-        /*
-         * FIXME
-         * 先頭に必ずぶっ壊れたデータが入っている
-         */
-        return root->ref_children().at(1);
-}
 
-Direction Search::slantsearch(Agent agent, Field & field, u8 depth) {
+Direction Slant::search(Agent agent, Field &field, u8 depth) {
 	Direction ret;
 	slant(agent, field, depth, &ret);
 	

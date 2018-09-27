@@ -139,14 +139,18 @@ class Search {
 private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
-
-        int slant(Agent agent, Field &field, u8 depth, Direction *result);
-
 public:
         Node *absearch(Node *root);
-        Direction slantsearch(Agent agent, Field & field, u8 depth);
 };
 
+class Slant {
+private:
+	util::xor128 random;
+	int slant(Agent agent, Field &field, u8 depth, Direction *result);
+	int slantEvaluate(int blockscore, Panel blockbase);
+public:
+	Direction search(Agent agent, Field &field, u8 depth);
+};
 
 enum Judge {
         LOSE = 0,
