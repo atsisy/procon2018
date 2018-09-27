@@ -13,6 +13,8 @@ do
     ./self.sh
     score=`./bin.d/bin final-score ./cdump.json $i`
     if test $score -gt $get_th ; then
-        cat $f learning.dat >> $f
+        cat learning.dat >> $f
     fi
+    rm learning.dat
+    touch learning.dat
 done

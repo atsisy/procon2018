@@ -11,7 +11,7 @@ for i in `seq 1 50`
 do
     echo "in progress ==> " $i / 50
     ./self.sh
-    score=`./bin.d/bin final-score ./cdump.json $i`
+    score=`./bin.d/bin final-score ./cdump.json $i ./good_learning.dat`
     if test $score -gt $get_th ; then
         cat $f learning.dat >> $f
     fi

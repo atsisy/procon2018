@@ -7,6 +7,14 @@
 #include <random>
 #include <thread>
 #include <array>
+#include <deque>
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <memory>
+#include <cassert>
+
 #include "types.hpp"
 
 namespace util {
@@ -43,22 +51,22 @@ namespace util {
         private:
                 u32 x = 123456789, y = 362436069u, z = 521288629, w;
                 u32 random()
-                {
-                        u32 t;
-                        t = x ^ (x << 11);
-                        x = y;
-                        y = z;
-                        z = w;
-                        return w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
-                }
+                        {
+                                u32 t;
+                                t = x ^ (x << 11);
+                                x = y;
+                                y = z;
+                                z = w;
+                                return w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+                        }
                 
         public:
                 u32 operator()(){ return random(); }
                 xor128()
-                {
-                        std::random_device rd;
-                        w = rd();
-                }
+                        {
+                                std::random_device rd;
+                                w = rd();
+                        }
                 xor128(u32 s){ w = s; }  // 与えられたシードで初期化
         };
 
@@ -70,36 +78,138 @@ namespace util {
                 u64 tail;
         public:
                 queue()
-                {
-                        head = 0;
-                        tail = 0;
-                }
+                        {
+                                head = 0;
+                                tail = 0;
+                        }
 
                 void push_back(T obj)
-                {
-                        buffer[tail] = obj;
-                        tail++;
-                }
+                        {
+                                buffer[tail] = obj;
+                                tail++;
+                        }
 
                 void clear()
-                {
-                        head = 0;
-                        tail = 0;  
-                }
+                        {
+                                head = 0;
+                                tail = 0;  
+                        }
 
                 size_t size()
-                {
-                        return tail - head;
-                }
+                        {
+                                return tail - head;
+                        }
 
                 T front()
-                {
-                        return buffer[head];
-                }
+                        {
+                                return buffer[head];
+                        }
 
                 void pop_front()
-                {
-                        head++;
+                        {
+                                head++;
+                        }
+        };
+
+        template <typename T>
+        class Queue2{
+        public:
+                Queue2(int size)
+                        : size_(size)
+                        {}
+                bool put(T&& data) {
+                        if (size_ <= deque_.size()) {
+                                return false;
+                        }
+                        deque_.emplace_back(std::move(data));
+                        return true;
                 }
+                bool put(const T& data) {
+                        if (size_ <= deque_.size()) {
+                                return false;
+                        }
+                        deque_.emplace_back(data);
+                        return true;
+                }
+                bool get(T& data) {
+                        if (deque_.empty()) {
+                                return false;
+                        }
+                        data = std::move(deque_.front());
+                        deque_.pop_front();
+                        return true;
+                }
+                bool empty() const {
+                        return deque_.empty();
+                }
+        private:
+                int size_;
+                std::deque<T> deque_;
+        };
+
+        class Runnable{
+        public:
+                virtual void run() = 0;
+        };
+
+        class ThreadPool{
+        public:
+                ThreadPool(int threadCount, int queueSize)
+                        : isTerminationRequested_(false)
+                        , queue_(queueSize)
+                        {
+                                for (int n = 0; n < threadCount; n++) {
+                                        threads_.emplace_back(std::thread(main_));
+                                }
+                        }
+                ~ThreadPool() {
+                        {
+                                std::unique_lock<std::mutex> ul(mutex_);
+                                isTerminationRequested_ = true;
+                        }
+                        cv_.notify_all();
+                        const int size = threads_.size();
+                        for (int n = 0; n < size; n++) {
+                                threads_.at(n).join();
+                        }
+                }
+                bool add(std::shared_ptr<Runnable> &&runnable) {
+                        {
+                                std::unique_lock<std::mutex> ul(mutex_);
+                                if (!queue_.put(std::move(runnable))) { return false; }
+                        }
+                        cv_.notify_all();
+                        return true;
+                }
+                bool add(const std::shared_ptr<Runnable> &runnable) {
+                        {
+                                std::unique_lock<std::mutex> ul(mutex_);
+                                if (!queue_.put(runnable)) { return false; }
+                        }
+                        cv_.notify_all();
+                        return true;
+                }
+        private:
+                std::function<void()> main_ = [this]()
+                                                      {
+                                                              while (1) {
+                                                                      std::shared_ptr<Runnable> runnable;
+                                                                      {
+                                                                              std::unique_lock<std::mutex> ul(mutex_);
+                                                                              while (queue_.empty()) {
+                                                                                      if (isTerminationRequested_) { return; }
+                                                                                      cv_.wait(ul);
+                                                                              }
+                                                                              const bool result = queue_.get(runnable);
+                                                                              assert(result);
+                                                                      }
+                                                                      runnable->run();
+                                                              }
+                                                      };
+                bool isTerminationRequested_;
+                Queue2<std::shared_ptr<Runnable>> queue_;
+                std::mutex mutex_;
+                std::condition_variable cv_;
+                std::vector<std::thread> threads_;
         };
 }
