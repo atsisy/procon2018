@@ -148,8 +148,9 @@ private:
 	util::xor128 random;
 	int slant(Agent agent, Field &field, u8 depth, Direction *result);
 	int slantEvaluate(Field &field, Agent agent);
+	int setwise(Field &field, Agent agent, Direction search);
 public:
-	Direction search(Agent agent, Field &field, u8 depth);
+	Direction search(Agent agent, Field &field, u8 depth, int *wise);
 };
 
 enum Judge {

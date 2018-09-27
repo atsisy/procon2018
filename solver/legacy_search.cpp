@@ -472,9 +472,21 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 }
 
 
-Direction Slant::search(Agent agent, Field &field, u8 depth) {
+int Slant::setwise(Field &field, Agent agent, Direction search) {
+	// 時計回りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
+	if(field.at(agent.mitgetX()+(((search/2)%3+1)/2)*2-1, agent.mitgetY()+(search/4)*2-1).is_enemy_panel()) {	
+		std::cout << "agent:CounterClockWise" << std::endl;
+		return CounterClockWise;
+	} else {
+		std::cout << "agent:ClockWise" << std::endl;
+		return ClockWise;
+	}
+}
+
+Direction Slant::search(Agent agent, Field &field, u8 depth, int *wise) {
 	Direction ret;
 	slant(agent, field, depth, &ret);
+	*wise = setwise(field, agent, ret);
 	
 	return ret;
 }

@@ -9,8 +9,6 @@
 
 const int depth = 12;
 
-int mywise(Field &field, Agent agent, Direction search);
-
 int main(int argc, char **argv) {
         FILE *save;
         Node *node;
@@ -57,12 +55,12 @@ int main(int argc, char **argv) {
                         /*
                  * 安田式アルゴリズムテストコード
                  */
-                std::vector<Closed> myclosed;	//閉路を格納するベクター
+    std::vector<Closed> myclosed;	//閉路を格納するベクター
 				
-                Agent a1 = node->mitgetAgent(1);
-                Agent a2 = node->mitgetAgent(2);
-                Agent a3 = node->mitgetAgent(3);
-                Agent a4 = node->mitgetAgent(4);
+    Agent a1 = node->mitgetAgent(1);
+    Agent a2 = node->mitgetAgent(2);
+    Agent a3 = node->mitgetAgent(3);
+    Agent a4 = node->mitgetAgent(4);
                        
     Direction search1, search2;	
 	int tern1 = 0, tern2 = 0;
@@ -80,8 +78,7 @@ int main(int argc, char **argv) {
 	if(tern1 == 0)  {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
-		search1 = slant.search(a3, mainField, depth);
-		wise1 = mywise(mainField, a3, search1);
+		search1 = slant.search(a3, mainField, depth, &wise1);
 		
 		save = fopen("slantsave.dat", "w");
 		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
@@ -92,8 +89,7 @@ int main(int argc, char **argv) {
 	if(tern2 == 0) {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
-		search2 = slant.search(a4, mainField, depth);
-		wise2 = mywise(mainField, a4, search2);		
+		search2 = slant.search(a4, mainField, depth, &wise2);
 		
 		save = fopen("slantsave.dat", "w");
 		fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
@@ -113,9 +109,8 @@ int main(int argc, char **argv) {
 			tern1 = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
-			search1 = slant.search(a3, mainField, depth);
-			wise1 = mywise(mainField, a3, search1);
-		
+			search1 = slant.search(a3, mainField, depth, &wise1);
+
 			save = fopen("slantsave.dat", "w");
 			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
 			fclose(save);
@@ -131,9 +126,8 @@ int main(int argc, char **argv) {
 			tern2 = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
-			search2 = slant.search(a4, mainField, depth);
-			wise2 = mywise(mainField, a4, search2);		
-		
+			search2 = slant.search(a4, mainField, depth, &wise2);
+			
 			save = fopen("slantsave.dat", "w");
 			fprintf(save, "%d,%d,%d,%d,%d,%d", tern1, tern2, search1, search2, wise1, wise2);
 			fclose(save);
@@ -173,18 +167,6 @@ int main(int argc, char **argv) {
 	builder.release_resource();
 	return 0;
 }
-
-int mywise(Field &field, Agent agent, Direction search) {
-	// 時計回りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
-	if(field.at(agent.mitgetX()+(((search/2)%3+1)/2)*2-1, agent.mitgetY()+(search/4)*2-1).is_enemy_panel()) {	
-		std::cout << "agent:CounterClockWise" << std::endl;
-		return CounterClockWise;
-	} else {
-		std::cout << "agent:ClockWise" << std::endl;
-		return ClockWise;
-	}
-}
-
 
 
         /*****
