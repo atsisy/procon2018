@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         FILE *save;
         Node *node;
     	FieldBuilder builder(1,1);
-    	if(!strcmp(argv[1], "--init")) {
+    	if(!strcmp(argv[1], "init")) {
 			builder = FieldBuilder(new QRFormatParser(argv[2]));
 			node = builder.create_root_node();
 			save = fopen("slantsave.dat", "w");
