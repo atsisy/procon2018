@@ -14,6 +14,6 @@ do
     echo turn $i
 done
 
-./bin.d/bin score ./cdump.json ./good_learning.dat 
+./bin.d/bin score ./cdump.json 0 ./good_learning.dat 
 
 #/usr/java/default/bin/java -jar ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/simple_viewer.jar ./cdump.json

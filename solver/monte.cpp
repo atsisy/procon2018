@@ -184,13 +184,26 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        const u16 init_times = (20000 + ((i64)depth << 5)) / nodes.size();
+        u16 init_times = (50000 + ((i64)depth << 5)) / nodes.size();
+        total_trying += 50000;
+
         for(Node *child : nodes){
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                total_trying += playout_process(tmp, init_times);
                 result.push_back(tmp);
                 original.push_back(tmp);       
         }
+
+        {
+                ThreadPool tp(3, 100);
+                for(PlayoutResult *p : result){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, init_times))){
+                                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        }
+                }
+
+        }
+//        exit(0);
+        
         if(result.size() == 1) return get_first_child(result.at(0)->node);
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 put_dot();

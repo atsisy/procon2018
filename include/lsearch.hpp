@@ -1,9 +1,11 @@
 #pragma once
 
-#include "types.hpp"
-#include "utility.hpp"
 #include <random>
 #include <array>
+#include <memory>
+#include "types.hpp"
+
+using namespace util;
 
 struct action {
         u64 state_hash;
@@ -217,8 +219,13 @@ struct LocalPlayoutResult {
         LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
 };
 
+class initial_playout;
+
 constexpr u8 MONTE_DEPTH = 70;
 class Montecarlo {
+
+        friend initial_playout;
+        
 private:
         util::xor128 random;
         u8 depth;
@@ -248,4 +255,26 @@ public:
         const Node *greedy(Node *node);
         const Node *greedy_montecarlo(Node *node, u8 depth);
         Montecarlo();
+};
+
+class initial_playout : public Runnable {
+
+private:
+        PlayoutResult *pr;
+        u16 times;
+        Montecarlo *monte;
+        
+public:
+        void run()
+        {
+                monte->playout_process(pr, times);
+                std::cout << "aaaaaaaaaaaaaaaaaaaaaa" << std::endl;
+        }
+
+        initial_playout(Montecarlo *m, PlayoutResult *p, u16 t)
+        {
+                pr = p;
+                times = t;
+                monte = m;
+        }
 };
