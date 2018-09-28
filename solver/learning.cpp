@@ -43,6 +43,21 @@ te te_list::random_select()
         return ret;
 }
 
+te te_list::random_select(u32 r)
+{
+        double random_variable = (double)(r % 101);
+        te ret;
+
+        for(te t : list){
+                ret = t;
+                random_variable -= t.percentage;
+                if(random_variable < 0)
+                        break;
+        }
+
+        return ret;
+}
+
 void test(std::unordered_map<u64, te_list *> &&map)
 {
         i64 hash;
