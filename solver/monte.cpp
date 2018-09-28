@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 20;
 constexpr u32 MONTE_MIN_TIMES = 100;
 constexpr u32 MONTE_EXPAND_LIMIT = 500;
-constexpr double MONTE_TIME_LIMIT = 15000;
+constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -414,7 +414,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         std::vector<action> &&actions = node->generate_state_hash();
 
         try{
-                m1 = learning_map.at(actions[0].state_hash)->random_select().direction;
+                m1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->my_agent1.is_movable(node->field, m1))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -424,7 +424,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         }
         
         try{
-                m2 = learning_map.at(actions[1].state_hash)->random_select().direction;
+                m2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, m2))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -434,7 +434,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         }
         
         try{
-                e1 = learning_map.at(actions[2].state_hash)->random_select().direction;
+                e1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, e1))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -444,7 +444,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         }
 		
         try{
-                e2 = learning_map.at(actions[3].state_hash)->random_select().direction;
+                e2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, e2))
 			  throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -487,7 +487,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
         std::vector<action> &&actions = node->generate_state_hash(MY_TURN);
 
         try{
-                d1 = learning_map.at(actions[0].state_hash)->random_select().direction;
+                d1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->my_agent1.is_movable(node->field, d1))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -497,7 +497,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
         }
         
         try{
-                d2 = learning_map.at(actions[1].state_hash)->random_select().direction;
+                d2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, d2))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -520,7 +520,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
 
         
         try{
-                d1 = learning_map.at(actions[2].state_hash)->random_select().direction;
+                d1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, d1))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){
@@ -530,7 +530,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
         }
 		
         try{
-                d2 = learning_map.at(actions[3].state_hash)->random_select().direction;
+                d2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, d2))
                         throw std::out_of_range("unko");
         }catch(const std::out_of_range &e){

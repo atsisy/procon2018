@@ -23,6 +23,14 @@ struct te_list {
         void sort();
 
         te random_select();
+        te random_select(u32 r);
 };
 
 extern std::unordered_map<u64, te_list *> learning_map;
+
+
+
+
+
+
+
