@@ -416,7 +416,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 m1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->my_agent1.is_movable(node->field, m1))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{
                         m1 = int_to_direction(MOD_RANDOM(random()));
@@ -426,7 +426,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 m2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, m2))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         m2 = int_to_direction(MOD_RANDOM(random()));
@@ -436,7 +436,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 e1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, e1))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         e1 = int_to_direction(MOD_RANDOM(random()));
@@ -446,7 +446,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 e2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, e2))
-			  throw std::out_of_range("unko");
+			  throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         e2 = int_to_direction(MOD_RANDOM(random()));
@@ -489,7 +489,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
         try{
                 d1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->my_agent1.is_movable(node->field, d1))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{
                         d1 = int_to_direction(MOD_RANDOM(random()));
@@ -499,7 +499,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
         try{
                 d2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, d2))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         d2 = int_to_direction(MOD_RANDOM(random()));
@@ -524,7 +524,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
         try{
                 d1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, d1))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         d1 = int_to_direction(MOD_RANDOM(random()));
@@ -534,7 +534,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
         try{
                 d2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, d2))
-                        throw std::out_of_range("unko");
+                        throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
                 do{            
                         d2 = int_to_direction(MOD_RANDOM(random()));
