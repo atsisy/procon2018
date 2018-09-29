@@ -47,6 +47,20 @@ namespace util {
 
         }
 
+        template <class... Args>
+        std::function<void(void)> run_single_thread(std::function<void(Args&&...)> process, Args&&... args)
+        {
+                return [&](){
+                               std::mutex mtx_;
+                               {
+                                       mtx_.lock();
+                                       process(args...);
+                                       mtx_.unlock();
+                               }
+                       };
+        }
+
+
         class xor128 {
         private:
                 u32 x = 123456789, y = 362436069u, z = 521288629, w;
@@ -211,5 +225,5 @@ namespace util {
                 std::mutex mutex_;
                 std::condition_variable cv_;
                 std::vector<std::thread> threads_;
-        };
+        };        
 }
