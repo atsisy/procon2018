@@ -24,6 +24,8 @@ struct te_list {
 
         te random_select();
         te random_select(u32 r);
+        std::vector<Direction> get_list();
+        std::vector<Direction> get_filtered_list(Field *field, Agent &agent);
 };
 
 extern std::unordered_map<u64, te_list *> learning_map;

@@ -27,6 +27,28 @@ void te_list::sort()
                                   });
 }
 
+std::vector<Direction> te_list::get_list()
+{
+        std::vector<Direction> vec;
+
+        for(te &t : list)
+                vec.push_back(t.direction);
+
+        return vec;
+}
+
+std::vector<Direction> te_list::get_filtered_list(Field *field, Agent &agent)
+{
+        std::vector<Direction> vec;
+
+        for(te &t : list){
+                if(agent.is_movable(field, t.direction))
+                        vec.push_back(t.direction);
+        }
+
+        return vec;
+}
+
 te te_list::random_select()
 {
         util::xor128 random;

@@ -70,7 +70,10 @@ private:
 
         void first_step_enemy(Direction dir1, Direction dir2);
         void first_step_mine(Direction dir1, Direction dir2);
-        
+
+        std::vector<Node *> expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
+        std::vector<Node *> expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
+
 public:
         /*
          * 普通に使ってほしいコンストラクタ
@@ -107,6 +110,7 @@ public:
         void expand();
 
         Node *get_specific_child(Direction agent1, Direction agent2);
+        std::vector<Node *> expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2);
         
         void set_score(i16 score)
         {
@@ -159,7 +163,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.50;
+constexpr float UCB_C = 0.6;
 struct PlayoutResult {
 
         Node *node;
@@ -247,8 +251,11 @@ private:
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
-        std::vector<Node *> listup_node_greedy(Node *node);
+        std::vector<Node *> listup_node_greedy(Node *node, u8 rank);
         std::vector<Node *> listup_node_greedy2(Node *node, u8 rank);
+        std::vector<Node *> listup_node_greedy_turn(Node *node, u8 rank, u8 turn);
+        void expand_not_ai_turn(Node *node, std::function<void(Node *)> apply_child);
+        Direction learning_or_random(Node *node, Agent &agent, u64 hash);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
@@ -277,3 +284,26 @@ public:
                 monte = m;
         }
 };
+
+/*
+class not_ai_playout : public Runnable {
+
+private:
+        PlayoutResult *pr;
+        u16 times;
+        Montecarlo *monte;
+        
+public:
+        void run()
+                {
+                        monte->playout_process(pr, times);
+                }
+
+        not_ai_playout(Montecarlo *m, PlayoutResult *p, u16 t)
+                {
+                        pr = p;
+                        times = t;
+                        monte = m;
+                }
+};
+*/

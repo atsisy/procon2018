@@ -403,6 +403,65 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
         return clone;
 }
 
+std::vector<Node *> Node::expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
+{
+        std::vector<Node *> nodes;
+        nodes.reserve(36);
+        
+        for(const Direction dir1 : for_a1){
+                for(const Direction dir2 : for_a2){
+
+                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
+                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
+                                continue;
+                        }
+
+                        Node *clone = new Node(this);
+                        clone->first_step_mine(dir1, dir2);
+                        nodes.push_back(clone);
+                }
+        }
+
+        return nodes;
+}
+
+std::vector<Node *> Node::expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
+{
+        std::vector<Node *> nodes;
+        nodes.reserve(36);
+
+        for(const Direction dir1 : for_a1){
+                for(const Direction dir2 : for_a2){
+
+                        if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
+                           this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
+                           this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
+                                continue;
+                        }
+
+                        Node *clone = new Node(this);
+                        clone->first_step_enemy(dir1, dir2);
+                        nodes.push_back(clone);
+                }
+        }
+
+        return nodes;
+}
+
+std::vector<Node *> Node::expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2)
+{
+        if(IS_MYTURN(turn)){
+                return expand_my_specific_children(for_a1, for_a2);
+        }else{
+                return expand_enemy_specific_children(for_a1, for_a2);
+        }
+}
+
 i16 Node::evaluate()
 {
         static FieldEvaluater evaluater;

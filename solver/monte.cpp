@@ -7,10 +7,10 @@
 #include "utility.hpp"
 #include "learn.hpp"
 
-constexpr u32 MONTE_INITIAL_TIMES = 20;
+constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 100;
-constexpr u32 MONTE_EXPAND_LIMIT = 500;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr u32 MONTE_EXPAND_LIMIT = 3000;
+constexpr double MONTE_TIME_LIMIT = 12000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -41,6 +41,22 @@ static inline void put_dot()
         fflush(stdout);
 }
 
+Direction Montecarlo::learning_or_random(Node *node, Agent &agent, u64 hash)
+{
+        Direction d;
+        try{
+                d = learning_map.at(hash)->random_select(random()).direction;
+		if(!agent.is_movable(node->field, d))
+                        throw std::out_of_range("out_of_range was occured");
+        }catch(const std::out_of_range &e){
+                do{
+                        d = int_to_direction(MOD_RANDOM(random()));
+                }while(!agent.is_movable(node->field, d));
+        }
+
+        return d;
+}
+
 static void expand_node_sub(std::vector<Node *>::iterator begin, std::vector<Node *>::iterator end, std::function<void(Node *)> apply_child)
 {
         std::for_each(begin, end, apply_child);
@@ -49,6 +65,7 @@ static void expand_node_sub(std::vector<Node *>::iterator begin, std::vector<Nod
 void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child)
 {
         node->expand();
+        /*マルチスレッドは一旦やめる
         if(depth >= MONTE_MT_LIMIT){
                 std::thread
                         th1(expand_node_sub, std::begin(node->ref_children()), std::begin(node->ref_children()) + (node->ref_children().size() >> 1), apply_child),
@@ -56,7 +73,45 @@ void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child
                 th1.join();
                 th2.join();
         }else
-                std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
+        */
+        std::for_each(std::begin(node->ref_children()), std::end(node->ref_children()), apply_child);
+}
+
+void Montecarlo::expand_not_ai_turn(Node *node, std::function<void(Node *)> apply_child)
+{
+        /*
+        auto &&actions = node->generate_state_hash(node->turn);
+        try{
+#ifdef I_AM_ME
+                auto &&good_nodes = node->expand_specific_children(
+                        learning_map.at(actions[0].state_hash)->get_filtered_list(node->field, node->enemy_agent1),
+                        learning_map.at(actions[1].state_hash)->get_filtered_list(node->field, node->enemy_agent2));
+#endif
+#ifdef I_AM_ENEMY
+                auto &&good_nodes = node->expand_specific_children(
+                        learning_map.at(actions[0].state_hash)->get_filtered_list(node->field, node->my_agent1),
+                        learning_map.at(actions[1].state_hash)->get_filtered_list(node->field, node->my_agent2));
+#endif
+                for(Node *child : good_nodes){
+                        node->dump_json_file("before.json");
+                        child->expand();
+w                        child->dump_json_file("after.json");
+                        getchar();
+                        
+                        std::for_each(std::begin(child->ref_children()), std::end(child->ref_children()), apply_child);
+                }
+        }catch(const std::out_of_range &e){
+        */
+        
+                auto &&good_nodes = listup_node_greedy_turn(node, 3, MY_TURN);
+                for(Node *child : good_nodes){
+                        //child->expand();
+                        auto &&vec = listup_node_greedy(child, 4);
+                        std::for_each(std::begin(vec), std::end(vec), apply_child);
+                }
+                /*
+        }
+                */
 }
 
 static void synchronized_adding(std::vector<PlayoutResult *> &dst, std::vector<PlayoutResult *> &data)
@@ -69,20 +124,34 @@ static void synchronized_adding(std::vector<PlayoutResult *> &dst, std::vector<P
         }
 }
 
+
 u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim)
 {
         u64 trying = 0;
+        std::mutex mtx;
         trying += playout_process(target, limit);
 
         if(target->trying >= MONTE_EXPAND_LIMIT){
                 std::vector<PlayoutResult *> buf;
                 buf.reserve(81);
                 target->ucb = -1;
-                expand_node(target->node, [&, this](Node *child){
+                /*
+                  expand_node(target->node, [&, this](Node *child){
+                  PlayoutResult *tmp = new PlayoutResult(child, target);
+                  trying += playout_process(tmp, llim);
+                  buf.push_back(tmp);
+                  });
+                */
+                expand_not_ai_turn(target->node, [&, this](Node *child){
                                 PlayoutResult *tmp = new PlayoutResult(child, target);
-                                trying += playout_process(tmp, llim);
-                                buf.push_back(tmp);
+                                playout_process(tmp, llim);
+                                {
+                                        std::lock_guard<std::mutex> lock(mtx);
+                                        trying += llim;
+                                        buf.push_back(tmp);
+                                }
                         });
+                
                 synchronized_adding(result, buf);
         }
 
@@ -98,16 +167,14 @@ static void add_trying(u64 *total, u64 val)
         }
 }
 
-std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
+std::vector<Node *> Montecarlo::listup_node_greedy(Node *node, u8 rank)
 {
-        std::vector<Node *> nodes;
+        std::vector<Node *> nodes, result;
         node->expand();
-        for(Node *child : node->ref_children()){
-                child->expand();
-                for(Node *gcn : child->ref_children()){
-                        gcn->evaluate();
-                        nodes.push_back(gcn);
-                }
+
+        for(Node *n : node->ref_children()){
+                n->evaluate();
+                nodes.push_back(n);
         }
         
         std::sort(std::begin(nodes), std::end(nodes),
@@ -119,7 +186,18 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node)
                           return n1->get_score() > n2->get_score();
 #endif
                   });
-        return nodes;
+
+        i64 max_score = nodes.at(0)->get_score();
+        for(Node *n : nodes){
+                if(max_score != n->get_score()){
+                        max_score = n->get_score();
+                        if(!--rank)
+                                break;
+                }
+                result.push_back(n);
+        }
+        
+        return result;
 }
 
 std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, u8 rank)
@@ -161,22 +239,64 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, u8 rank)
         return result;
 }
 
+
+std::vector<Node *> Montecarlo::listup_node_greedy_turn(Node *node, u8 rank, u8 turn)
+{
+        std::vector<Node *> nodes;
+        std::vector<Node *> result;
+        i64 local;
+        node->expand();
+        for(Node *child : node->ref_children()){
+                child->expand();
+                local = 0;
+                nodes.push_back(child);
+                for(Node *gcn : child->ref_children()){
+                        local += gcn->evaluate();
+                }
+                child->set_score(local);
+        }
+
+        if(IS_MYTURN(turn)){
+                std::sort(std::begin(nodes), std::end(nodes),
+                          [](const Node *n1, const Node *n2){
+                                  return n1->get_score() > n2->get_score();
+                          });
+        }else{
+                std::sort(std::begin(nodes), std::end(nodes),
+                          [](const Node *n1, const Node *n2){
+                                  return n1->get_score() < n2->get_score();
+                          });
+        }
+
+        i64 max_score = nodes.at(0)->get_score();
+        for(Node *n : nodes){
+                if(max_score != n->get_score()){
+                        max_score = n->get_score();
+                        if(!--rank)
+                                break;
+                }
+                result.push_back(n);
+        }
+
+        return result;
+}
+
 const Node *Montecarlo::select_final(Node *node)
 {
-        std::vector<Node *> &&nodes = listup_node_greedy(node);
+        std::vector<Node *> &&nodes = listup_node_greedy(node, 4);
         return get_first_child(nodes.at(0));
 }
 
 const Node *Montecarlo::greedy(Node *node)
 {
-        return listup_node_greedy2(node, 1).at(0);
+        return listup_node_greedy(node, 1).at(0);
 }
 
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
                 current_eval = node->get_score() >> 1;
-        std::vector<Node *> &&nodes = listup_node_greedy2(node, 3);
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, 5);
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
@@ -184,8 +304,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-        u16 init_times = (51000 + ((i64)depth << 5)) / nodes.size();
-        total_trying += 51000;
+        u16 init_times = (30000 + ((i64)depth << 5)) / nodes.size();
+        total_trying += 30000;
 
         for(Node *child : nodes){
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
@@ -202,7 +322,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
                 }
 
         }
-//        exit(0);
+        
         
         if(result.size() == 1) return get_first_child(result.at(0)->node);
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
@@ -268,23 +388,55 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 {
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
+        u64 counter = 0, index = 0;
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-
+        
         if(!depth)
                 return select_final(node);
 
         // 一個下のノードを展開
-        expand_node(node, [&result, &original, &total_trying, depth, this](Node *child){
-                                  PlayoutResult *tmp = new PlayoutResult(child, nullptr);
-                                  total_trying += playout_process(tmp, MONTE_INITIAL_TIMES);
-                                  result.push_back(tmp);
-                                  original.push_back(tmp); });
+        node->expand();
+        
+        for(Node *child : node->ref_children())
+                child->evaluate();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
+                  [](const Node *n1, const Node *n2){
+#ifdef I_AM_ENEMY
+                          return n1->get_score() < n2->get_score();
+#endif
+#ifdef I_AM_ME
+                          return n1->get_score() > n2->get_score();
+#endif
+                  });
+        for(Node *child : node->ref_children()){
+                PlayoutResult *tmp = new PlayoutResult(child, nullptr);
+                original.push_back(tmp);
+        }
 
+        {
+                ThreadPool tp(3, 100);
+                for(PlayoutResult *p : original){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
+                                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        }
+                }
+        }
+
+        result.push_back(original.at(index++));
+        
         // 各ノードに対してシュミレーションを行う        
         printf("thinking");
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
+                counter++;
+                if(counter == 20){
+                        if(original.size() <= index){
+                                continue;
+                        }
+                        result.push_back(original.at(index++));
+                        counter = 0;
+                }
                 //printf("%ldnodes\n", result.
                 put_dot();
                 std::for_each(std::begin(result), std::end(result),
@@ -294,14 +446,17 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 std::sort(std::begin(result), std::end(result),
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
 
-                std::thread th1([&](){
-                                        add_trying(&total_trying, select_and_play(result, result.at(0), MONTE_INITIAL_TIMES));
-                                }),
+                //result.at(0)->draw();
+                //std::thread th1([&](){
+                                        add_trying(&total_trying, select_and_play(result, result.at(0), 10));
+                                        //});
+                /*
                         th2([&](){
                                     add_trying(&total_trying, select_and_play(result, result.at(1), MONTE_INITIAL_TIMES));
                             });
                 th2.join();
-                th1.join();
+                */
+                //th1.join();
         }
         putchar('\n');
 
@@ -310,11 +465,11 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         
 #ifdef __DEBUG_MODE
         std::for_each(std::begin(original), std::end(original),
-                      [](PlayoutResult *r){ std::cout << "Win:" << r->percentage() * 100 << "%" << std::endl; });
+                      [](PlayoutResult *r){ r->draw(); });
 #endif
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
-        std::cout << (int)original.at(0)->trying << "trying" << std::endl;
+        original.at(0)->node->evaluate();
         return original.at(0)->node;
 }
 
@@ -452,6 +607,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                         e2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, e2));
         }
+
         return check_direction_legality(node, {m1, m2, e1, e2});
 }
 
@@ -483,7 +639,7 @@ std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::a
 i8 Montecarlo::my_random_half_play(Node *node)
 {
         Direction d1, d2;
-
+        
         std::vector<action> &&actions = node->generate_state_hash(MY_TURN);
 
         try{
@@ -501,7 +657,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
 		if(!node->my_agent2.is_movable(node->field, d2))
                         throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
-                do{            
+                do{
                         d2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent2.is_movable(node->field, d2));
         }
@@ -520,23 +676,22 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
 
         std::vector<action> &&actions = node->generate_state_hash(ENEMY_TURN);
 
-        
         try{
-                d1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
+                d1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, d1))
                         throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
-                do{            
+                do{
                         d1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, d1));
         }
 		
         try{
-                d2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
+                d2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, d2))
                         throw std::out_of_range("out_of_range was occured");
         }catch(const std::out_of_range &e){
-                do{            
+                do{
                         d2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, d2));
         }
@@ -566,12 +721,14 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
          */
         if(random_half_play(current, node->turn) == -1)
                 return LOSE;
+        
 
         while(depth--){
-                if(depth & 1)
+                if(depth & 1){
                         current->play(find_random_legal_direction(current));
-                else
+                }else{
                         current->play(get_learning_direction(current));
+                }
         }
 
         if((current->evaluate()) < 0){
