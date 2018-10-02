@@ -7,7 +7,7 @@
 #include "types.hpp"
 #include <cmath>
 
-const int depth = 12;
+const int depth = 11;
 
 int main(int argc, char **argv) {
         FILE *save;
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     Direction search1, search2;	
 	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
-		std::cout << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
+		std::cerr << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
 		exit(-1);
 	} else {
 		fscanf(save, "%d,%d,%d,%d,%d,%d", &a3.turn, &a4.turn, &search1, &search2, &a3.wise, &a4.wise);
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
 	
-	if(a3.turn == 2) {
+	if(a3.turn == 2 || a3.turn == 1) {
 		int myx = direction_to_dX(a3.getNextMove_mytern(a3.turn, a3.wise));
 		int myy = direction_to_dY(a3.getNextMove_mytern(a3.turn, a3.wise));
 		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) {
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 		printf("2:a3.turn = %d\n", a3.turn);
 	}
 	
-	if(a4.turn == 2) {
+	if(a4.turn == 2 || a4.turn == 1) {
 		int myx = direction_to_dX(a4.getNextMove_mytern(a4.turn, a4.wise));
 		int myy = direction_to_dY(a4.getNextMove_mytern(a4.turn, a4.wise));
 		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) {
@@ -139,8 +139,6 @@ int main(int argc, char **argv) {
 	
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
-	a3.draw();
-	a4.draw();
 	mainField.draw_status();
 	
 	save = fopen("slantsave.dat", "w");
