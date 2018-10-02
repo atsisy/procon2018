@@ -96,7 +96,6 @@ void command_switching(char **argv)
         learning_map = analyze_learning_data(argv[4]);
         
         if(!strcmp(argv[1], "init")){
-                
                 /*
                  * コマンドライン引数の添字21にQRへのファイルパスが含まれているとする。
                  */
@@ -106,20 +105,20 @@ void command_switching(char **argv)
                 node->draw();
                 Montecarlo monte;
 		u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.greedy_montecarlo(node, 12);
+                const Node *ans = monte.let_me_monte(node, 12);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
-                write_learning_data(node, ans);
+                //write_learning_data(node, ans);
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.greedy_montecarlo(json_node, (d >= 20 ? 20 : d));
+                const Node *ans = monte.let_me_monte(json_node, (d > 20) ? 20 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
-                write_learning_data(json_node, ans);
+                //write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "greedy")){
@@ -170,6 +169,8 @@ void command_switching(char **argv)
 
         exit(0);
 }
+
+
 
         /*****
               FieldEvaluaterテストコード

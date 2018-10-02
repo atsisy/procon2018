@@ -1,14 +1,14 @@
 #!/bin/bash
 
-./bin init ./sample_qrformat.dat 0
+./bin init ./sample_qrformat.dat 0 ./good_learning.dat
 ./bin.d/bin continue ./cdump.json 0 ./good_learning.dat
 
 echo 0 0 > score.dat
 
-for i in `seq 1 70`
+for i in `seq 1 1000000`
 do
     echo ---------------------------------------------
-    ./bin continue ./cdump.json $i
+    ./bin continue ./cdump.json $i ./good_learning.dat
     ./bin.d/bin continue ./cdump.json $i ./good_learning.dat 
     ./bin.d/bin gnuscore ./cdump.json $i ./good_learning.dat  >> score.dat
     echo turn $i

@@ -620,6 +620,11 @@ public:
                         this->y - agent.y
                         );
         }
+
+        bool debug_out(Field *field)
+                {
+                        return !field->is_within(x, y);
+                }
 };
 
 
