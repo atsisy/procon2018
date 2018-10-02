@@ -296,7 +296,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
                 current_eval = node->get_score() >> 1;
-        std::vector<Node *> &&nodes = listup_node_greedy2(node, 5);
+        Search search;
+        std::vector<Node *> &&nodes = search.absearch(node); /* listup_node_greedy2(node, 5); */
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;

@@ -512,7 +512,7 @@ void Node::put_score_info()
 i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
 {
         if(!depth){
-                return node->evaluate();
+                return -node->evaluate();
         }
 
         node->expand();
@@ -520,7 +520,7 @@ i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
         for(Node *child : node->ref_children()){
                 child->set_score(ab_min(child, depth - 1, a, b));
                 if(child->get_score() >= b){
-                        delete node;
+                        //delete node;
                         return node->get_score();
                 }
                 if(child->get_score() > a){
@@ -535,7 +535,7 @@ i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
 i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
 {
         if(!depth){
-                return node->evaluate();
+                return -node->evaluate();
         }
         
         node->expand();
@@ -543,7 +543,7 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         for(Node *child : node->ref_children()){
                 child->set_score(ab_min(child, depth - 1, a, b));
                 if(child->get_score() <= a){
-                        delete node;
+                        //delete node;
                         return child->get_score();
                 }
 
@@ -554,6 +554,27 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         }
 
         return b;
+}
+
+i64 Search::nega_alpha(Node *node, u8 depth, i16 a, i16 b)
+{
+        if(!depth){
+                return -node->evaluate();
+        }
+
+        node->expand();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() < n2->get_score();});
+
+
+        for(Node *child : node->ref_children()){
+                child->set_score(-nega_alpha(child, depth - 1, -b, -a));
+                a = std::max(a, child->get_score());
+                if(a >= b){
+                        return a;
+                }
+        }
+
+        return a;
 }
 
 i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
@@ -596,16 +617,24 @@ i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	return max;
 }
 
-Node *Search::absearch(Node *root)
+std::vector<Node *> Search::absearch(Node *root)
 {
-        ab_max(root, 4, -10000, 10000);
+        nega_alpha(root, 5, -10000, 10000);
         std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
-        std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
-        /*
-         * FIXME
-         * 先頭に必ずぶっ壊れたデータが入っている
-         */
-        return root->ref_children().at(1);
+
+        std::vector<Node *> result;
+        i64 max_score = root->ref_children().at(0)->get_score();
+        for(Node *n : root->ref_children()){
+                if(max_score != n->get_score()){
+                        break;
+                }
+                n->evaluate();
+                result.push_back(n);
+        }
+
+        std::sort(std::begin(result), std::end(result), [](const Node *n1, const Node *n2){ return n1->get_score() < n2->get_score();});
+        
+        return result;
 }
 
 i8 Search::slantsearch(Agent agent, Field & field) {
