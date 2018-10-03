@@ -71,6 +71,8 @@ private:
         void first_step_enemy(Direction dir1, Direction dir2);
         void first_step_mine(Direction dir1, Direction dir2);
 
+        void delete_children();
+        
         std::vector<Node *> expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
         std::vector<Node *> expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
 
@@ -100,7 +102,7 @@ public:
         /*
          * 自分自身を評価するメソッド
          */
-        i16 evaluate();
+        i16 evaluate(u8 turn = MY_TURN);
 
         void put_score_info();
         

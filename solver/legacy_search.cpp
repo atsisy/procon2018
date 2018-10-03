@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <fstream>
 
+constexpr u8 AB_DEPTH = 4;
+
 /*
  * Nodeクラスのコンストラクタ
  * このコンストラクタはプライベートになっていて、原則、FieldBuilderのみ
@@ -462,7 +464,7 @@ std::vector<Node *> Node::expand_specific_children(std::vector<Direction> &&for_
         }
 }
 
-i16 Node::evaluate()
+i16 Node::evaluate(u8 turn)
 {
         static FieldEvaluater evaluater;
 
@@ -484,6 +486,9 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
+
+        if(!IS_MYTURN(turn))
+                score = -score;
         
         return score;
 }
@@ -493,7 +498,7 @@ void Node::put_score_info()
         puts("** SCORE INFORMATION **");
         std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
         std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;
         std::cout << "*Total*: " << evaluate() << std::endl;
 }
 
@@ -512,16 +517,21 @@ void Node::put_score_info()
 i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
 {
         if(!depth){
-                return -node->evaluate();
+                return node->evaluate(ENEMY_TURN);
         }
 
         node->expand();
 
+        for(Node *n : node->ref_children())
+                n->evaluate();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() < n2->get_score();});
+        
+        
         for(Node *child : node->ref_children()){
                 child->set_score(ab_min(child, depth - 1, a, b));
                 if(child->get_score() >= b){
                         //delete node;
-                        return node->get_score();
+                        return child->get_score();
                 }
                 if(child->get_score() > a){
                         // better one
@@ -535,11 +545,17 @@ i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
 i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
 {
         if(!depth){
-                return -node->evaluate();
+                return node->evaluate(ENEMY_TURN);
         }
         
         node->expand();
+/*
 
+        for(Node *n : node->ref_children())
+                n->evaluate();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+
+*/
         for(Node *child : node->ref_children()){
                 child->set_score(ab_min(child, depth - 1, a, b));
                 if(child->get_score() <= a){
@@ -559,23 +575,56 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
 i64 Search::nega_alpha(Node *node, u8 depth, i16 a, i16 b)
 {
         if(!depth){
-                return -node->evaluate();
+                node->dump_json_file("debug2.json");
+                getchar();
+                return node->evaluate(ENEMY_TURN);
         }
 
         node->expand();
-        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() < n2->get_score();});
-
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
 
         for(Node *child : node->ref_children()){
                 child->set_score(-nega_alpha(child, depth - 1, -b, -a));
                 a = std::max(a, child->get_score());
+                
                 if(a >= b){
+                        if(depth != AB_DEPTH)
+                                node->delete_children();
                         return a;
                 }
         }
 
+        if(depth != AB_DEPTH)
+                node->delete_children();
         return a;
 }
+/*
+Node *Search::node_nega_alpha(Node *node, u8 depth, i16 a, i16 b)
+{
+        if(!depth){
+                node->evaluate(ENEMY_TURN);
+                return node;
+        }
+
+        node->expand();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+
+
+        for(Node *child : node->ref_children()){
+                child->set_score(-nega_alpha(child, depth - 1, -b, -a)->get_score());
+                a = std::max(a, child->get_score());
+                if(a >= b){
+                        if(depth != AB_DEPTH)
+                                node->delete_children();
+                        return a;
+                }
+        }
+
+        if(depth != AB_DEPTH)
+                node->delete_children();
+        return a;
+}
+*/
 
 i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	
@@ -617,21 +666,35 @@ i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	return max;
 }
 
+void Node::delete_children()
+{
+        for(Node *c : children)
+                delete c;
+        children.resize(0);
+}
+
 std::vector<Node *> Search::absearch(Node *root)
 {
-        nega_alpha(root, 5, -10000, 10000);
-        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
-
+        ab_max(root, AB_DEPTH, -10000, 10000);
+        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()),
+                  [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+        /*
+        for(Node *n : root->ref_children())
+                std::cout << (int)n->get_score() << std::endl;
+        */
         std::vector<Node *> result;
         i64 max_score = root->ref_children().at(0)->get_score();
         for(Node *n : root->ref_children()){
                 if(max_score != n->get_score()){
                         break;
                 }
-                n->evaluate();
+                printf("%d\n", n->get_score());
                 result.push_back(n);
         }
 
+        puts("-------------------------------");
+        for(Node *n : result)
+                std::cout << (int)n->evaluate() << std::endl;
         std::sort(std::begin(result), std::end(result), [](const Node *n1, const Node *n2){ return n1->get_score() < n2->get_score();});
         
         return result;

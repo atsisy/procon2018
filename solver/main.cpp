@@ -115,10 +115,10 @@ void command_switching(char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.greedy_montecarlo(json_node, (d > 20) ? 20 : d);
+                const Node *ans = monte.greedy_montecarlo(json_node, (d > 35) ? 35 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
-                //write_learning_data(json_node, ans);
+                write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "greedy")){

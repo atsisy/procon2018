@@ -298,6 +298,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
                 current_eval = node->get_score() >> 1;
         Search search;
         std::vector<Node *> &&nodes = search.absearch(node); /* listup_node_greedy2(node, 5); */
+        std::cout << nodes.size() << "siiiiiiiiiize" << std::endl;
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
@@ -725,11 +726,11 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         
 
         while(depth--){
-                if(depth & 1){
+                //if(depth & 1){
                         current->play(find_random_legal_direction(current));
-                }else{
-                        current->play(get_learning_direction(current));
-                }
+//                }else{
+                        //                      current->play(get_learning_direction(current));
+                        //}
         }
 
         if((current->evaluate()) < 0){
