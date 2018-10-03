@@ -263,6 +263,7 @@ private:
 public:
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
+        const Node *inv_iddmcts(Node *node, u8 depth);
         const Node *greedy_montecarlo(Node *node, u8 depth);
         Montecarlo();
 };

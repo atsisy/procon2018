@@ -164,6 +164,29 @@ void command_switching(char **argv)
                 write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
+        }else if(!strcmp(argv[1], "iddinit")){
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                Node *node = builder.create_root_node();
+                node->evaluate();
+                Montecarlo monte;
+                u8 d = MONTE_DEPTH - std::atoi(argv[3]);
+                const Node *ans = monte.inv_iddmcts(node, d);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                write_learning_data(node, ans);
+                delete ans;
+                delete node;
+        }else if(!strcmp(argv[1], "idd")){
+                Node *json_node = new Node(argv[2]);
+                json_node->evaluate();
+                Montecarlo monte;
+                u8 d = MONTE_DEPTH - std::atoi(argv[3]);
+                const Node *ans = monte.inv_iddmcts(json_node, d);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                write_learning_data(json_node, ans);
+                delete ans;
+                delete json_node;
         }else if(!strcmp(argv[1], "score")){
                 Node *json_node = new Node(argv[2]);
                 json_node->put_score_info();

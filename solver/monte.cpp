@@ -292,6 +292,78 @@ const Node *Montecarlo::greedy(Node *node)
         return listup_node_greedy(node, 1).at(0);
 }
 
+
+const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
+{
+        std::vector<PlayoutResult *> original, result;
+        u64 total_trying = 0;
+        this->limit = MONTE_MIN_TIMES;
+        const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+        
+        if(!depth)
+                return select_final(node);
+
+        // 一個下のノードを展開
+        node->expand();
+        
+        for(Node *child : node->ref_children()){
+                PlayoutResult *tmp = new PlayoutResult(child, nullptr);
+                original.push_back(tmp);
+                result.push_back(tmp);
+        }
+
+        u8 idd_depth_limit = depth;
+        double time_limit = 4000;
+        u8 size_of_result = original.size() >> 1;
+        
+        // 各ノードに対してシュミレーションを行う        
+        while(/*std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT && */result.size() > 1){
+                const std::chrono::system_clock::time_point local_start = std::chrono::system_clock::now();
+                
+                printf("IDD DEPTH = %d\n", (int)idd_depth_limit);
+                printf("size of result = %d\n", (int)result.size());
+                this->depth = idd_depth_limit;
+                {
+                        ThreadPool tp(3, 100);
+                        for(PlayoutResult *p : result){
+                                while(!tp.add(std::make_shared<initial_playout>(this, p, 1700))){
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                                }
+                        }
+                }
+
+                while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - local_start).count() <= time_limit){
+                        std::for_each(std::begin(result), std::end(result),
+                                      [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
+                        std::sort(std::begin(result), std::end(result),
+                                  [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
+                        add_trying(&total_trying, select_and_play(result, result.at(0), 10));
+                }
+
+                std::sort(std::begin(original), std::end(original),
+                          [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
+                result.resize(0);
+                for(int i = 0;i < size_of_result;i++)
+                        result.push_back(original.at(i));
+                size_of_result >>= 1;
+
+                time_limit *= 0.7;
+                idd_depth_limit *= 0.75;
+        }
+
+        std::sort(std::begin(original), std::end(original),
+                  [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
+        
+#ifdef __DEBUG_MODE
+        std::for_each(std::begin(original), std::end(original),
+                      [](PlayoutResult *r){ r->draw(); });
+#endif
+        // 一番いい勝率のやつを返す
+        printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
+        result.at(0)->node->evaluate();
+        return result.at(0)->node;
+}
+
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
