@@ -312,16 +312,17 @@ const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
                 result.push_back(tmp);
         }
 
-        u8 idd_depth_limit = depth;
-        double time_limit = 4000;
+        u8 idd_depth_limit = (depth > 10) ? 10 : depth >> 1;
+        double time_limit = 2500;
         u8 size_of_result = original.size() >> 1;
         
         // 各ノードに対してシュミレーションを行う        
         while(/*std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT && */result.size() > 1){
                 const std::chrono::system_clock::time_point local_start = std::chrono::system_clock::now();
                 
-                printf("IDD DEPTH = %d\n", (int)idd_depth_limit);
-                printf("size of result = %d\n", (int)result.size());
+                printf("IDD DEPTH = %d\t", (int)idd_depth_limit);
+                printf("size of result = %d\t", (int)result.size());
+                printf("time limit = %4lfms\n", time_limit);
                 this->depth = idd_depth_limit;
                 {
                         ThreadPool tp(3, 100);
@@ -347,8 +348,10 @@ const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
                         result.push_back(original.at(i));
                 size_of_result >>= 1;
 
-                time_limit *= 0.7;
-                idd_depth_limit *= 0.75;
+                time_limit *= 0.96;
+                idd_depth_limit *= 1.35;
+                if(idd_depth_limit > depth)
+                        idd_depth_limit = depth;
         }
 
         std::sort(std::begin(original), std::end(original),
@@ -798,11 +801,11 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         
 
         while(depth--){
-                //if(depth & 1){
+                if(depth & 1){
                         current->play(find_random_legal_direction(current));
-//                }else{
-                        //                      current->play(get_learning_direction(current));
-                        //}
+                }else{
+                        current->play(get_learning_direction(current));
+                }
         }
 
         if((current->evaluate()) < 0){
