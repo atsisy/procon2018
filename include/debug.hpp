@@ -16,6 +16,8 @@
 #define I_AM_ENEMY
 //#define I_AM_ME
 
+//#define USING_LEARNING_DATA
+
 inline void who()
 {
 #ifdef I_AM_ENEMY
@@ -25,6 +27,12 @@ inline void who()
         puts("me");
 #endif
         puts("ver3.x\nexpand MT = enable, unstable MOD & 7 limited depth 40");
+
+#ifdef USING_LEARNING_DATA
+        puts("using learning data");
+#else
+        puts("learning data is disabled");
+#endif
 }
 
 #endif

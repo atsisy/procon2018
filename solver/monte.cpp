@@ -312,13 +312,15 @@ const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
                 result.push_back(tmp);
         }
 
-        u8 idd_depth_limit = (depth > 10) ? 10 : depth >> 1;
+        u8 idd_depth_limit = depth;
         double time_limit = 2500;
-        u8 size_of_result = original.size() >> 1;
+        u64 flat_playout_times = 1700;
+        u8 size_of_result = original.size() * 0.6;
+
+        constexpr double time_limit_bias = 0.92;
         
         // 各ノードに対してシュミレーションを行う        
         while(/*std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT && */result.size() > 1){
-                const std::chrono::system_clock::time_point local_start = std::chrono::system_clock::now();
                 
                 printf("IDD DEPTH = %d\t", (int)idd_depth_limit);
                 printf("size of result = %d\t", (int)result.size());
@@ -327,12 +329,13 @@ const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
                 {
                         ThreadPool tp(3, 100);
                         for(PlayoutResult *p : result){
-                                while(!tp.add(std::make_shared<initial_playout>(this, p, 1700))){
+                                while(!tp.add(std::make_shared<initial_playout>(this, p, flat_playout_times))){
                                         std::this_thread::sleep_for(std::chrono::milliseconds(1));
                                 }
                         }
                 }
-
+                
+                const std::chrono::system_clock::time_point local_start = std::chrono::system_clock::now();
                 while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - local_start).count() <= time_limit){
                         std::for_each(std::begin(result), std::end(result),
                                       [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
@@ -343,15 +346,15 @@ const Node *Montecarlo::inv_iddmcts(Node *node, u8 depth)
 
                 std::sort(std::begin(original), std::end(original),
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
+                original.at(0)->draw();
                 result.resize(0);
                 for(int i = 0;i < size_of_result;i++)
                         result.push_back(original.at(i));
-                size_of_result >>= 1;
+                size_of_result *= 0.6;
 
-                time_limit *= 0.96;
-                idd_depth_limit *= 1.35;
-                if(idd_depth_limit > depth)
-                        idd_depth_limit = depth;
+                time_limit *= time_limit_bias;
+                flat_playout_times *= 1.09;
+                idd_depth_limit = depth * ((double)result.size() / (double)original.size());
         }
 
         std::sort(std::begin(original), std::end(original),
@@ -801,11 +804,15 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         
 
         while(depth--){
+#ifdef USING_LEARNING_DATA
                 if(depth & 1){
                         current->play(find_random_legal_direction(current));
                 }else{
                         current->play(get_learning_direction(current));
                 }
+#else
+                current->play(find_random_legal_direction(current));
+#endif
         }
 
         if((current->evaluate()) < 0){
