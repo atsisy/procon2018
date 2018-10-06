@@ -694,6 +694,7 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
 {
         std::vector<dijkstra_node *> done_list;
         std::deque<dijkstra_node *> queue;
+        auto &&table = node->virtual_score_table(ENEMY_ATTR);
         dijkstra_node *dijk_node;
         u8 goal_x, goal_y;
         goal_x = goal_place.first;
@@ -703,7 +704,7 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
 
         for(u8 x = 0;x < Field::field_size_x;x++){
                 for(u8 y = 0;y < Field::field_size_y;y++){
-                        buf[x][y] = new dijkstra_node(x, y, node->field->at(x, y));
+                        buf[x][y] = new dijkstra_node(x, y, table[x][y]);
                 }
         }
 
@@ -721,7 +722,7 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
         }
         
         dijk_node = buf[goal_x][goal_y];
-        dijk_node->cost = dijk_node->panel.get_score_value();
+        dijk_node->cost = dijk_node->score;;
         for(dijkstra_node *n : dijk_node->neibor){
                 n->draw();
         }
@@ -730,8 +731,8 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
                 dijk_node->visited = true;
                 for(dijkstra_node *n : dijk_node->neibor){
                         if(!n->visited){
-                                if(n->cost < n->panel.get_score_value() + dijk_node->cost - 3){
-                                        n->cost = n->panel.get_score_value() + dijk_node->cost - 3;
+                                if(n->cost < n->score + dijk_node->cost - 2){
+                                        n->cost = n->score + dijk_node->cost - 2;
                                         n->last_update = dijk_node;
                                 }
                                 queue.push_back(n);
@@ -752,16 +753,16 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
 
         dijkstra_node *current = buf[agent.x][agent.y];
         dijkstra_node *next = current->last_update;
-/*
-  デバッグ用
-        dijkstra_node *db = current, *tmp;
+        
+        dijkstra_node *db = current;
         while(1){
-                tmp = db->last_update;
-                std::cout << (int)which_direction(tmp->x - db->x, tmp->y - db->y) << std::endl;
-                db = tmp;
-                getchar();
+                std::cout << (int)db->x << ":" << (int)db->y << " ===> ";
+                if(db->x == goal_x && db->y == goal_y)
+                        break;
+                db = db->last_update;
         }
-*/      
+        printf("\n");
+        
         return which_direction(next->x - current->x, next->y - current->y);
 }
 
@@ -771,10 +772,161 @@ Node *Search::dijkstra_strategy(Node *node, u8 turn)
                 return nullptr;
         }else{
                 Direction dir1, dir2;
-                dir1 = dijkstra(node, node->enemy_agent1, std::make_pair(1, 1));
-                dir2 = dijkstra(node, node->enemy_agent2, std::make_pair(1, 1));
+                auto [goal1, goal2] = find_goal(node, IS_MYTURN(turn) ? MINE_ATTR : ENEMY_ATTR);
+                write_out_goal("goal.txt", goal1, goal2);
+                dir1 = dijkstra(node, node->enemy_agent1, goal1);
+                dir2 = dijkstra(node, node->enemy_agent2, goal2);
                 return node->get_specific_child(dir1, dir2);
         }
+}
+
+std::array<std::array<i32, 12>, 12> Node::virtual_score_table(u8 attribute)
+{
+        std::array<std::array<i32, 12>, 12> table;
+        for(auto &elem : table)
+                std::fill(std::begin(elem), std::end(elem), 0);
+        i32 original_score = evaluate();
+
+        for(u8 x = 0;x < Field::field_size_x;x++){
+                for(u8 y = 0;y < Field::field_size_y;y++){
+                        if(my_agent1.same_location(x, y) || my_agent2.same_location(x, y) ||
+                           enemy_agent1.same_location(x, y) || enemy_agent2.same_location(x, y)){
+                                table[x][y] = -1000;
+                                continue;
+                        }
+                        const Panel p = field->at(x, y);
+                        if(p.is_pure_panel()){
+                                table[x][y] = p.get_score_value();
+                                continue;
+                        }
+                        if(!p.are_you(attribute)){  
+                                field->make_at(x, y, PURE_ATTR);
+                                i32 changed = evaluate();
+                                table[x][y] = original_score - changed;
+                                field->make_at(x, y, p.get_meta());
+                        }else{
+                                table[x][y] = 0;
+                        }
+                }
+        }
+
+        return table;
+}
+
+std::pair<std::pair<u8, u8>, std::pair<u8, u8>> Search::read_goal_data(std::ifstream &ifs)
+{
+        char line[256];
+        std::pair<std::pair<u8, u8>, std::pair<u8, u8>> ret;
+        int x, y;
+        
+        ifs.getline(line, 255);
+        sscanf(line, "%d %d", &x, &y);
+
+        ret.first = std::make_pair(x, y);
+        
+        ifs.getline(line, 255);
+        sscanf(line, "%d %d", &x, &y);
+        ret.second = std::make_pair(x, y);
+
+        return ret;
+}
+
+void Search::write_out_goal(const char *name, std::pair<u8, u8> goal1, std::pair<u8, u8> goal2)
+{
+        std::ofstream ofs(name);
+
+        ofs << (int)goal1.first << " " << (int)goal1.second << "\n";
+        ofs << (int)goal2.first << " " << (int)goal2.second;
+}
+
+std::pair<std::pair<u8, u8>, std::pair<u8, u8>> Search::find_goal(Node *node, u8 attribute)
+{
+        std::ifstream ifs("goal.txt");
+        std::pair<u8, u8> goal1, goal2;
+        
+        if(ifs.fail()){
+                std::cerr << "goal.txt was not found." << std::endl;
+        }else{
+                auto [a, b] = read_goal_data(ifs);
+                goal1 = a;
+                goal2 = b;
+        }
+        
+        auto &&table = node->virtual_score_table(attribute);
+        std::vector<point_and_value> candidate;
+
+        
+        for(u8 y = 0;y < Field::field_size_y;y++){
+                for(u8 x = 0;x < Field::field_size_x;x++){
+                        candidate.emplace_back(x, y, table[x][y]);
+                        printf("%4d", table[x][y]);
+                }
+                printf("\n");
+        }
+
+        std::sort(std::begin(candidate), std::end(candidate),
+                  [](const point_and_value &p1, const point_and_value &p2){
+                          return p1.get_value() > p2.get_value();
+                  });
+
+        bool g1_done, g2_done;
+        g1_done = g2_done = false;
+        
+        if(node->enemy_agent1.same_location(goal1.first, goal1.second)){
+                goal1 = std::make_pair(candidate.at(0).get_x(), candidate.at(0).get_y());
+                g1_done = true;
+                if(node->enemy_agent2.same_location(goal2.first, goal2.second)){
+                        for(auto &&it = std::begin(candidate) + 1;it != std::end(candidate);it++){
+                                if(node->field->which_shougen((*it).get_x(), (*it).get_y())
+                                   != node->field->which_shougen(goal1.first, goal1.second)){
+                                        goal2 = std::make_pair((*it).get_x(), (*it).get_y());
+                                        g2_done = true;
+                                        break;
+                                }
+                        }
+                }
+        }else if(node->enemy_agent2.same_location(goal2.first, goal2.second)){
+                for(auto &&it = std::begin(candidate);it != std::end(candidate);it++){
+                        if(node->field->which_shougen((*it).get_x(), (*it).get_y())
+                           != node->field->which_shougen(goal1.first, goal1.second)){
+                                g2_done = true;
+                                goal2 = std::make_pair((*it).get_x(), (*it).get_y());
+                                break;
+                        }
+                }
+        }
+
+        if(!g1_done){
+                if(g2_done){
+                        for(auto &&it = std::begin(candidate) + 1;it != std::end(candidate);it++){
+                                if(node->field->which_shougen((*it).get_x(), (*it).get_y())
+                                   != node->field->which_shougen(goal2.first, goal2.second)){
+                                        goal1 = std::make_pair((*it).get_x(), (*it).get_y());
+                                        g1_done = true;
+                                        break;
+                                }
+                        }
+                }else{
+                        goal1 = std::make_pair(candidate.at(0).get_x(), candidate.at(0).get_y());
+                        g1_done = true;
+                }
+        }
+
+        if(!g2_done){
+                for(auto &&it = std::begin(candidate);it != std::end(candidate);it++){
+                        if(node->field->which_shougen((*it).get_x(), (*it).get_y())
+                           != node->field->which_shougen(goal1.first, goal1.second)){
+                                g2_done = true;
+                                goal2 = std::make_pair((*it).get_x(), (*it).get_y());
+                                break;
+                        }
+                }
+        }
+        
+        return std::make_pair(
+                goal1,
+                goal2
+                ); 
 }
 
 std::vector<Node *> Search::absearch(Node *root)

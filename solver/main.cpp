@@ -210,6 +210,7 @@ void command_switching(char **argv)
                 Node *json_node = new Node(argv[2]);
                 Search search;
                 Node *ans = search.dijkstra_strategy(json_node, ENEMY_TURN);
+                ans->dump_json_file("cdump.json");
                 ans->draw();
                 delete json_node;
                 delete ans;

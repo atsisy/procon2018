@@ -268,6 +268,8 @@ public:
         {
                 return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
         }
+
+        i32 which_shougen(i8 x, i8 y);
 };
 
 /*
@@ -615,6 +617,12 @@ public:
                         return this->x == x &&
                                 this->y == y;
                 }
+
+        bool is_neibor(i8 x, i8 y) const
+        {
+                return (std::abs(this->x - x) <= 1) &&
+                        (std::abs(this->y - y) <= 1);
+        }
 
         std::pair<i8, i8> diff(const Agent agent) const
         {

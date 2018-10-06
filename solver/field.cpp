@@ -67,6 +67,26 @@ void Field::set_score_at(u8 x, u8 y, i8 score)
         field.at(x + (y << this->ac_shift_offset)).set_score_value(score);
 }
 
+
+i32 Field::which_shougen(i8 x, i8 y)
+{
+        u8 half_x = field_size_x >> 1;
+        u8 half_y = field_size_y >> 1;
+
+        if(half_x >= x && half_y >= y){
+                return 1;
+        }else if(half_x >= x && half_y < y){
+                return 4;
+        }else if(half_x < x && half_y < y){
+                return 3;
+        }else if(half_x < x && half_y >= y){
+                return 2;
+        }
+
+        puts("BUG? in Field::which_shougen");
+        return 2;
+}
+
 /*
  * Field::cloneメソッド
  * 自らのクローンを生成し、そのポインタを返すメソッド

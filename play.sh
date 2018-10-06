@@ -4,7 +4,7 @@ echo 0 0 > score.dat
 
 echo Type enter key to start...
 read
-./bin.d/bin iddinit ./sample_qrformat.dat 0 ./good_learning.dat
+./bin.d/bin init ./sample_qrformat.dat 0 ./good_learning.dat
 echo your turn
 read
 
@@ -17,9 +17,9 @@ do
     ./bin.d/bin score ./jdump.json $i ./good_learning.dat
     echo Type enter key
     read
-    ./bin.d/bin idd ./jdump.json $i ./good_learning.dat
+    ./bin.d/bin experiment ./jdump.json $i ./good_learning.dat
     echo your turn
     read
     ./bin.d/bin gnuscore ./jdump.json $i ./good_learning.dat >> score.dat
-    
+    cat goal.txt
 done

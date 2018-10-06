@@ -104,6 +104,8 @@ public:
          */
         i16 evaluate(u8 turn = MY_TURN);
 
+        std::array<std::array<i32, 12>, 12> virtual_score_table(u8 attribute);
+
         void put_score_info();
         
         /*
@@ -148,7 +150,7 @@ public:
 
 class dijkstra_node {
 public:
-        Panel panel;
+        i32 score;
         dijkstra_node *last_update;
         i32 cost;
         bool visited;
@@ -157,11 +159,11 @@ public:
         u8 x;
         u8 y;
         
-        dijkstra_node(u8 x, u8 y, Panel panel)
+        dijkstra_node(u8 x, u8 y, i32 score)
         {
                 this->visited = false;
                 this->cost = -10000;
-                this->panel = panel;
+                this->score = score;
                 this->x = x;
                 this->y = y;
         }
@@ -177,16 +179,42 @@ public:
         dijkstra_node *get_max();
 };
 
+struct point_and_value {
+private:
+        std::pair<i8, i8> point;
+        i32 value;
+
+public:
+        point_and_value(i8 x, i8 y, i32 value)
+                {
+                        this->point = std::make_pair(x, y);
+                        this->value = value;
+                }
+        point_and_value(){}
+        std::pair<i8, i8> get_point() const
+                { return point; }
+        i32 get_value() const
+                { return value; }
+        i8 get_x() const
+                { return point.first; }
+        i8 get_y() const
+                { return point.second; }
+        
+};
+
 class Search {
 private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
         i64 nega_alpha(Node *node, u8 depth, i16 a, i16 b);
 
+        std::pair<std::pair<u8, u8>, std::pair<u8, u8>> find_goal(Node *node, u8 attribute);
+
         Direction dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place);
+        std::pair<std::pair<u8, u8>, std::pair<u8, u8>> read_goal_data(std::ifstream &ifs);
+        void write_out_goal(const char *name, std::pair<u8, u8> goal1, std::pair<u8, u8> goal2);
         
         i8 slant(Agent agent, Field &field, u8 depth, Direction *result);
-        
         
 
 public:
