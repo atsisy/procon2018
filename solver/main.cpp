@@ -206,6 +206,13 @@ void command_switching(char **argv)
                 builder.print_status();
                 test_generate_agent_meta();
                 builder.release_resource();
+        }else if(!strcmp(argv[1], "experiment")){
+                Node *json_node = new Node(argv[2]);
+                Search search;
+                Node *ans = search.dijkstra_strategy(json_node, ENEMY_TURN);
+                ans->draw();
+                delete json_node;
+                delete ans;
         }else{
                 std::cerr << "the command is missing: you may have experience a problem" << std::endl;
                 return;

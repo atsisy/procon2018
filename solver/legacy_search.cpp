@@ -396,11 +396,11 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
 {
         Node *clone = new Node(this);
         if(IS_MYTURN(turn)){
-                clone->my_agent1.move(clone->field, agent1);
-                clone->my_agent2.move(clone->field, agent2);
+                clone->my_agent1.protected_move(clone->field, agent1);
+                clone->my_agent2.protected_move(clone->field, agent2);
         }else{
-                clone->enemy_agent1.move(clone->field, agent1);
-                clone->enemy_agent2.move(clone->field, agent2);  
+                clone->enemy_agent1.protected_move(clone->field, agent1);
+                clone->enemy_agent2.protected_move(clone->field, agent2);  
         }
         return clone;
 }
@@ -671,6 +671,110 @@ void Node::delete_children()
         for(Node *c : children)
                 delete c;
         children.resize(0);
+}
+
+dijkstra_node *dijkstra_node::get_max()
+{
+        i32 max = -1000000;
+        dijkstra_node *ret = nullptr;
+        
+        for(dijkstra_node *n : neibor){
+                if(n->visited)
+                        continue;
+                if(max < n->cost){
+                        max = n->cost;
+                        ret = n;
+                }
+        }
+
+        return ret;
+}
+
+Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place)
+{
+        std::vector<dijkstra_node *> done_list;
+        std::deque<dijkstra_node *> queue;
+        dijkstra_node *dijk_node;
+        u8 goal_x, goal_y;
+        goal_x = goal_place.first;
+        goal_y = goal_place.second;
+
+        std::array<std::array<dijkstra_node *, 12>, 12> buf;
+
+        for(u8 x = 0;x < Field::field_size_x;x++){
+                for(u8 y = 0;y < Field::field_size_y;y++){
+                        buf[x][y] = new dijkstra_node(x, y, node->field->at(x, y));
+                }
+        }
+
+        for(i8 x = 0;x < Field::field_size_x;x++){
+                for(i8 y = 0;y < Field::field_size_y;y++){                        
+                        for(i8 lx = x - 1;lx <= x + 1;lx++){
+                                for(i8 ly = y - 1;ly <= y + 1;ly++){;
+                                        if(!node->field->is_within(lx, ly) || (x == lx && y == ly))
+                                                continue;
+                                        buf[x][y]->neibor.push_back(buf[lx][ly]);
+                                }
+                        }
+
+                }
+        }
+        
+        dijk_node = buf[goal_x][goal_y];
+        dijk_node->cost = dijk_node->panel.get_score_value();
+        for(dijkstra_node *n : dijk_node->neibor){
+                n->draw();
+        }
+        std::cout << "neibors size >>> " << dijk_node->neibor.size() << std::endl;
+        while(1){
+                dijk_node->visited = true;
+                for(dijkstra_node *n : dijk_node->neibor){
+                        if(!n->visited){
+                                if(n->cost < n->panel.get_score_value() + dijk_node->cost - 3){
+                                        n->cost = n->panel.get_score_value() + dijk_node->cost - 3;
+                                        n->last_update = dijk_node;
+                                }
+                                queue.push_back(n);
+                        }
+                }
+
+                done_list.push_back(dijk_node);
+                dijk_node = dijk_node->get_max();
+                if(dijk_node == nullptr){
+                        do{
+                                dijk_node = queue.front();
+                                queue.pop_front();
+                        }while(!dijk_node->visited && queue.size());
+                        if(!queue.size())
+                                break;
+                }
+        }
+
+        dijkstra_node *current = buf[agent.x][agent.y];
+        dijkstra_node *next = current->last_update;
+/*
+  デバッグ用
+        dijkstra_node *db = current, *tmp;
+        while(1){
+                tmp = db->last_update;
+                std::cout << (int)which_direction(tmp->x - db->x, tmp->y - db->y) << std::endl;
+                db = tmp;
+                getchar();
+        }
+*/      
+        return which_direction(next->x - current->x, next->y - current->y);
+}
+
+Node *Search::dijkstra_strategy(Node *node, u8 turn)
+{
+        if(IS_MYTURN(turn)){
+                return nullptr;
+        }else{
+                Direction dir1, dir2;
+                dir1 = dijkstra(node, node->enemy_agent1, std::make_pair(1, 1));
+                dir2 = dijkstra(node, node->enemy_agent2, std::make_pair(1, 1));
+                return node->get_specific_child(dir1, dir2);
+        }
 }
 
 std::vector<Node *> Search::absearch(Node *root)

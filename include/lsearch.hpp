@@ -146,15 +146,51 @@ public:
         }
 };
 
+class dijkstra_node {
+public:
+        Panel panel;
+        dijkstra_node *last_update;
+        i32 cost;
+        bool visited;
+        std::vector<dijkstra_node *> neibor;
+
+        u8 x;
+        u8 y;
+        
+        dijkstra_node(u8 x, u8 y, Panel panel)
+        {
+                this->visited = false;
+                this->cost = -10000;
+                this->panel = panel;
+                this->x = x;
+                this->y = y;
+        }
+
+        void draw()
+                {
+                        std::cout << "x: " << (int)x << "\ty: " << (int)y
+                                  << "\tsize of neibors: " << neibor.size()
+                                  << "\tcost: " << cost
+                                  << "\tis visited?: " << visited << std::endl;
+                }
+
+        dijkstra_node *get_max();
+};
+
 class Search {
 private:
         i64 ab_max(Node *node, u8 depth, i16 a, i16 b);
         i64 ab_min(Node *node, u8 depth, i16 a, i16 b);
         i64 nega_alpha(Node *node, u8 depth, i16 a, i16 b);
+
+        Direction dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place);
         
         i8 slant(Agent agent, Field &field, u8 depth, Direction *result);
+        
+        
 
 public:
+        Node *dijkstra_strategy(Node *node, u8 turn);
         std::vector<Node *> absearch(Node *root);
         i8 slantsearch(Agent agent, Field & field);
 };

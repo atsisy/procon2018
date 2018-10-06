@@ -164,6 +164,7 @@ public:
 class FieldBuilder;
 class Agent;
 class Node;
+class Search;
 class FieldEvaluater;
 
 #define MAKE_POINT(x, y) ((x) | ((y) << 4))
@@ -180,6 +181,7 @@ class Field {
         friend FieldBuilder;
         friend Agent;
         friend Node;
+        friend Search;
         friend FieldEvaluater;
 
         friend bool is_edge(u8 value);
@@ -484,6 +486,7 @@ inline void test_generate_agent_meta()
 class Agent {
 
         friend Node;
+        friend Search;
 
 private:
         u8 x: 4;
