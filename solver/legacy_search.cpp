@@ -400,7 +400,7 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
                 clone->my_agent2.protected_move(clone->field, agent2);
         }else{
                 clone->enemy_agent1.protected_move(clone->field, agent1);
-                clone->enemy_agent2.protected_move(clone->field, agent2);  
+                clone->enemy_agent2.protected_move(clone->field, agent2);
         }
         return clone;
 }
@@ -717,7 +717,6 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
                                         buf[x][y]->neibor.push_back(buf[lx][ly]);
                                 }
                         }
-
                 }
         }
         
@@ -768,6 +767,7 @@ Direction Search::dijkstra(Node *node, Agent agent, std::pair<u8, u8> goal_place
 
 Node *Search::dijkstra_strategy(Node *node, u8 turn)
 {
+        Node *clone = new Node(node);
         if(IS_MYTURN(turn)){
                 return nullptr;
         }else{
@@ -775,8 +775,10 @@ Node *Search::dijkstra_strategy(Node *node, u8 turn)
                 auto [goal1, goal2] = find_goal(node, IS_MYTURN(turn) ? MINE_ATTR : ENEMY_ATTR);
                 write_out_goal("goal.txt", goal1, goal2);
                 dir1 = dijkstra(node, node->enemy_agent1, goal1);
+                clone->enemy_agent1.protected_move(clone->field, dir1);
                 dir2 = dijkstra(node, node->enemy_agent2, goal2);
-                return node->get_specific_child(dir1, dir2);
+                clone->enemy_agent2.protected_move(clone->field, dir2);
+                return clone;
         }
 }
 
