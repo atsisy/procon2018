@@ -8,8 +8,8 @@
 #include "learn.hpp"
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
-constexpr u32 MONTE_MIN_TIMES = 100;
-constexpr u32 MONTE_EXPAND_LIMIT = 3000;
+constexpr u32 MONTE_MIN_TIMES = 2;
+constexpr u32 MONTE_EXPAND_LIMIT = 1000;
 constexpr double MONTE_TIME_LIMIT = 12000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
@@ -296,7 +296,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
 {
         if(node->evaluate() < 0)
                 current_eval = node->get_score() >> 1;
-        std::vector<Node *> &&nodes = listup_node_greedy2(node, 5);
+        std::vector<Node *> &&nodes = listup_node_greedy2(node, 3);
         if(nodes.size() == 1) return nodes.at(0);
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
@@ -438,7 +438,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                         counter = 0;
                 }
                 //printf("%ldnodes\n", result.
-                put_dot();
+                //put_dot();
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -724,11 +724,13 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         
 
         while(depth--){
+                current->play(find_random_legal_direction(current));
+                /*
                 if(depth & 1){
                         current->play(find_random_legal_direction(current));
                 }else{
                         current->play(get_learning_direction(current));
-                }
+                        }*/
         }
 
         if((current->evaluate()) < 0){
