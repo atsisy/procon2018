@@ -34,6 +34,8 @@ constexpr i16 STOP_GET_SCORE = 0xDEAD;
 
 #define MAKE_HASH(x, y) ((y << 4) | x)
 
+constexpr u8 PANEL_SIMPLIFIED_HASH_SIZE = 6;
+
 class Field;
 /* Panelクラス
  * パネルの情報を保持するクラス
@@ -132,18 +134,35 @@ public:
                 return meta_info;
         }
 
-        u8 simplified_hash(u8 who, bool on_agent) const
+        u8 simplified_hash(i8 pos_avg, i8 neg_avg, u8 who, bool on_agent) const
         {
                 u8 ret = 0, tmp = 0;
-                if(get_score_value() < 0)
-                        tmp = 0;
-                else if(get_score_value() == 0)
+
+                /*
+                 * スコアの状態で3bit
+                 * 平均以上 ... 0b0100
+                 * 平均以下 ... 0b0011
+                 * 0 ... 0b0010
+                 * 平均未満負 ... 0b0001
+                 * 平均以下負 ... 0b0000
+                 */
+                i8 score = get_score_value();
+                if(score >= pos_avg)
+                        tmp = 4;
+                else if(score > 0)
+                        tmp = 3;
+                else if(score == 0)
+                        tmp = 2;
+                else if(score >= neg_avg)
                         tmp = 1;
                 else
-                        tmp = 2;
+                        tmp = 0;
                 ret |= tmp;
                 ret <<= 2;
 
+                /*
+                 * パネルの占有状態で2bit
+                 */
                 if(is_pure_panel())
                         tmp = 0;
                 else if(are_you(who))
@@ -153,6 +172,9 @@ public:
                 ret |= tmp;
                 ret <<= 1;
 
+                /*
+                 * エージェントがその上に乗っているかで1bit
+                 */
                 if(on_agent){
                         ret |= 1;
                 }
@@ -167,6 +189,10 @@ class Node;
 class FieldEvaluater;
 
 #define MAKE_POINT(x, y) ((x) | ((y) << 4))
+
+constexpr u8 POSITIVE_ONLY = 0;
+constexpr u8 NEGATIVE_ONLY = 1;
+constexpr u8 WHOLE = 2;
 
 class Closed;
 /*
@@ -256,6 +282,8 @@ public:
         void Draw();
 
         void draw_status();
+
+        i8 get_field_score_avg(u8 flag);
 
         bool is_within(i8 x, i8 y) const
         {
