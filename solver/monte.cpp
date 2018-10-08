@@ -281,6 +281,14 @@ std::vector<Node *> Montecarlo::listup_node_greedy_turn(Node *node, u8 rank, u8 
         return result;
 }
 
+const Node *Montecarlo::random_play(Node *node)
+{
+        Node *working = new Node(node);
+        random_half_play(working, node->turn);
+        return working;
+}
+
+
 const Node *Montecarlo::select_final(Node *node)
 {
         std::vector<Node *> &&nodes = listup_node_greedy(node, 4);

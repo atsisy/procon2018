@@ -261,6 +261,7 @@ public:
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
         const Node *greedy_montecarlo(Node *node, u8 depth);
+        const Node *random_play(Node *node);
         Montecarlo();
 };
 
