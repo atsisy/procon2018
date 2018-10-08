@@ -143,6 +143,15 @@ void command_switching(char **argv)
                 write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
+        }else if(!strcmp(argv[1], "random")){
+                Node *json_node = new Node(argv[2]);
+                json_node->evaluate();
+                Montecarlo monte;
+                const Node *ans = monte.random_play(json_node);
+                ans->draw();
+                ans->dump_json_file("cdump.json");
+                delete ans;
+                delete json_node;
         }else if(!strcmp(argv[1], "score")){
                 Node *json_node = new Node(argv[2]);
                 json_node->put_score_info();
