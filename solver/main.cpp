@@ -167,10 +167,15 @@ void command_switching(char **argv)
         }else if(!strcmp(argv[1], "who")){
                 who();
         }else if(!strcmp(argv[1], "debug")){
+                /*
                 FieldBuilder builder(new QRFormatParser(argv[2]));
                 builder.print_status();
                 test_generate_agent_meta();
                 builder.release_resource();
+                */
+                Node *json_node = new Node(argv[2]);
+                std::vector<action> vec = json_node->generate_state_hash(ENEMY_TURN);
+                printf("0x%lx, 0x%lx\n", vec.at(0).state_hash, vec.at(1).state_hash);
         }else{
                 std::cerr << "the command is missing: you may have experience a problem" << std::endl;
                 return;

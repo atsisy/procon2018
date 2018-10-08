@@ -416,6 +416,40 @@ void FieldEvaluater::set_target(u8 flag)
         meta_data |= flag;
 }
 
+i8 Field::get_field_score_avg(u8 flag)
+{
+        i64 sum, count;
+        i8 score;
+        sum = count = 0;
+        
+        for(u8 x = 0;x < field_size_x;x++){
+                for(u8 y = 0;y < field_size_y;y++){
+                        score = at(x, y).get_score_value();
+                        switch(flag){
+                        case POSITIVE_ONLY:
+                                if(score > 0){
+                                        sum += score;
+                                        count++;
+                                }
+                                break;
+                        case NEGATIVE_ONLY:
+                                if(score < 0){
+                                        sum += score;
+                                        count++;
+                                }
+                                break;
+                        default:
+                                sum += score;
+                                count++;
+                        }
+                }
+        }
+
+        double ret = ((double)sum / (double)count);
+        ret += (ret > 0) ? 0.5 : -0.5;
+        return (i8)ret;
+}
+
 std::vector<ClosedFlag> Closed::closedFlag; 
 
 /*
