@@ -490,3 +490,34 @@ Direction Slant::search(Agent agent, Field &field, u8 depth, int *wise) {
 	
 	return ret;
 }
+
+const Node *Beam::get_first_child(const Node *node)
+{
+        if(node->parent->parent == NULL)
+                return node;
+        return get_first_child(node->parent);
+}
+
+const Node *Beam::search(std::vector<Node *> root, int depth, int size) {
+	std::vector<Node *> nodes;
+	for(auto i: root) {
+		i->expand();
+		for(auto j: i->ref_children()) {
+			j->evaluate();
+			nodes.emplace_back(j);
+		}
+	}
+
+	std::sort(std::begin(nodes), std::end(nodes),
+                  [](const Node *n1, const Node *n2){
+                          return n1->get_score() < n2->get_score();
+	});
+		
+	if(depth == 0) {
+		return get_first_child(nodes[0]);
+	}
+	
+	std::vector<Node *> ret;
+	for(int i=0; i<((std::size(nodes)>size) ? size : std::size(nodes)); i++) ret.emplace_back(nodes[i]);
+	return this->search(ret, depth-1, size);
+}

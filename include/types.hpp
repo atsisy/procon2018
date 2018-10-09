@@ -704,3 +704,4 @@ public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);
 };
+

@@ -7,9 +7,42 @@
 #include "types.hpp"
 #include <cmath>
 
-const int depth = 11;
+const int depth = 30;
+const int size = 90;
 
 int main(int argc, char **argv) {
+	FieldBuilder builder(1,1);
+	Node *node;
+	if(!strcmp(argv[1], "init")) {
+		builder = FieldBuilder(new QRFormatParser(argv[2]));
+		node = builder.create_root_node();
+		node->draw();
+		node->dump_json_file(argv[3]);
+		return 0;
+	} else {
+		node = new Node(argv[1]);
+		node->draw();
+	}
+	
+	Beam beam;
+	const Node *buf = beam.search({node}, depth, size);
+	
+	node = new Node(buf);
+		
+	node->draw();
+	node->dump_json_file("cdump.json");
+
+#ifdef __DEBUG_MODE
+	builder.print_status();
+	test_generate_agent_meta();
+#endif
+
+	delete node;
+	builder.release_resource();
+	return 0;
+}
+
+	/***
         FILE *save;
         Node *node;
     	FieldBuilder builder(1,1);
@@ -51,11 +84,11 @@ int main(int argc, char **argv) {
 		Field mainField = *node->mitgetField();
 		Slant slant;
 		
-		mainField.draw_status();
+		mainField.draw_status();***/
                         /*
                  * 安田式アルゴリズムテストコード
                  */
-    std::vector<Closed> myclosed;	//閉路を格納するベクター
+/***    std::vector<Closed> myclosed;	//閉路を格納するベクター
 				
     Agent a1 = node->mitgetAgent(1);
     Agent a2 = node->mitgetAgent(2);
@@ -103,7 +136,7 @@ int main(int argc, char **argv) {
 	if(a3.turn == 2 || a3.turn == 1) {
 		int myx = direction_to_dX(a3.getNextMove_mytern(a3.turn, a3.wise));
 		int myy = direction_to_dY(a3.getNextMove_mytern(a3.turn, a3.wise));
-		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel()) {
+		if(mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).is_enemy_panel() || mainField.at(a3.mitgetX()+myx, a3.mitgetY()+myy).get_score_value() < 0) {
 			a3.turn = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
@@ -120,7 +153,7 @@ int main(int argc, char **argv) {
 	if(a4.turn == 2 || a4.turn == 1) {
 		int myx = direction_to_dX(a4.getNextMove_mytern(a4.turn, a4.wise));
 		int myy = direction_to_dY(a4.getNextMove_mytern(a4.turn, a4.wise));
-		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel()) {
+		if(mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).is_enemy_panel() || mainField.at(a4.mitgetX()+myx, a4.mitgetY()+myy).get_score_value() < 0) {
 			a4.turn = 0;
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
@@ -146,23 +179,8 @@ int main(int argc, char **argv) {
 	if(moved[0].is_not_pure_panel()) a3.turninc();
 	if(moved[1].is_not_pure_panel()) a4.turninc();
 	fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
-	delete node;
-                
-#ifdef __DEBUG_MODE
-    std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
-    for(Closed closed:myclosed){
-		closed.print_closed(mainField);
-    }
-#endif
+	delete node;***/
 
-#ifdef __DEBUG_MODE
-	builder.print_status();
-	test_generate_agent_meta();
-#endif
-
-	builder.release_resource();
-	return 0;
-}
 
 
         /*****

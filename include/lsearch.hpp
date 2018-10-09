@@ -5,6 +5,7 @@
 #include <random>
 #include <array>
 
+class Beam;
 class Search;
 class Montecarlo;
 
@@ -19,6 +20,7 @@ class Node {
         friend FieldEvaluater;
         friend Search;
         friend Montecarlo;
+        friend Beam;
 private:
         // フィールド
         Field *field;
@@ -151,6 +153,13 @@ private:
 	int setwise(Field &field, Agent agent, Direction search);
 public:
 	Direction search(Agent agent, Field &field, u8 depth, int *wise);
+};
+
+class Beam {
+private:
+	 const Node *get_first_child(const Node *node);
+public:
+	const Node *search(std::vector<Node *> root, int depth, int size);
 };
 
 enum Judge {
