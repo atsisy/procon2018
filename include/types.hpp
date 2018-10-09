@@ -448,10 +448,10 @@ inline void test_generate_agent_meta()
 #endif
 
 
-const int ClockWise = 0; 
+const int ClockWise = 0;
 const int CounterClockWise = 1;
 class Agent {
-	
+
         friend Node;
 
 private:
@@ -461,7 +461,7 @@ private:
 
         Direction blockdirection;
         u8 blocktern;
-                
+
         void move_up()
                 {
                         y--;
@@ -524,24 +524,24 @@ public:
         void move(Field *field, Direction direction);
 
         bool is_movable(Field *field, Direction dir);
-        
+
         std::vector<Direction> movable_direction(Field *field) const;
-        
+
         u8 mitgetX() {
 			return this->x;
 		}
-		
+
 		u8 mitgetY() {
 			return this->y;
 		}
-		
+
 		int turn;
 		int wise;
-		
+
 		void turninc() {
 			this->turn = (turn+1)%3;
 		}
-		
+
         Agent aftermove_agent(u8 addx, u8 addy) {
                 return Agent(this->x+addx, this->y+addy, generate_agent_meta(this->extract_player_info()));
         }
@@ -551,12 +551,12 @@ public:
         }
 
 		Panel moveblock_mytern(Field &field, int tern, int wise) {
-			if(wise == ClockWise) 
+			if(wise == ClockWise)
                 return this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*tern)%8));
-            else 
+            else
 				return this->protected_move(&field, int_to_direction(((1+blockdirection)%8-2*tern+8)%8));
 		}
-			
+
 		Direction getNextMove_mytern(int tern, int wise) {
 			if(wise == ClockWise) {
 				return int_to_direction(((7+blockdirection)%8+2*tern)%8);
@@ -565,13 +565,13 @@ public:
 				return int_to_direction(((1+blockdirection)%8-2*tern+8)%8);
 			}
 		}
-			
+
         void moveblock(Field &field) {
                 // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
             this->protected_move(&field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
             this->blocktern = (blocktern+1)%3;
         }
-        
+
         int get4dirScore(Field &field) {
 			int score = 0;
 			for(int i=0; i<4; i++) {
@@ -579,12 +579,12 @@ public:
 			}
 			return score;
 		}
-		        
+
 		u8 extract_player_info() const
                 {
                         return meta_info & EXTRACT_PLAYER_INFO;
                 }
-		        
+
         // direction block check
         bool checkblock(Field &field, Direction direction);
 
@@ -593,7 +593,7 @@ public:
         void draw() const;
 
         void move(Field & field, Direction direction);
-        
+
         Panel protected_move(Field *field, Direction direction);
         std::vector<u8> locus;	//エージェントの動作の軌跡
 
@@ -704,4 +704,3 @@ public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);
 };
-

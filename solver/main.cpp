@@ -7,7 +7,7 @@
 #include "types.hpp"
 #include <cmath>
 
-const int depth = 30;
+const int depth = 3;
 const int size = 90;
 
 int main(int argc, char **argv) {
@@ -23,12 +23,12 @@ int main(int argc, char **argv) {
 		node = new Node(argv[1]);
 		node->draw();
 	}
-	
+
 	Beam beam;
 	const Node *buf = beam.search({node}, depth, size);
-	
+
 	node = new Node(buf);
-		
+
 	node->draw();
 	node->dump_json_file("cdump.json");
 
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 			if(a[0] == -1) {
 				save = fopen("slantsave.dat", "w");
 				fprintf(save, "0,0,0,0");
-				fclose(save);	
+				fclose(save);
 			}
 		} else {
 			int a[6];
@@ -80,22 +80,22 @@ int main(int argc, char **argv) {
 			}
 			fclose(save);
 		}
-		
+
 		Field mainField = *node->mitgetField();
 		Slant slant;
-		
+
 		mainField.draw_status();***/
                         /*
                  * 安田式アルゴリズムテストコード
                  */
 /***    std::vector<Closed> myclosed;	//閉路を格納するベクター
-				
+
     Agent a1 = node->mitgetAgent(1);
     Agent a2 = node->mitgetAgent(2);
     Agent a3 = node->mitgetAgent(3);
     Agent a4 = node->mitgetAgent(4);
-                       
-    Direction search1, search2;	
+
+    Direction search1, search2;
 	save = fopen("slantsave.dat", "r");
 	if(save == NULL) {
 		std::cerr << "[\x1b[31m*\x1b[39m] \"slantsave.dat\" was not founded. Please init system." << std::endl;
@@ -105,34 +105,34 @@ int main(int argc, char **argv) {
 		printf("a3.turn = %d\na4.turn = %d\na3.wise = %d\na4.wise = %d\n", a3.turn, a4.turn, a3.wise, a4.wise);
 	}
 	fclose(save);
-	
+
 	if(a3.turn == 0)  {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search1 direction..." << std::endl;
 		search1 = slant.search(a3, mainField, depth, &a3.wise);
-		
+
 		save = fopen("slantsave.dat", "w");
 		fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
 		fclose(save);
-		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 	}
-	
+
 	if(a4.turn == 0) {
 		// サーチ
 		std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
 		search2 = slant.search(a4, mainField, depth, &a4.wise);
-		
+
 		save = fopen("slantsave.dat", "w");
 		fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
 		fclose(save);
-		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+		std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 	}
-		
-	
+
+
 	Panel moved[2];
 	a3.setblockdirection(search1);
 	a4.setblockdirection(search2);
-	
+
 	if(a3.turn == 2 || a3.turn == 1) {
 		int myx = direction_to_dX(a3.getNextMove_mytern(a3.turn, a3.wise));
 		int myy = direction_to_dY(a3.getNextMove_mytern(a3.turn, a3.wise));
@@ -145,11 +145,11 @@ int main(int argc, char **argv) {
 			save = fopen("slantsave.dat", "w");
 			fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
 			fclose(save);
-			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 		}
 		printf("2:a3.turn = %d\n", a3.turn);
 	}
-	
+
 	if(a4.turn == 2 || a4.turn == 1) {
 		int myx = direction_to_dX(a4.getNextMove_mytern(a4.turn, a4.wise));
 		int myy = direction_to_dY(a4.getNextMove_mytern(a4.turn, a4.wise));
@@ -158,24 +158,24 @@ int main(int argc, char **argv) {
 			// サーチ
 			std::cout << "[\x1b[31m+\x1b[39m] search2 direction..." << std::endl;
 			search2 = slant.search(a4, mainField, depth, &a4.wise);
-			
+
 			save = fopen("slantsave.dat", "w");
 			fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
 			fclose(save);
-			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;	
+			std::cout << "[\x1b[31m+\x1b[39m] end searching!" << std::endl;
 		}
 		printf("2:a4.turn = %d\n", a4.turn);
 	}
-	
+
 	moved[0] = a3.moveblock_mytern(mainField, a3.turn, a3.wise);
 	moved[1] = a4.moveblock_mytern(mainField, a4.turn, a4.wise);
-	
+
 	node->setAgentField(a1, a2, a3, a4, &mainField);
 	node->dump_json_file("cdump.json");
 	mainField.draw_status();
-	
+
 	save = fopen("slantsave.dat", "w");
-	
+
 	if(moved[0].is_not_pure_panel()) a3.turninc();
 	if(moved[1].is_not_pure_panel()) a4.turninc();
 	fprintf(save, "%d,%d,%d,%d,%d,%d", a3.turn, a4.turn, search1, search2, a3.wise, a4.wise);
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
                 mainField.make_at(2, 4, MINE_ATTR);
 
                 mainField.draw_status();
-        
+
                 std::chrono::system_clock::time_point  start, end;
                 i16 score;
                 start = std::chrono::system_clock::now();

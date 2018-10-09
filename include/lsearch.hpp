@@ -39,7 +39,7 @@ private:
         Agent enemy_agent2;
 
         std::vector<Node *> children;
-        
+
         /*
          * ルートノード生成用のコンストラクタ
          */
@@ -53,9 +53,9 @@ private:
 
         void play(std::array<Direction, 4> dirs);
         void play_half(Direction d1, Direction d2, u8 turn);
-        
+
         std::string dump_json() const;
-        
+
 public:
         /*
          * 普通に使ってほしいコンストラクタ
@@ -67,7 +67,7 @@ public:
          * JSONからNodeを復元する
          */
         Node(const char *json_path);
-        
+
         Agent mitgetAgent(int anum) {
 			switch(anum) {
 				case 1:
@@ -78,7 +78,7 @@ public:
 					return this->enemy_agent1;
 				default:
 					return this->enemy_agent2;
-			};	
+			};
 		}
 
 		Field *mitgetField() {
@@ -93,21 +93,24 @@ public:
 
         void dump_json_file(const char *file_name) const;
 
-        
+
         /*
          * 自分自身を評価するメソッド
          */
         i16 evaluate();
 
         void put_score_info();
-        
+
         /*
          * 展開するやつ
          */
         void expand();
+        void set_turn(u8 turn) {
+                this->turn = turn;
+        }
 
         Node *get_specific_child(Direction agent1, Direction agent2);
-        
+
         void setAgentField(Agent a1, Agent a2, Agent a3, Agent a4, Field *field) {
 			this->my_agent1 = a1;
 			this->my_agent2 = a2;
@@ -115,7 +118,7 @@ public:
 			this->enemy_agent2 = a4;
 			this->field = field;
 		}
-		
+
         void set_score(i16 score)
         {
                 this->score = score;
@@ -184,7 +187,7 @@ struct PlayoutResult {
                 trying = 0;
                 win = 0;
         }
-        
+
         void update(u16 trying, u16 win)
         {
                 this->trying += trying;
@@ -217,7 +220,7 @@ struct LocalPlayoutResult {
 
         u16 times;
         u16 win;
-        
+
         LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
 };
 
@@ -239,7 +242,7 @@ private:
         Node *simulation(Node *node);
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
-        
+
 public:
         const Node *let_me_monte(Node *node, u8 depth);
         Montecarlo();

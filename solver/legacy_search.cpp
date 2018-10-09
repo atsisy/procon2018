@@ -52,7 +52,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
 #endif
 
         parent = NULL;
-        
+
         score = 0;
 }
 
@@ -64,7 +64,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
  * 引数
  * const Node *parent
  * クローン元になるNodeオブジェクト
- * 
+ *
  */
 Node::Node(const Node *parent)
         : my_agent1(parent->my_agent1),
@@ -99,7 +99,7 @@ Node::Node(const char *json_path)
                 std::cerr << err << std::endl;
                 exit(1);
         }
-        
+
         picojson::object& obj = v.get<picojson::object>();
         my_agent1.x = (int)obj["agent_m1_x"].get<double>();
         my_agent1.y = (int)obj["agent_m1_y"].get<double>();
@@ -113,7 +113,7 @@ Node::Node(const char *json_path)
         picojson::array& array = obj["Field"].get<picojson::array>();
         FieldBuilder builer((i32)obj["width"].get<double>(), (i32)obj["height"].get<double>());
         field = new Field();
-        
+
         for(picojson::value &e : array){
                 picojson::object &object = e.get<picojson::object>();
                 field->set_score_at(object["x"].get<double>(), object["y"].get<double>(), object["score"].get<double>());
@@ -223,7 +223,7 @@ void Node::expand_enemy_node()
         //children.reserve(81);
         std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = enemy_agent2.movable_direction(this->field);
-        
+
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
 
@@ -252,7 +252,7 @@ void Node::expand_my_node()
         //children.reserve(81);
         std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
-        
+
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
 
@@ -263,7 +263,7 @@ void Node::expand_my_node()
                            this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
                                 continue;
                         }
-                        
+
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
@@ -300,7 +300,7 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
                 clone->my_agent2.move(clone->field, agent2);
         }else{
                 clone->enemy_agent1.move(clone->field, agent1);
-                clone->enemy_agent2.move(clone->field, agent2);  
+                clone->enemy_agent2.move(clone->field, agent2);
         }
         return clone;
 }
@@ -313,7 +313,7 @@ i16 Node::evaluate()
          * 初期化
          */
         score = 0;
-        
+
         /*
          * FIXME
          * 一発でenemyとmineか判定したい
@@ -327,7 +327,7 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-        
+
         return score;
 }
 
@@ -336,7 +336,7 @@ void Node::put_score_info()
         puts("** SCORE INFORMATION **");
         std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
         std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;
         std::cout << "*Total*: " << evaluate() << std::endl;
 }
 
@@ -380,7 +380,7 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         if(!depth){
                 return node->evaluate();
         }
-        
+
         node->expand();
 
         for(Node *child : node->ref_children()){
@@ -414,13 +414,13 @@ Node *Search::absearch(Node *root)
 
 inline int Slant::slantEvaluate(Field &field, Agent agent) {
 	int evalscore = agent.get4dirScore(field);
-	
+
 	int basescore = field.at(agent.mitgetX(), agent.mitgetY()).get_score_value();
 	evalscore += basescore*(-1);
-	
+
 	/* range 0.9,1.1  yey */
 	evalscore *= (this->random() %3)/10.0+0.9;
-	
+
 	return (evalscore >= 0) ? evalscore : evalscore*10;
 }
 
@@ -437,7 +437,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 				 discore[i] = slantEvaluate(field, agent.aftermove_agent(((i+1)%4-1)%2, (i-1)%2));
 			 }
 		 }
-		 
+
 		 ind = 0;
 		 for(int i=1; i<4; i++) {
 			 if(discore[i] > discore[ind]) ind = i;
@@ -445,7 +445,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 		 *result = int_to_direction(ind*2);
 		 return discore[ind];
 	 }
-	
+
 	Direction dir;
 	Direction waste;
 	Agent buf(0,0,generate_agent_meta(agent.extract_player_info()));
@@ -461,7 +461,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 			discore[i] = ds;
 		}
 	}
-	
+
 	ind = 0;
 	for(int i=0; i<4; i++) {
 		if(discore[i] > discore[ind]) ind = i;
@@ -474,7 +474,7 @@ int Slant::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 
 int Slant::setwise(Field &field, Agent agent, Direction search) {
 	// 時計回りで動いたときの一歩目がすでに自分のパネルであった場合半時計回りへ変更
-	if(field.at(agent.mitgetX()+(((search/2)%3+1)/2)*2-1, agent.mitgetY()+(search/4)*2-1).is_enemy_panel()) {	
+	if(field.at(agent.mitgetX()+(((search/2)%3+1)/2)*2-1, agent.mitgetY()+(search/4)*2-1).is_enemy_panel()) {
 		std::cout << "agent:CounterClockWise" << std::endl;
 		return CounterClockWise;
 	} else {
@@ -487,7 +487,7 @@ Direction Slant::search(Agent agent, Field &field, u8 depth, int *wise) {
 	Direction ret;
 	int eval = slant(agent, field, depth, &ret);
 	*wise = setwise(field, agent, ret);
-	
+
 	return ret;
 }
 
@@ -501,6 +501,7 @@ const Node *Beam::get_first_child(const Node *node)
 const Node *Beam::search(std::vector<Node *> root, int depth, int size) {
 	std::vector<Node *> nodes;
 	for(auto i: root) {
+                i->set_turn(ENEMY_TURN);
 		i->expand();
 		for(auto j: i->ref_children()) {
 			j->evaluate();
@@ -512,11 +513,11 @@ const Node *Beam::search(std::vector<Node *> root, int depth, int size) {
                   [](const Node *n1, const Node *n2){
                           return n1->get_score() < n2->get_score();
 	});
-		
+
 	if(depth == 0) {
 		return get_first_child(nodes[0]);
 	}
-	
+
 	std::vector<Node *> ret;
 	for(int i=0; i<((std::size(nodes)>size) ? size : std::size(nodes)); i++) ret.emplace_back(nodes[i]);
 	return this->search(ret, depth-1, size);
