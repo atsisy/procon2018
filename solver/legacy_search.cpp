@@ -276,8 +276,6 @@ std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
         pos_avg = field->get_field_score_avg(POSITIVE_ONLY);
         neg_avg = field->get_field_score_avg(NEGATIVE_ONLY);
 
-        std::cout << "pos:neg = " << (int)pos_avg << ":" << (int)neg_avg << std::endl;
-        
         for(Agent agent : agents){
                 u64 hash = 0;
                 for(x = agent.x - 1;x <= agent.x + 1;x++){
@@ -285,7 +283,6 @@ std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
                                 hash <<= PANEL_SIMPLIFIED_HASH_SIZE;
                                 if(!field->is_within(x, y))
                                         continue;
-                                std::cout << (int)x << ":" << (int)y << "\t";
                                 u64 tmp_hash = field->at(x, y).simplified_hash(pos_avg, neg_avg, agent.extract_player_info(), !nobody(x, y));
                                 hash |= tmp_hash;
                         }
