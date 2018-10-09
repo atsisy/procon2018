@@ -60,6 +60,11 @@ private:
         void expand_enemy_node();
         void expand_my_node();
 
+        void force_set_turn(u8 turn)
+        {
+                this->turn = turn;
+        }
+        
         void play(std::array<Direction, 4> dirs);
         void play_half(Direction d1, Direction d2, u8 turn);
 
@@ -163,7 +168,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.6;
+constexpr float UCB_C = std::sqrt(0);
 struct PlayoutResult {
 
         Node *node;
@@ -254,8 +259,11 @@ private:
         std::vector<Node *> listup_node_greedy(Node *node, u8 rank);
         std::vector<Node *> listup_node_greedy2(Node *node, u8 rank);
         std::vector<Node *> listup_node_greedy_turn(Node *node, u8 rank, u8 turn);
+        Node *random_greedy(Node *node, u8 rank);
         void expand_not_ai_turn(Node *node, std::function<void(Node *)> apply_child);
         Direction learning_or_random(Node *node, Agent &agent, u64 hash);
+
+        void go_learning(Node *node, u8 turn);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
@@ -308,3 +316,5 @@ public:
                 }
 };
 */
+
+void write_learning_data(const Node *before, const Node *after);

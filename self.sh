@@ -1,19 +1,19 @@
 #!/bin/bash
 
-./bin init ./sample_qrformat.dat 0 ./good_learning.dat
-./bin.d/bin experiment ./cdump.json 0 ./good_learning.dat
+./bin.d/bin init ./sample_qrformat.dat 0 ./learning.dat
+./bin greedy ./cdump.json 0 ./learning.dat
 
 echo 0 0 > score.dat
 
-for i in `seq 1 70`
+for i in `seq 1 270`
 do
     echo ---------------------------------------------
-    ./bin continue ./cdump.json $i ./good_learning.dat
-    ./bin.d/bin experiment ./cdump.json $i ./good_learning.dat 
-    ./bin.d/bin gnuscore ./cdump.json $i ./good_learning.dat  >> score.dat
+    ./bin.d/bin continue ./cdump.json $i ./learning.dat
+    ./bin greedy ./cdump.json $i ./learning.dat
+    ./bin.d/bin gnuscore ./cdump.json $i ./learning.dat  >> score.dat
     echo turn $i
 done
 
-./bin.d/bin score ./cdump.json 0 ./good_learning.dat 
+./bin.d/bin score ./cdump.json 0 ./learning.dat 
 
 #/usr/java/default/bin/java -jar ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/simple_viewer.jar ./cdump.json
