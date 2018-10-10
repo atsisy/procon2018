@@ -448,7 +448,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
         u64 counter = 0, index = 0;
-        this->depth = 20;
+        this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -643,11 +643,15 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 m1 = learning_map.at(actions[0].state_hash)->random_select(random()).direction;
 		if(!node->my_agent1.is_movable(node->field, m1))
-                        throw std::out_of_range("out_of_range was occured");
+                        throw -1;
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
                 //go_learning(node, MY_TURN);
+                do{
+                        m1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent1.is_movable(node->field, m1));
+        }catch(...){
                 do{
                         m1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent1.is_movable(node->field, m1));
@@ -656,11 +660,15 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 m2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, m2))
-                        throw std::out_of_range("out_of_range was occured");
+                        throw 0;
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
                 //go_learning(node, MY_TURN);
+                do{
+                        m2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->my_agent2.is_movable(node->field, m2));
+        }catch(...){
                 do{
                         m2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent2.is_movable(node->field, m2));
@@ -669,11 +677,15 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 e1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, e1))
-                        throw std::out_of_range("out_of_range was occured");
+                        throw 0;
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
                 //go_learning(node, ENEMY_TURN);
+                do{
+                        e1 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent1.is_movable(node->field, e1));
+        }catch(...){
                 do{
                         e1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, e1));
@@ -682,11 +694,15 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
         try{
                 e2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, e2))
-			  throw std::out_of_range("out_of_range was occured");
+                        throw 0;
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
                 //go_learning(node, ENEMY_TURN); 
+                do{            
+                        e2 = int_to_direction(MOD_RANDOM(random()));
+                }while(!node->enemy_agent2.is_movable(node->field, e2));
+        }catch(...){
                 do{            
                         e2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, e2));
