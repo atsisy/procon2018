@@ -42,8 +42,10 @@ std::vector<Direction> te_list::get_filtered_list(Field *field, Agent &agent)
         std::vector<Direction> vec;
 
         for(te &t : list){
+                /*
                 if(agent.is_movable(field, t.direction))
                         vec.push_back(t.direction);
+                */
         }
 
         return vec;
@@ -100,18 +102,18 @@ void test(std::unordered_map<u64, te_list *> &&map)
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
 {
-        std::ifstream ifs(file);
         std::unordered_map<u64, te_list *> map;
         char str[256];
         u64 hash;
         i32 dir;
-        
-        if(ifs.fail()){
-                std::cerr << "failed to open the file" << std::endl;
+
+        FILE *fp;
+        if((fp = fopen(file, "r")) == NULL){
                 exit(-1);
         }
 
-        while(ifs.getline(str, 256 - 1)){
+        map.reserve(1000000);
+        while(fgets(str, 255, fp)){
                 sscanf(str, "%ld %d", &hash, &dir);
                 if(map.find(hash) == std::end(map)){
                         te_list *tmp = new te_list;
@@ -136,4 +138,5 @@ int main(int argc, char **argv)
         test(analyze_learning_data(argv[1]));
         return 0;
 }
+
 */
