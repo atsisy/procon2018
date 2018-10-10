@@ -524,7 +524,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::sort(std::begin(original), std::end(original),
                   [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
 
-        std::cout << (double)learning_not_found / (double)(learning_found + learning_not_found) << std::endl;
+        std::cout << "missing_rate: " << (double)learning_not_found / (double)(learning_found + learning_not_found) << std::endl;
         
 #ifdef __DEBUG_MODE
         std::for_each(std::begin(original), std::end(original),
