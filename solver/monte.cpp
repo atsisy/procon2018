@@ -496,12 +496,13 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                                 continue;
                         }
                         result.push_back(original.at(index++));
+                        //std::cout << result.size() << std::endl;
                         counter = 0;
                 }
                 //printf("%ldnodes\n", result.
                 //put_dot();
                 std::for_each(std::begin(result), std::end(result),
-                              [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
+                              [total_trying](PlayoutResult *p){ p->calc_ucb_tuned(total_trying);});
 
                 // UCBでソート
                 std::sort(std::begin(result), std::end(result),
