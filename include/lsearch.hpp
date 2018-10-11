@@ -168,7 +168,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = std::sqrt(0);
+constexpr float UCB_C = 0.02;
 struct PlayoutResult {
 
         Node *node;
@@ -210,6 +210,25 @@ struct PlayoutResult {
                         return -1;
                 return (ucb = ((float)this->win / (float)this->trying)
                         + (UCB_C * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
+        }
+
+        /*
+         * N : そのノードでのplayoutの回数 
+         Pi : ノードのなかのi番目の指し手のプレイアウト時の勝率
+         Si : ノードのなかのi番目の指し手のプレイアウトの回数
+         */
+        float calc_ucb_tuned(u32 global_total)
+        {
+                if(ucb == -1)
+                        return -1;
+                const float Pi = (float)this->win / (float)this->trying;
+                ucb = (Pi +
+                       (UCB_C * std::sqrt((std::log(global_total) /
+                                   ((float)this->trying)) *
+                                  std::min(0.25, Pi - std::pow(Pi, 2)
+                                           + std::sqrt((2.0 * std::log(global_total)) / (float)this->trying)))));
+                 //Pi + sqrt( log N / Si min ( 1/4 , Pi - Pi**2 + sqrt( (2logN)/Si) );
+                return ucb;
         }
 
         void draw()

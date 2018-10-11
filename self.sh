@@ -1,15 +1,15 @@
 #!/bin/bash
 
 ./bin.d/bin init ./sample_qrformat.dat 0 ./learning.dat
-./bin greedy ./cdump.json 0 ./learning.dat
+./bin greedy ./cdump.json 0 ./learning2.dat
 
 echo 0 0 > score.dat
 
-for i in `seq 1 270`
+for i in `seq 1 69`
 do
     echo ---------------------------------------------
     ./bin.d/bin continue ./cdump.json $i ./learning.dat
-    ./bin greedy ./cdump.json $i ./learning.dat
+    ./bin greedy ./cdump.json $i ./learning2.dat
     ./bin.d/bin gnuscore ./cdump.json $i ./learning.dat  >> score.dat
     echo turn $i
 done
