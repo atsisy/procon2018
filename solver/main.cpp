@@ -109,7 +109,7 @@ void command_switching(char **argv)
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 //write_learning_data(node, ans);
-                monte.write_out_data_base("buf.dat");
+                monte.write_out_data_base("db.bin");
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);

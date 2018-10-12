@@ -504,7 +504,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
 
         {
-                ThreadPool tp(1, 100);
+                ThreadPool tp(3, 100);
                 for(PlayoutResult *p : original){
                         while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -680,13 +680,16 @@ void Montecarlo::buffering_learning_data(Node *node, u8 turn)
 
 void Montecarlo::write_out_data_base(const char *file)
 {
-        std::ofstream ofs(file, std::ios::app);
+        std::ofstream ofs(file, std::ios::app | std::ios::binary);
         if(!ofs){
                 std::cerr << "Failed to open file." << std::endl;
         }
 
+        u64 size = buffered_data.size();
+        ofs.write((char *)&size, sizeof(u64));
         for(auto &elem : buffered_data){
-                ofs << elem.hash << "\t" << (int)elem.dir << std::endl;
+                ofs.write((char *)&elem, sizeof(db_element));
+                //ofs << elem.hash << "\t" << (int)elem.dir << std::endl;
         }
 }
 
@@ -910,13 +913,6 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         getchar();
         */
         while(depth--){
-                
-                {
-                        std::cout << "not found case: " << learning_not_found << std::endl;
-                        current->dump_json_file("debug.json");
-                        getchar();
-                }
-                
                 //buffering_learning_data(current, ENEMY_TURN);
                 //current->play(find_random_legal_direction(current));
                 /*

@@ -2,6 +2,14 @@
 #include "utility.hpp"
 #include <unordered_map>
 #include <cstdio>
+#include <fcntl.h>
+#include <sys/mman.h>
+
+struct db_element {
+        u64 hash;
+        Direction dir;
+};
+
 
 void te_list::add(Direction direction)
 {
@@ -103,23 +111,31 @@ void test(std::unordered_map<u64, te_list *> &&map)
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
 {
         std::unordered_map<u64, te_list *> map;
-        char str[256];
+
+        int fd = open(file, O_RDONLY);
+        if(fd < 0) {
+                printf("Error : can't open file\n");
+                exit(0);
+        }
+        void *mapped = (void *)mmap(NULL, 512000000, PROT_READ, MAP_SHARED, fd, 0);
         u64 hash;
         i32 dir;
 
-        FILE *fp;
-        if((fp = fopen(file, "r")) == NULL){
-                exit(-1);
-        }
-
+        u64 size = *(u64 *)mapped;
+        std::cout << "Size of data base: " << size << std::endl;
+        db_element *elements = (db_element *)((u64)mapped + sizeof(u64));
         map.reserve(1000000);
-        while(fgets(str, 255, fp)){
-                sscanf(str, "%ld %d", &hash, &dir);
+        while(size--){
+                hash = elements->hash;
+                dir = elements->dir;
+                
                 if(map.find(hash) == std::end(map)){
                         te_list *tmp = new te_list;
                         map[hash] = tmp;
                 }
                 map[hash]->add(int_to_direction(dir));
+
+                elements++;
         }
 
         for(std::pair<const long unsigned int, te_list*> &pair : map){
@@ -135,7 +151,7 @@ std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
 /*
 int main(int argc, char **argv)
 {
-        test(analyze_learning_data(argv[1]));
+        analyze_learning_data(argv[1]);
         return 0;
 }
 
