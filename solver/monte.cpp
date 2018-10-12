@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 1000;
-constexpr double MONTE_TIME_LIMIT = 12000;
+constexpr double MONTE_TIME_LIMIT = 15000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -187,12 +187,20 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node, u8 rank)
 #endif
                   });
 
+        bool del_flag = false;
         i64 max_score = nodes.at(0)->get_score();
         for(Node *n : nodes){
+                if(del_flag){
+                        delete n;
+                        continue;
+                }
                 if(max_score != n->get_score()){
                         max_score = n->get_score();
-                        if(!--rank)
-                                break;
+                        if(!--rank){
+                                del_flag = true;
+                                delete n;
+                                continue;
+                        }
                 }
                 result.push_back(n);
         }
@@ -226,12 +234,21 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, u8 rank)
 #endif
           });
 
+        bool del_flag = false;
         i64 max_score = nodes.at(0)->get_score();
         for(Node *n : nodes){
+                if(del_flag){
+                        delete n;
+                        continue;
+                }
+ 
                 if(max_score != n->get_score()){
                         max_score = n->get_score();
-                        if(!--rank)
-                                break;
+                        if(!--rank){
+                                del_flag = true;
+                                delete n;
+                                continue;
+                        }
                 }
                 result.push_back(n);
         }
@@ -316,12 +333,21 @@ std::vector<Node *> Montecarlo::listup_node_greedy_turn(Node *node, u8 rank, u8 
                           });
         }
 
+        bool del_flag = false;
         i64 max_score = nodes.at(0)->get_score();
         for(Node *n : nodes){
+                if(del_flag){
+                        delete n;
+                        continue;
+                }
+
                 if(max_score != n->get_score()){
                         max_score = n->get_score();
-                        if(!--rank)
-                                break;
+                        if(!--rank){
+                                del_flag = true;
+                                delete n;
+                                continue;
+                        }
                 }
                 result.push_back(n);
         }
@@ -345,7 +371,7 @@ const Node *Montecarlo::select_final(Node *node)
 
 const Node *Montecarlo::greedy(Node *node)
 {
-        return listup_node_greedy(node, 1).at(0);
+        return random_greedy(node, 1);
 }
 
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
@@ -410,6 +436,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         original.at(0)->node->evaluate();
         return original.at(0)->node;
 }
+
 
 const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_children)
 {
@@ -477,7 +504,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
 
         {
-                ThreadPool tp(3, 100);
+                ThreadPool tp(1, 100);
                 for(PlayoutResult *p : original){
                         while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -485,6 +512,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 }
         }
 
+        puts("hello");
         result.push_back(original.at(index++));
         
         // 各ノードに対してシュミレーションを行う        
@@ -502,7 +530,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 //printf("%ldnodes\n", result.
                 //put_dot();
                 std::for_each(std::begin(result), std::end(result),
-                              [total_trying](PlayoutResult *p){ p->calc_ucb_tuned(total_trying);});
+                              [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
                 // UCBでソート
                 std::sort(std::begin(result), std::end(result),
@@ -531,6 +559,8 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
 #endif
+        std::for_each(std::begin(original) + 1, std::end(original),
+                      [](PlayoutResult *r){ delete r->node; delete r; });
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
@@ -635,6 +665,57 @@ void Montecarlo::go_learning(Node *node, u8 turn)
         delete ret;
 }
 
+void Montecarlo::buffering_learning_data(Node *node, u8 turn)
+{
+        Node *clone = new Node(node);
+        /*
+        clone->force_set_turn(turn);
+        Node *ret = random_greedy(clone, 1);
+        __buffering_learning_data(clone, ret);
+        */
+        __buffering_learning_data(clone);
+        delete clone;
+        //delete ret;
+}
+
+void Montecarlo::write_out_data_base(const char *file)
+{
+        std::ofstream ofs(file, std::ios::app);
+        if(!ofs){
+                std::cerr << "Failed to open file." << std::endl;
+        }
+
+        for(auto &elem : buffered_data){
+                ofs << elem.hash << "\t" << (int)elem.dir << std::endl;
+        }
+}
+
+void Montecarlo::__buffering_learning_data(Node *before, Node *after)
+{
+#ifdef I_AM_ME
+        std::vector<action> &&states = before->generate_state_hash(MY_TURN);
+#endif
+#ifdef I_AM_ENEMY
+        std::vector<action> &&states = before->generate_state_hash(ENEMY_TURN);
+#endif
+        Direction d1 = after->get_last_action(0);
+        Direction d2 = after->get_last_action(1);
+        
+        buffered_data.emplace_back(states.at(0).state_hash, d1);
+        buffered_data.emplace_back(states.at(1).state_hash, d2);
+}
+
+void Montecarlo::__buffering_learning_data(Node *node)
+{
+        std::vector<action> &&states = node->generate_state_hash();
+        auto [d1, d2] = node->find_greedy(MY_TURN);
+        auto [d3, d4] = node->find_greedy(ENEMY_TURN);
+        buffered_data.push_back(db_element(states.at(0).state_hash, d1));
+        buffered_data.push_back(db_element(states.at(1).state_hash, d2));
+        buffered_data.push_back(db_element(states.at(2).state_hash, d3));
+        buffered_data.push_back(db_element(states.at(3).state_hash, d4));
+}
+
 std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
 {
         Direction m1, m2, e1, e2;
@@ -648,7 +729,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
-                //go_learning(node, MY_TURN);
+                //buffering_learning_data(node, MY_TURN);
                 do{
                         m1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent1.is_movable(node->field, m1));
@@ -665,7 +746,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
-                //go_learning(node, MY_TURN);
+                //buffering_learning_data(node, MY_TURN);
                 do{
                         m2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent2.is_movable(node->field, m2));
@@ -682,7 +763,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
-                //go_learning(node, ENEMY_TURN);
+                //buffering_learning_data(node, ENEMY_TURN);
                 do{
                         e1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, e1));
@@ -699,7 +780,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
-                //go_learning(node, ENEMY_TURN); 
+                //buffering_learning_data(node, ENEMY_TURN); 
                 do{            
                         e2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, e2));
@@ -817,15 +898,34 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
         Judge result;
+        
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
         if(random_half_play(current, node->turn) == -1)
                 return LOSE;
-        
-
+        /*
+        std::cout << "not found case: " << learning_not_found << std::endl;
+        current->dump_json_file("debug.json");
+        getchar();
+        */
         while(depth--){
+                
+                {
+                        std::cout << "not found case: " << learning_not_found << std::endl;
+                        current->dump_json_file("debug.json");
+                        getchar();
+                }
+                
+                //buffering_learning_data(current, ENEMY_TURN);
                 //current->play(find_random_legal_direction(current));
+                /*
+                std::vector<action> &&states = current->generate_state_hash();
+                std::cout << "m1: " << states.at(0).state_hash << std::endl;
+                std::cout << "m2: " << states.at(1).state_hash << std::endl;
+                std::cout << "e1: " << states.at(2).state_hash << std::endl;
+                std::cout << "e2: " << states.at(3).state_hash << std::endl;
+                */
                 current->play(get_learning_direction(current));
         }
 
