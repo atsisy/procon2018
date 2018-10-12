@@ -292,6 +292,89 @@ std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
 
         return ret;
 }
+std::pair<Direction, Direction> Node::find_greedy(u8 turn)
+{
+        xor128 rand;
+        if(IS_MYTURN(turn)){
+                return std::make_pair(
+                        __find_greedy(my_agent1, rand()),
+                        __find_greedy(my_agent2, rand()));
+        }else{
+                return std::make_pair(
+                        __find_greedy(enemy_agent1, rand()),
+                        __find_greedy(enemy_agent2, rand()));
+        }
+}
+
+Direction Node::__find_greedy(Agent agent, u32 rand)
+{
+        std::vector<Direction> ret;
+        i64 max = -100;
+
+        i8 x, y;
+        Panel panel;
+        
+        for(x = agent.x - 1;x <= agent.x + 1;x++){
+                for(y = agent.y - 1;y <= agent.y + 1;y++){
+                        if(!field->is_within(x, y))
+                                continue;
+                        panel = field->at(x, y);
+                        if(panel.are_you(agent.extract_player_info())){
+                                score = 0;
+                        }else{
+                                score = field->at(x, y).get_score_value();
+                        }
+
+                        //std::cout << "x : y = " << (int)x << " : " << (int)y << " score: " << score << std::endl;
+                        
+                        if(max < score){
+                                max = score;
+                        }
+                }
+        }
+
+        for(x = agent.x - 1;x <= agent.x + 1;x++){
+                for(y = agent.y - 1;y <= agent.y + 1;y++){
+                        if(!field->is_within(x, y))
+                                continue;
+                        panel = field->at(x, y);
+                        if(panel.are_you(agent.extract_player_info())){
+                                score = 0;
+                        }else{
+                                score = field->at(x, y).get_score_value();
+                        }
+                        
+                        if(max == score)
+                                ret.push_back(which_direction(x - agent.x, y - agent.y));
+                }
+        }
+
+        /*
+        dump_json_file("debug.json");
+        agent.draw();
+        puts("candidates");
+        for(Direction d : ret){
+                std::cout << "\t" << d << std::endl;
+        }
+        getchar();
+        */
+        
+        Direction ans = ret.at(rand % ret.size());
+        /*
+        if(ans == STOP){
+                agent.draw();
+                puts("now, stoped");
+                std::cout << "size of ret = " << ret.size() << std::endl;
+                dump_json_file("debug.json");
+                std::cout << "around max: " << max << std::endl;
+                put_score_info();
+                getchar();
+        }
+        */
+        
+        return ans;
+}
+
 
 std::vector<action> Node::generate_state_hash(u8 turn) const
 {

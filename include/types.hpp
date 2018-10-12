@@ -134,6 +134,16 @@ public:
                 return meta_info;
         }
 
+        bool is_abs_my_panel()
+        {
+#ifdef I_AM_ME
+                return meta_info & MINE_ATTR;
+#endif
+#ifdef I_AM_ENEMY
+                return meta_info & ENEMY_ATTR;
+#endif
+        }
+
         u8 simplified_hash(i8 pos_avg, i8 neg_avg, u8 who, bool on_agent) const
         {
                 u8 ret = 0, tmp = 0;

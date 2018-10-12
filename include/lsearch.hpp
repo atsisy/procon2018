@@ -78,6 +78,8 @@ private:
 
         std::vector<Node *> expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
         std::vector<Node *> expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2);
+        Direction __find_greedy(Agent agent, u32 rand);
+        std::pair<Direction, Direction> find_greedy(u8 turn);
 
 public:
         /*
@@ -239,6 +241,17 @@ struct PlayoutResult {
         }
 };
 
+struct db_element {
+        u64 hash;
+        Direction dir;
+
+        db_element(u64 hash, Direction dir)
+        {
+                this->hash = hash;
+                this->dir = dir;
+        }
+};
+
 struct LocalPlayoutResult {
 
         u16 times;
@@ -258,6 +271,7 @@ private:
         util::xor128 random;
         u8 depth;
         u32 limit;
+        std::vector<db_element> buffered_data;
 
         const Node *get_first_child(const Node *node);
         u64 playout_process(PlayoutResult *child, u16 limit);
@@ -283,12 +297,18 @@ private:
         Direction learning_or_random(Node *node, Agent &agent, u64 hash);
 
         void go_learning(Node *node, u8 turn);
+        void buffering_learning_data(Node *node, u8 turn);
+        void __buffering_learning_data(Node *before, Node *after);
+        void __buffering_learning_data(Node *node);
         
 public:
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
         const Node *greedy_montecarlo(Node *node, u8 depth);
         const Node *random_play(Node *node);
+
+        void write_out_data_base(const char *file);
+        
         Montecarlo();
 };
 
