@@ -9,13 +9,13 @@
 #include "learn.hpp"
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
-void command_switching(char **argv);
+void command_switching(int argc, char **argv);
 
 std::unordered_map<u64, te_list *> learning_map;
 
 int main(int argc, char **argv)
 {
-        command_switching(argv);
+        command_switching(argc, argv);
         
         Field mainField;	//メインとなるフィールドのインスタンス
         Search search;
@@ -91,9 +91,11 @@ void write_learning_data(const Node *before, const Node *after)
         ofs << states.at(1).state_hash << "\t" << (int)d2 << std::endl;
 }
 
-void command_switching(char **argv)
+void command_switching(int argc, char **argv)
 {
-        //learning_map = analyze_learning_data(argv[4]);
+        if(argc >= 5){
+                learning_map = analyze_learning_data(argv[4]);
+        }
         
         if(!strcmp(argv[1], "init")){
                 /*
@@ -116,9 +118,9 @@ void command_switching(char **argv)
                 Node *node = builder.create_root_node();
                 node->draw();
                 Montecarlo monte;
-		u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                monte.create_database(node, 15000, 60);
+                monte.create_database(node, 15000, std::atoi(argv[3]));
                 monte.write_out_data_base("db.bin");
+                delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
