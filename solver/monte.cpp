@@ -7,10 +7,12 @@
 #include "utility.hpp"
 #include "learn.hpp"
 
+#define CREATE_DATABASE
+
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 1000;
-constexpr double MONTE_TIME_LIMIT = 15000;
+constexpr u32 MONTE_EXPAND_LIMIT = 700;
+constexpr double MONTE_TIME_LIMIT = 12000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -475,7 +477,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
         u64 counter = 0, index = 0;
-        this->depth = depth;
+        this->depth = 60;
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -504,7 +506,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
 
         {
-                ThreadPool tp(3, 100);
+                ThreadPool tp(1, 100);
                 for(PlayoutResult *p : original){
                         while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -567,17 +569,81 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         return original.at(0)->node;
 }
 
+
 /*
-void Montecarlo::apply_playout_to_data(std::vector<PlayoutResult> &data, int limit)
+ * データベース構築プログラム
+ */
+void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 {
-        Node *child;
-        for(PlayoutResult &p : data){
-                child = p.node;
-                LocalPlayoutResult &&result = this->playout_process(child, limit);
-                p.update(result.times, result.win);
+        std::vector<PlayoutResult *> original, result;
+        u64 total_trying = 0;
+        u64 counter = 0, index = 0;
+        this->depth = depth;
+        this->limit = MONTE_MIN_TIMES;
+        const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
+        learning_not_found = learning_found = 0;
+
+        node->expand();
+        
+        for(Node *child : node->ref_children())
+                child->evaluate();
+        std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
+                  [](const Node *n1, const Node *n2){
+#ifdef I_AM_ENEMY
+                          return n1->get_score() < n2->get_score();
+#endif
+#ifdef I_AM_ME
+                          return n1->get_score() > n2->get_score();
+#endif
+                  });
+        for(Node *child : node->ref_children()){
+                PlayoutResult *tmp = new PlayoutResult(child, nullptr);
+                original.push_back(tmp);
         }
+
+        std::cout << "------------------------------------------" << std::endl;
+        std::cout << "Database building is started." << std::endl;
+        std::fflush(stdout);
+
+        std::cout << "Entering stage1..." << std::endl;
+
+        {
+                ThreadPool tp(1, 100);
+                for(PlayoutResult *p : original){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 600))){
+                                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        }
+                }
+        }
+
+        std::cout << "Stage1 was finished." << std::endl;
+        std::cout << "Entering stage2..." << std::endl;
+
+        result.push_back(original.at(index++));
+        
+        while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= timelimit){
+                counter++;
+                if(counter == 20){
+                        if(original.size() <= index){
+                                continue;
+                        }
+                        result.push_back(original.at(index++));
+                        counter = 0;
+                }
+                std::for_each(std::begin(result), std::end(result),
+                              [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
+
+                std::sort(std::begin(result), std::end(result),
+                          [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
+                add_trying(&total_trying, select_and_play(result, result.at(0), 5));
+        }
+
+        std::cout << "Stage2 was finished." << std::endl;
+
+        std::cout << "Size of database will be " << buffered_data.size() << "." << std::endl;
+        std::cout << "------------------------------------------" << std::endl;
 }
-*/
 
 u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
 {
@@ -913,8 +979,10 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         getchar();
         */
         while(depth--){
-                //buffering_learning_data(current, ENEMY_TURN);
-                //current->play(find_random_legal_direction(current));
+#ifdef CREATE_DATABASE
+                buffering_learning_data(current, ENEMY_TURN);
+                current->play(find_random_legal_direction(current));
+#endif
                 /*
                 std::vector<action> &&states = current->generate_state_hash();
                 std::cout << "m1: " << states.at(0).state_hash << std::endl;
@@ -922,7 +990,12 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
                 std::cout << "e1: " << states.at(2).state_hash << std::endl;
                 std::cout << "e2: " << states.at(3).state_hash << std::endl;
                 */
-                current->play(get_learning_direction(current));
+#ifndef CREATE_DATABASE
+                if(depth & 7)
+                        current->play(find_random_legal_direction(current));
+                else
+                        current->play(get_learning_direction(current));
+#endif
         }
 
         if((current->evaluate()) < 0){

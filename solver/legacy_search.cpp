@@ -319,7 +319,9 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                         if(!field->is_within(x, y))
                                 continue;
                         panel = field->at(x, y);
-                        if(panel.are_you(agent.extract_player_info())){
+                        if(!nobody(x, y)){
+                                score = -100;
+                        }else if(panel.are_you(agent.extract_player_info())){
                                 score = 0;
                         }else{
                                 score = field->at(x, y).get_score_value();
@@ -338,7 +340,9 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                         if(!field->is_within(x, y))
                                 continue;
                         panel = field->at(x, y);
-                        if(panel.are_you(agent.extract_player_info())){
+                        if(!nobody(x, y)){
+                                score = -100;
+                        }else if(panel.are_you(agent.extract_player_info())){
                                 score = 0;
                         }else{
                                 score = field->at(x, y).get_score_value();

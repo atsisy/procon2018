@@ -302,6 +302,7 @@ private:
         void __buffering_learning_data(Node *node);
         
 public:
+        void create_database(Node *node, i64 timelimit, u8 depth);
         const Node *let_me_monte(Node *node, u8 depth);
         const Node *greedy(Node *node);
         const Node *greedy_montecarlo(Node *node, u8 depth);
@@ -333,27 +334,5 @@ public:
         }
 };
 
-/*
-class not_ai_playout : public Runnable {
-
-private:
-        PlayoutResult *pr;
-        u16 times;
-        Montecarlo *monte;
-        
-public:
-        void run()
-                {
-                        monte->playout_process(pr, times);
-                }
-
-        not_ai_playout(Montecarlo *m, PlayoutResult *p, u16 t)
-                {
-                        pr = p;
-                        times = t;
-                        monte = m;
-                }
-};
-*/
 
 void write_learning_data(const Node *before, const Node *after);

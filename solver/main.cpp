@@ -93,7 +93,7 @@ void write_learning_data(const Node *before, const Node *after)
 
 void command_switching(char **argv)
 {
-        learning_map = analyze_learning_data(argv[4]);
+        //learning_map = analyze_learning_data(argv[4]);
         
         if(!strcmp(argv[1], "init")){
                 /*
@@ -111,6 +111,14 @@ void command_switching(char **argv)
                 //write_learning_data(node, ans);
                 monte.write_out_data_base("db.bin");
                 delete node;
+        }else if(!strcmp(argv[1], "db")){
+                FieldBuilder builder(new QRFormatParser(argv[2]));
+                Node *node = builder.create_root_node();
+                node->draw();
+                Montecarlo monte;
+		u8 d = MONTE_DEPTH - std::atoi(argv[3]);
+                monte.create_database(node, 15000, 60);
+                monte.write_out_data_base("db.bin");
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
