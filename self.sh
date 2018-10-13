@@ -1,17 +1,32 @@
 #!/bin/bash
 
-./bin.d/bin init ./sample_qrformat.dat 0 ./db.bin
+rm db.bin cdb.bin 
+
+./bin.d/bin db ./sample_qrformat.dat 45 16000
+
+mv db.bin cdb.bin
+
+./bin.d/bin init ./sample_qrformat.dat 0 ./cdb.bin
 ./bin greedy ./cdump.json 0 ./learning2.dat
 
 echo 0 0 > score.dat
 
-for i in `seq 1 69`
+for i in `seq 1 14`
 do
-    echo ---------------------------------------------
-    ./bin.d/bin continue ./cdump.json $i ./db.bin 
-    ./bin greedy ./cdump.json $i ./learning2.dat
-    ./bin.d/bin gnuscore ./cdump.json $i  >> score.dat
-    echo turn $i
+    ./bin.d/bin db ./cdump.json 40 25000 > /dev/null &
+
+    for tn in `seq 1 5`
+    do
+        turn=$(($i * $tn))
+        echo ---------------------------------------------
+        echo turn $turn
+        ./bin.d/bin continue ./cdump.json $turn ./cdb.bin 
+        ./bin greedy ./cdump.json $turn ./learning2.dat
+        ./bin.d/bin gnuscore ./cdump.json $turn  >> score.dat
+    done
+
+    mv db.bin cdb.bin
+    
 done
 
 ./bin.d/bin score ./cdump.json 0 ./learning.dat 
