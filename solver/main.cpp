@@ -7,8 +7,8 @@
 #include "types.hpp"
 #include <cmath>
 
-const int depth = 3;
-const int size = 90;
+const int depth = 100;
+const int size = 100;
 
 int main(int argc, char **argv) {
 	FieldBuilder builder(1,1);
