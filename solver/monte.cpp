@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 12000;
+constexpr double MONTE_TIME_LIMIT = 11000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -147,6 +147,30 @@ u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutRes
                                 playout_process(tmp, llim);
                                 {
                                         std::lock_guard<std::mutex> lock(mtx);
+                                        trying += llim;
+                                        buf.push_back(tmp);
+                                }
+                        });
+                
+                synchronized_adding(result, buf);
+        }
+
+        return trying;
+}
+
+u64 Montecarlo::dbbuild_select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim)
+{
+        u64 trying = 0;
+        trying += dbbuild_playout_process(target, limit);
+
+        if(target->trying >= MONTE_EXPAND_LIMIT){
+                std::vector<PlayoutResult *> buf;
+                buf.reserve(81);
+                target->ucb = -1;
+                expand_not_ai_turn(target->node, [&, this](Node *child){
+                                PlayoutResult *tmp = new PlayoutResult(child, target);
+                                dbbuild_playout_process(tmp, llim);
+                                {
                                         trying += llim;
                                         buf.push_back(tmp);
                                 }
@@ -475,7 +499,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::vector<PlayoutResult *> original, result;
         u64 total_trying = 0;
         u64 counter = 0, index = 0;
-        this->depth = 60;
+        this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -504,7 +528,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
 
         {
-                ThreadPool tp(1, 100);
+                ThreadPool tp(3, 100);
                 for(PlayoutResult *p : original){
                         while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -604,13 +628,14 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         std::cout << "------------------------------------------" << std::endl;
         std::cout << "Database building is started." << std::endl;
-        std::fflush(stdout);
 
         std::cout << "Entering stage1..." << std::endl;
 
         for(PlayoutResult *p : original){
+                put_dot();
                 dbbuild_playout_process(p, 600);
         }
+        printf("\n");
 
         total_trying += 600 * original.size();
 
@@ -633,7 +658,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
                 std::sort(std::begin(result), std::end(result),
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
-                add_trying(&total_trying, select_and_play(result, result.at(0), 5));
+                total_trying += dbbuild_select_and_play(result, result.at(0), 5);
         }
 
         std::cout << "Stage2 was finished." << std::endl;
@@ -1025,9 +1050,9 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         */
         while(depth--){
                 if(depth & 7)
-                        current->play(find_random_legal_direction(current));
-                else
                         current->play(get_learning_direction(current));
+                else
+                        current->play(find_random_legal_direction(current));
         }
 
         if((current->evaluate()) < 0){

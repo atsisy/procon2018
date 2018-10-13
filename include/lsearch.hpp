@@ -288,6 +288,7 @@ private:
         void expand_node(Node *node, std::function<void(Node *)> apply_child);
         Node *simulation(Node *node);
         u64 select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
+        u64 dbbuild_select_and_play(std::vector<PlayoutResult *> &result, PlayoutResult *target, u16 llim);
         const Node *select_final(Node *node);
         const Node *select_better_node(std::vector<PlayoutResult *> &sorted_children);
         std::vector<Node *> listup_node_greedy(Node *node, u8 rank);
