@@ -114,11 +114,16 @@ void command_switching(int argc, char **argv)
                 monte.write_out_data_base("db.bin");
                 delete node;
         }else if(!strcmp(argv[1], "db")){
-                FieldBuilder builder(new QRFormatParser(argv[2]));
-                Node *node = builder.create_root_node();
+                Node *node;
+                if(std::string(argv[2]).find(".dat") != std::string::npos){
+                        FieldBuilder builder(new QRFormatParser(argv[2]));
+                        node = builder.create_root_node();
+                }else{
+                        node = new Node(argv[2]);
+                }
                 node->draw();
                 Montecarlo monte;
-                monte.create_database(node, 15000, std::atoi(argv[3]));
+                monte.create_database(node, 16000, std::atoi(argv[3]));
                 monte.write_out_data_base("db.bin");
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
@@ -126,10 +131,9 @@ void command_switching(int argc, char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.let_me_monte(json_node, d >= 22 ? 22 : d);
+                const Node *ans = monte.let_me_monte(json_node, d >= 25 ? 25 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
-                getchar();
                 //write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;

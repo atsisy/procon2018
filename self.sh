@@ -10,7 +10,7 @@ do
     echo ---------------------------------------------
     ./bin.d/bin continue ./cdump.json $i ./db.bin 
     ./bin greedy ./cdump.json $i ./learning2.dat
-    ./bin.d/bin gnuscore ./cdump.json $i ./db.bin  >> score.dat
+    ./bin.d/bin gnuscore ./cdump.json $i  >> score.dat
     echo turn $i
 done
 
