@@ -274,10 +274,11 @@ private:
         std::vector<db_element> buffered_data;
 
         const Node *get_first_child(const Node *node);
-        u64 playout_process(PlayoutResult *child, u16 limit);
-        void apply_playout_to_data(std::vector<PlayoutResult> &data, int limit);
+        u64 playout_process(PlayoutResult *tmp, u16 limit);
+        u64 dbbuild_playout_process(PlayoutResult *tmp, u16 limit);
         Judge playout(Node *node, u8 depth);
         Judge faster_playout(Node *node, u8 depth);
+        Judge dbbuild_playout(Node *node, u8 depth);
         std::array<Direction, 4> find_random_legal_direction(Node *node);
         std::array<Direction, 4> get_learning_direction(Node *node);
         std::array<Direction, 4> check_direction_legality(Node *node, std::array<Direction, 4> dirs);
