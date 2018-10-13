@@ -780,7 +780,7 @@ void Montecarlo::buffering_learning_data(Node *node, u8 turn)
 
 void Montecarlo::write_out_data_base(const char *file)
 {
-        std::ofstream ofs(file, std::ios::app | std::ios::binary);
+        std::ofstream ofs(file, std::ios::binary);
         if(!ofs){
                 std::cerr << "Failed to open file." << std::endl;
         }

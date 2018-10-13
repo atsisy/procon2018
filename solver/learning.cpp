@@ -122,6 +122,7 @@ std::unordered_map<u64, te_list *> analyze_learning_data(const char *file)
         i32 dir;
 
         u64 size = *(u64 *)mapped;
+        std::cout << "DB Name: " << file << std::endl;
         std::cout << "Size of data base: " << size << std::endl;
         db_element *elements = (db_element *)((u64)mapped + sizeof(u64));
         map.reserve(1000000);

@@ -93,7 +93,7 @@ void write_learning_data(const Node *before, const Node *after)
 
 void command_switching(int argc, char **argv)
 {
-        if(argc >= 5){
+        if(argc >= 5 && std::string(argv[4]).find(".bin") != std::string::npos){
                 learning_map = analyze_learning_data(argv[4]);
         }
         
@@ -123,7 +123,7 @@ void command_switching(int argc, char **argv)
                 }
                 node->draw();
                 Montecarlo monte;
-                monte.create_database(node, 16000, std::atoi(argv[3]));
+                monte.create_database(node, std::atoi(argv[4]), std::atoi(argv[3]));
                 monte.write_out_data_base("db.bin");
                 delete node;
         }else if(!strcmp(argv[1], "continue")){
