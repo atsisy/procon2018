@@ -7,8 +7,6 @@
 #include "utility.hpp"
 #include "learn.hpp"
 
-#define CREATE_DATABASE
-
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
@@ -610,13 +608,8 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         std::cout << "Entering stage1..." << std::endl;
 
-        {
-                ThreadPool tp(1, 100);
-                for(PlayoutResult *p : original){
-                        while(!tp.add(std::make_shared<initial_playout>(this, p, 600))){
-                                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                        }
-                }
+        for(PlayoutResult *p : original){
+                dbbuild_playout_process(p, 600);
         }
 
         total_trying += 600 * original.size();
@@ -647,6 +640,18 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         std::cout << "Size of database will be " << buffered_data.size() << "." << std::endl;
         std::cout << "------------------------------------------" << std::endl;
+}
+
+u64 Montecarlo::dbbuild_playout_process(PlayoutResult *tmp, u16 limit)
+{
+        u16 win, i;
+        
+        win = 0;
+        for(i = 0;i < limit;i++)
+                if(dbbuild_playout(tmp->node, depth) == WIN)
+                        win++;
+        tmp->update(i, win);
+        return i;
 }
 
 u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
@@ -967,6 +972,42 @@ i8 Montecarlo::random_half_play(Node *node, u8 turn)
                 return enemy_random_half_play(node);
 }
 
+Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
+{
+        Node *current = new Node(node);
+        Judge result;
+        
+        /*
+         * ここで一回ランダムに片方が行う必要がある
+         */
+        if(random_half_play(current, node->turn) == -1)
+                return LOSE;
+        while(depth--){
+                buffering_learning_data(current, ENEMY_TURN);
+                current->play(find_random_legal_direction(current));
+        }
+
+        if((current->evaluate()) < 0){
+#ifdef I_AM_ENEMY
+                result = WIN;
+#endif
+#ifdef I_AM_ME
+                result = LOSE;
+#endif
+        }else if(current->evaluate() > 0){
+#ifdef I_AM_ENEMY
+                result = LOSE;
+#endif
+#ifdef I_AM_ME
+                result = WIN;
+#endif
+        }else
+                result = DRAW;
+        
+        delete current;
+        return result;
+}
+
 Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
@@ -983,23 +1024,10 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         getchar();
         */
         while(depth--){
-#ifdef CREATE_DATABASE
-                buffering_learning_data(current, ENEMY_TURN);
-                current->play(find_random_legal_direction(current));
-#endif
-                /*
-                std::vector<action> &&states = current->generate_state_hash();
-                std::cout << "m1: " << states.at(0).state_hash << std::endl;
-                std::cout << "m2: " << states.at(1).state_hash << std::endl;
-                std::cout << "e1: " << states.at(2).state_hash << std::endl;
-                std::cout << "e2: " << states.at(3).state_hash << std::endl;
-                */
-#ifndef CREATE_DATABASE
                 if(depth & 7)
                         current->play(find_random_legal_direction(current));
                 else
                         current->play(get_learning_direction(current));
-#endif
         }
 
         if((current->evaluate()) < 0){
