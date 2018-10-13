@@ -514,6 +514,8 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 }
         }
 
+        total_trying += 700 * original.size();
+
         puts("hello");
         result.push_back(original.at(index++));
         
@@ -616,6 +618,8 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
                         }
                 }
         }
+
+        total_trying += 600 * original.size();
 
         std::cout << "Stage1 was finished." << std::endl;
         std::cout << "Entering stage2..." << std::endl;
