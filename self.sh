@@ -2,7 +2,7 @@
 
 rm db.bin cdb.bin 
 
-./bin.d/bin db ./sample_qrformat.dat 45 16000
+./bin.d/bin db ./sample_qrformat.dat 50 16000
 
 mv db.bin cdb.bin
 
@@ -11,13 +11,14 @@ mv db.bin cdb.bin
 
 echo 0 0 > score.dat
 
+turn=0
 for i in `seq 1 14`
 do
-    ./bin.d/bin db ./cdump.json 40 25000 > /dev/null &
+    ./bin.d/bin db ./cdump.json 50 25000 > /dev/null &
 
     for tn in `seq 1 5`
     do
-        turn=$(($i * $tn))
+        turn=$(($turn + 1))
         echo ---------------------------------------------
         echo turn $turn
         ./bin.d/bin continue ./cdump.json $turn ./cdb.bin 
