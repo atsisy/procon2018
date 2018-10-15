@@ -306,6 +306,7 @@ std::pair<Direction, Direction> Node::find_greedy(u8 turn)
         }
 }
 
+
 Direction Node::__find_greedy(Agent agent, u32 rand)
 {
         std::vector<Direction> ret;
