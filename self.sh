@@ -14,7 +14,7 @@ echo 0 0 > score.dat
 turn=0
 for i in `seq 1 14`
 do
-    ./bin.d/bin db ./cdump.json 50 25000 > /dev/null &
+    ./bin.d/bin db ./cdump.json 35 25000 ./cdb.bin > /dev/null &
 
     for tn in `seq 1 5`
     do
