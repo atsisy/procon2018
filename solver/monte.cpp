@@ -103,7 +103,7 @@ w                        child->dump_json_file("after.json");
         }catch(const std::out_of_range &e){
         */
         
-                auto &&good_nodes = listup_node_greedy_turn(node, 3, MY_TURN);
+                auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
                 for(Node *child : good_nodes){
                         //child->expand();
                         auto &&vec = listup_node_greedy(child, 4);
@@ -395,7 +395,9 @@ const Node *Montecarlo::select_final(Node *node)
 
 const Node *Montecarlo::greedy(Node *node)
 {
-        return random_greedy(node, 1);
+        Node *ret = random_greedy(node, 1);
+        ret->evaluate();
+        return ret;
 }
 
 const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
@@ -633,7 +635,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         for(PlayoutResult *p : original){
                 put_dot();
-                dbbuild_playout_process(p, 600);
+                dbbuild_playout_process(p, 700);
         }
         printf("\n");
 
@@ -1009,7 +1011,10 @@ Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
                 return LOSE;
         while(depth--){
                 buffering_learning_data(current, ENEMY_TURN);
-                current->play(find_random_legal_direction(current));
+                if(learning_map.size() == 0 || depth & 7)
+                        current->play(find_random_legal_direction(current));
+                else
+                        current->play(get_learning_direction(current));
         }
 
         if((current->evaluate()) < 0){
