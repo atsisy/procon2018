@@ -463,6 +463,31 @@ inline Direction int_to_direction(int num) {
 	};
 }
 
+inline std::string direction_to_str(Direction dir) {
+	switch(dir) {
+        case UP:
+                return std::string("UP");
+        case RUP:
+                return std::string("RUP");
+        case RIGHT:
+                return std::string("RIGHT");
+        case RDOWN:
+                return std::string("RDOWN");
+        case DOWN:
+                return std::string("DOWN");
+        case LDOWN:
+                return std::string("LDOWN");
+        case LEFT:
+                return std::string("LEFT");
+        case LUP:
+                return std::string("LUP");
+        case STOP:
+                return std::string("STOP");
+        default:
+                return std::string("STOP");
+	};
+}
+
 inline Direction which_direction(i8 x, i8 y)
 {
         if(x == -1 && y == -1)

@@ -91,6 +91,20 @@ void write_learning_data(const Node *before, const Node *after)
         ofs << states.at(1).state_hash << "\t" << (int)d2 << std::endl;
 }
 
+void write_log_file(const Node *node)
+{
+        std::ofstream ofs("direction.dat");
+        if(!ofs){
+                std::cerr << "Failed to open file." << std::endl;
+        }
+        
+        Direction d1 = node->get_last_action(0);
+        Direction d2 = node->get_last_action(1);
+        
+        ofs << direction_to_str(d1) << " ";
+        ofs << direction_to_str(d2);
+}
+
 void command_switching(int argc, char **argv)
 {
         if(argc >= 5 && std::string(argv[4]).find(".bin") != std::string::npos){
@@ -110,6 +124,7 @@ void command_switching(int argc, char **argv)
                 const Node *ans = monte.let_me_monte(node, 20);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
+                write_log_file(ans);
                 //write_learning_data(node, ans);
                 monte.write_out_data_base("db.bin");
                 delete node;
@@ -134,6 +149,7 @@ void command_switching(int argc, char **argv)
                 const Node *ans = monte.let_me_monte(json_node, d >= 25 ? 25 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
+                write_log_file(ans);
                 //write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
@@ -146,6 +162,7 @@ void command_switching(int argc, char **argv)
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_learning_data(json_node, ans);
+                write_log_file(ans);
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "random")){
