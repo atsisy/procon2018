@@ -87,13 +87,13 @@ Field *Field::clone() const
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
         double tmp;
-        
+
 	Field::field_size_x = parser->width_height.width;
 	Field::field_size_y = parser->width_height.height;
 
         tmp = std::log2(parser->width_height.width);
         Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
-        
+
         Field::field_size = parser->width_height.height << Field::ac_shift_offset;
         original_data = parser;
 }
@@ -101,13 +101,13 @@ FieldBuilder::FieldBuilder(QRFormatParser *parser)
 FieldBuilder::FieldBuilder(i32 field_width, i32 field_height)
 {
         double tmp;
-        
+
 	Field::field_size_x = field_width;
 	Field::field_size_y = field_height;
 
         tmp = std::log2(field_width);
         Field::ac_shift_offset = (u64)(tmp + ((tmp - (u64)tmp) == 0.0 ? 0 : 1));
-        
+
         Field::field_size = field_height << Field::ac_shift_offset;
         original_data = nullptr;
 }
@@ -163,7 +163,7 @@ i64 Field::calc_mypanels_score()
         i16 tmp_score = 0;
         Panel panel;
         u8 i;
-        
+
         for(i = 0;i < Field::field_size;i++){
                 panel = field.at(i);
                 if(panel.is_my_panel()){
@@ -181,7 +181,7 @@ i16 Field::calc_enemypanels_score()
         i16 tmp_score = 0;
         Panel panel;
         u8 i;
-        
+
         for(i = 0;i < Field::field_size;i++){
                 panel = field.at(i);
                 if(panel.is_enemy_panel()){
@@ -199,7 +199,7 @@ i16 Field::calc_sumpanel_score()
         i16 tmp_score = 0;
         Panel panel;
         u8 i;
-        
+
         for(i = 0;i < Field::field_size;i++){
                 panel = field.at(i);
                 if(panel.is_my_panel()){
@@ -233,8 +233,8 @@ void Field::randSetPanel() {
 	}
 }
 
-/* 
- *フィールドをパネルのスコアを使って描画します 
+/*
+ *フィールドをパネルのスコアを使って描画します
 	*/
 void Field::Draw() {
 	for(int i=0; i<field_size_y; i++) {
@@ -250,7 +250,7 @@ void Field::draw_status()
 {
         for(u8 y = 0;y < field_size_y;y++){
                 for(u8 x = 0;x < field_size_x;x++){
-                        printf(" %c", (at(x, y).is_pure_panel() ? 'P' : at(x, y).is_my_panel() ? 'M' : 'E'));
+                        printf(" %s", (at(x, y).is_pure_panel() ? "P" : at(x, y).is_my_panel() ? "\x1b[34mM\x1b[39m" : "\x1b[31mE\x1b[39m"));
                 }
                 printf("\n");
         }
@@ -302,7 +302,7 @@ void Field::dump_json_file(const char *file_name)
                         dst_queue.push_back(std::make_pair(panel, point));            \
                         checking.push_back(point);       \
                 }                                                       \
-}                 
+}
 
 i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, util::queue<std::pair<Panel, u8>> & queue, std::vector<u8> & done_list, std::vector<u8> & checking)
 {
@@ -322,21 +322,21 @@ i16 FieldEvaluater::expand_to_arounds(const Field *field, u8 point, util::queue<
                 const Panel right = field->at(x + 1, y);
                 PUSH_AROUND(queue, right, MAKE_POINT(x + 1, y), checking);
         }
-        
+
         if(field->is_within(x, y + 1)){
                 if(std::find(std::begin(done_list), std::end(done_list), MAKE_POINT(x, y + 1)) != std::end(done_list))
                         return STOP_GET_SCORE;
                 const Panel down = field->at(x, y + 1);
                 PUSH_AROUND(queue, down, MAKE_POINT(x, y + 1), checking);
         }
-        
+
         if(field->is_within(x - 1, y)){
                 if(std::find(std::begin(done_list), std::end(done_list), MAKE_POINT(x - 1, y)) != std::end(done_list))
                         return STOP_GET_SCORE;
                 const Panel left = field->at(x - 1, y);
                 PUSH_AROUND(queue, left, MAKE_POINT(x - 1, y), checking);
         }
-        
+
         return score;
 }
 
@@ -345,7 +345,7 @@ i16 FieldEvaluater::calc_sub_local_area_score(const Field *field, const Panel pa
 {
         i16 score = 0, tmp;
         std::vector<u8> checking;
-        
+
         while(queue.size()){
                 const std::pair<Panel, u8> panel_pair = queue.front();
                 queue.pop_front();
@@ -385,22 +385,22 @@ i16 FieldEvaluater::calc_local_area(const Field *field)
         const u8 y_range = Field::field_size_y - 1;
         const u8 x_range = Field::field_size_x - 1;
         u8 x, y;
-        
+
         for(y = 1;y < y_range;y++){
                 for(x = 1;x < x_range;x++){
 
                         const Panel panel = field->at(x, y);
-                        
+
                         if(panel.are_you(meta_data & EXTRACT_PLAYER_INFO)){
                                 continue;
                         }
-                        
+
                         const u8 point = MAKE_POINT(x, y);
-                        
+
                         if(std::find(std::begin(done_list), std::end(done_list), point) != std::end(done_list)){
                                 continue;
                         }
-                        
+
                         queue.push_back(std::make_pair(panel, point));
 
                         score += calc_sub_local_area_score(field, panel, queue, done_list);
@@ -421,7 +421,7 @@ i8 Field::get_field_score_avg(u8 flag)
         i64 sum, count;
         i8 score;
         sum = count = 0;
-        
+
         for(u8 x = 0;x < field_size_x;x++){
                 for(u8 y = 0;y < field_size_y;y++){
                         score = at(x, y).get_score_value();
@@ -450,7 +450,7 @@ i8 Field::get_field_score_avg(u8 flag)
         return (i8)ret;
 }
 
-std::vector<ClosedFlag> Closed::closedFlag; 
+std::vector<ClosedFlag> Closed::closedFlag;
 
 /*
  * 一人のagentで閉路を作るコンストラクタ
@@ -458,7 +458,7 @@ std::vector<ClosedFlag> Closed::closedFlag;
  */
 Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	i8 buf = -1;
-	
+
 	//エージェントの動きを最初からたどって目的の場所にたどり着くか判定
 	u8 i=0; //カウンタ
 	for(u8 coordinate:agent.locus) {
@@ -472,7 +472,7 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 		canMake = false;
 		return;
 	}
-	
+
 	// 閉路が作れる場合作成
 	u8 locus_size = agent.locus.size();
 	for(int i=buf; i<locus_size; i++) {
@@ -499,7 +499,7 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 		std::copy(a2.locus.begin(), a2.locus.end(), back_inserter(agent1locus));
 		std::copy(a1.locus.begin(), a1.locus.end(), back_inserter(agent2locus));
 	}
-			
+
 	// agent1 から closedFlag[0][1]を探す
 	int zeroone_locusnum = 0;
 	for(int i=0; i<(int)agent1locus.size(); i++) {
@@ -508,7 +508,7 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 			break;
 		}
 	}
-	
+
 	// agent1 の closedFlag[1][0] から closedFlag[0][1] の経路を this->closed に push_back
 	int onezero_locusnum = 0;
 	for(int i=0; i<(int)agent1locus.size(); i++) {
@@ -520,7 +520,7 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 	for(int i=std::min(zeroone_locusnum, onezero_locusnum); i<=std::max(zeroone_locusnum, onezero_locusnum); i++) {
 		this->closed.push_back(agent1locus[i]);
 	}
-	
+
 	// agent2 を辿り closedFlag[1][1] を探す
 	int oneone_locusnum = 0;
 	for(int i=0; i<(int)agent2locus.size(); i++) {
@@ -529,7 +529,7 @@ Closed::Closed(Agent agent, Field & field, u8 end_x, u8 end_y) {
 			break;
 		}
 	}
-	
+
 	// agent2 の closedFlag[1][1] から closedFlag[0][0] の経路を this->closed に push_back
 	int zerozero_locusnum = 0;
 	for(int i=0; i<(int)agent2locus.size(); i++) {
@@ -550,14 +550,14 @@ void Closed::Draw() {
 	}
 }
 
-/* 
+/*
  * 指定したパネルが経路でないとき、Directionの方向を見てclosedの閉路のパネルが存在したとき true を返す
  * ほぼ閉路スコア計算用
  */
 bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 	u8 buf_coordinate;
 	u8 buf;
-	
+
 	//checkPanelのdirectionの方向にこの経路の持つパネルが存在するか判定
 	switch(direction) {
 		case UP:
@@ -573,7 +573,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 				buf_coordinate--;
 			} while(buf_coordinate != 0);
 			break;
-			
+
 		case RIGHT:
 			buf_coordinate = x;
 			do {
@@ -587,7 +587,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 				buf_coordinate++;
 			} while(buf_coordinate != Field::field_size_x);
 			break;
-		
+
 		case DOWN:
 			buf_coordinate = y;
 			do {
@@ -615,11 +615,11 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 				buf_coordinate--;
 			} while(buf_coordinate != 0);
 			break;
-			
+
 		default:
 			break;
 		}
-		
+
 	return false;
 }
 
@@ -629,12 +629,12 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
  */
  u64 Closed::CalcScore(Field & field) {
 	 u64 sum = 0;
-	 
+
 	 //枠のスコア計算
 	 for(u8 coordinate:this->closed) {
 		 sum += field.field[coordinate].get_score_value();
 	 }
-	 
+
 	 //閉路の内側のスコア計算
 	 bool ans;
 	 /*
@@ -642,7 +642,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 	  * 上下左右の直線状全てに閉路の辺のパネルが存在した場合、そのパネルは閉路内と判定
 	  */
 	  for(u8 i=1; i<Field::field_size_y-1; i++) {
-		  for(u8 j=1; j<Field::field_size_x-1; j++) {		  
+		  for(u8 j=1; j<Field::field_size_x-1; j++) {
 			 //上を見る
 			  ans = CheckPanelLine(j, i, UP);
 			  if(ans == false) continue;
@@ -654,7 +654,7 @@ bool Closed::CheckPanelLine(u8 x, u8 y, Direction direction) {
 			  if(ans == false) continue;
 			 //左を見る
 			  ans = CheckPanelLine(j, i, LEFT);
-			  
+
 			/*
 			 * 上下左右を見たあとの処理
 			 * ans == true のときそのパネルは囲まれていると判断

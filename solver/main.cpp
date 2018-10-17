@@ -16,7 +16,7 @@ std::unordered_map<u64, te_list *> learning_map;
 int main(int argc, char **argv)
 {
         command_switching(argc, argv);
-        
+
         Field mainField;	//メインとなるフィールドのインスタンス
         Search search;
 
@@ -26,12 +26,12 @@ int main(int argc, char **argv)
                  */
                 std::vector<Closed> myclosed;	//閉路を格納するベクター
 
-	
+
                 mainField.randSetPanel();
-                
+
                 Agent a1(2,2,generate_agent_meta(MINE_ATTR));
                 Agent a2(5,5,generate_agent_meta(MINE_ATTR));
-	
+
 // a1を動かす
                 a1.move(&mainField,DOWN);
                 a1.move(&mainField,DOWN);
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                 a1.move(&mainField,RIGHT);
                 a1.move(&mainField,RIGHT);
                 Closed::closedFlag.emplace_back(MAKE_HASH(4,5),MAKE_HASH(5,5));
-                
+
 // a2を動かす
                 a2.move(&mainField,UP);
                 a2.move(&mainField,UP);
@@ -47,17 +47,17 @@ int main(int argc, char **argv)
                 a2.move(&mainField,LEFT);
                 a2.move(&mainField,LEFT);
                 Closed::closedFlag.emplace_back(MAKE_HASH(3,2),MAKE_HASH(2,2));
-	
+
                 myclosed.emplace_back(Closed(a1, a2));
                 myclosed[0].CalcScore(mainField);
-                
+
                 mainField.Draw();
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, UP) << std::endl;
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, RIGHT) << std::endl;
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, DOWN) << std::endl;
                 std::cout << "block: " << (int)a2.get_blockscore(mainField, LEFT) << std::endl;
                 std::cout << "best direction: " << (int)search.slantsearch(a2, mainField) << std::endl;
-                
+
 #ifdef __DEBUG_MODE
                 std::cout << "myclosed.size() :" << myclosed.size() << std::endl;
                 for(Closed closed:myclosed){
@@ -65,7 +65,6 @@ int main(int argc, char **argv)
                 }
 #endif
         }
-        
         return 0;
 }
 
@@ -86,7 +85,7 @@ void write_learning_data(const Node *before, const Node *after)
 #endif
         Direction d1 = after->get_last_action(0);
         Direction d2 = after->get_last_action(1);
-        
+
         ofs << states.at(0).state_hash << "\t" << (int)d1 << std::endl;
         ofs << states.at(1).state_hash << "\t" << (int)d2 << std::endl;
 }
@@ -96,7 +95,7 @@ void command_switching(int argc, char **argv)
         if(argc >= 5 && std::string(argv[4]).find(".bin") != std::string::npos){
                 learning_map = analyze_learning_data(argv[4]);
         }
-        
+
         if(!strcmp(argv[1], "init")){
                 /*
                  * コマンドライン引数の添字21にQRへのファイルパスが含まれているとする。
@@ -131,6 +130,7 @@ void command_switching(int argc, char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■■
                 const Node *ans = monte.let_me_monte(json_node, d >= 25 ? 25 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
@@ -204,7 +204,7 @@ void command_switching(int argc, char **argv)
                 mainField.make_at(2, 4, MINE_ATTR);
 
                 mainField.draw_status();
-        
+
                 std::chrono::system_clock::time_point  start, end;
                 i16 score;
                 start = std::chrono::system_clock::now();

@@ -97,12 +97,12 @@ void Montecarlo::expand_not_ai_turn(Node *node, std::function<void(Node *)> appl
                         child->expand();
 w                        child->dump_json_file("after.json");
                         getchar();
-                        
+
                         std::for_each(std::begin(child->ref_children()), std::end(child->ref_children()), apply_child);
                 }
         }catch(const std::out_of_range &e){
         */
-        
+
                 auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
                 for(Node *child : good_nodes){
                         //child->expand();
@@ -151,7 +151,7 @@ u64 Montecarlo::select_and_play(std::vector<PlayoutResult *> &result, PlayoutRes
                                         buf.push_back(tmp);
                                 }
                         });
-                
+
                 synchronized_adding(result, buf);
         }
 
@@ -175,7 +175,7 @@ u64 Montecarlo::dbbuild_select_and_play(std::vector<PlayoutResult *> &result, Pl
                                         buf.push_back(tmp);
                                 }
                         });
-                
+
                 synchronized_adding(result, buf);
         }
 
@@ -200,7 +200,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node, u8 rank)
                 n->evaluate();
                 nodes.push_back(n);
         }
-        
+
         std::sort(std::begin(nodes), std::end(nodes),
                   [](const Node *n1, const Node *n2){
 #ifdef I_AM_ENEMY
@@ -228,7 +228,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy(Node *node, u8 rank)
                 }
                 result.push_back(n);
         }
-        
+
         return result;
 }
 
@@ -265,7 +265,7 @@ std::vector<Node *> Montecarlo::listup_node_greedy2(Node *node, u8 rank)
                         delete n;
                         continue;
                 }
- 
+
                 if(max_score != n->get_score()){
                         max_score = n->get_score();
                         if(!--rank){
@@ -313,7 +313,7 @@ Node *Montecarlo::random_greedy(Node *node, u8 rank)
                         delete n;
                         continue;
                 }
-                
+
                 if(max_score != n->get_score()){
                         max_score = n->get_score();
                         if(!--rank){
@@ -418,7 +418,7 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
         for(Node *child : nodes){
                 PlayoutResult *tmp = new PlayoutResult(child, nullptr);
                 result.push_back(tmp);
-                original.push_back(tmp);       
+                original.push_back(tmp);
         }
 
         {
@@ -430,8 +430,8 @@ const Node *Montecarlo::greedy_montecarlo(Node *node, u8 depth)
                 }
 
         }
-        
-        
+
+
         if(result.size() == 1) return get_first_child(result.at(0)->node);
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 put_dot();
@@ -506,13 +506,14 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
         learning_not_found = learning_found = 0;
-        
+
         if(!depth)
                 return select_final(node);
 
         // 一個下のノードを展開
         node->expand();
-        
+
+        // progressib widening
         for(Node *child : node->ref_children())
                 child->evaluate();
         std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
@@ -540,23 +541,28 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 
         total_trying += 700 * original.size();
 
-        puts("hello");
+        puts("stage1 finished");
         result.push_back(original.at(index++));
-        
-        // 各ノードに対してシュミレーションを行う        
+
+        // 各ノードに対してシュミレーションを行う
         printf("thinking");
+        double cntlim = 0;
+        cntlim += (20*std::pow(1.25, index));
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 counter++;
-                if(counter == 20){
+                if(counter == (u64)cntlim){
                         if(original.size() <= index){
                                 continue;
                         }
                         result.push_back(original.at(index++));
-                        //std::cout << result.size() << std::endl;
+                        cntlim += (20*std::pow(1.25, index));
+//                        std::cout << "result_size = " << result.size() << std::endl;
+//                        std::cout << "cntlim = " << cntlim << std::endl;
                         counter = 0;
                 }
                 //printf("%ldnodes\n", result.
                 //put_dot();
+                // ■■■■■■■■ calc_ucb logの底問題 ■■■■■■■■
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -582,7 +588,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                   [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->trying > r2->trying; });
 
         std::cout << "missing_rate: " << (double)learning_not_found / (double)(learning_found + learning_not_found) << std::endl;
-        
+
 #ifdef __DEBUG_MODE
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
@@ -611,7 +617,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
         learning_not_found = learning_found = 0;
 
         node->expand();
-        
+
         for(Node *child : node->ref_children())
                 child->evaluate();
         std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
@@ -645,7 +651,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
         std::cout << "Entering stage2..." << std::endl;
 
         result.push_back(original.at(index++));
-        
+
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= timelimit){
                 counter++;
                 if(counter == 20){
@@ -672,7 +678,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 u64 Montecarlo::dbbuild_playout_process(PlayoutResult *tmp, u16 limit)
 {
         u16 win, i;
-        
+
         win = 0;
         for(i = 0;i < limit;i++)
                 if(dbbuild_playout(tmp->node, depth) == WIN)
@@ -684,7 +690,7 @@ u64 Montecarlo::dbbuild_playout_process(PlayoutResult *tmp, u16 limit)
 u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
 {
         u16 win, i;
-        
+
         win = 0;
         for(i = 0;i < limit;i++)
                 if(faster_playout(tmp->node, depth) == WIN)
@@ -699,7 +705,7 @@ u64 Montecarlo::playout_process(PlayoutResult *tmp, u16 limit)
 Node *Montecarlo::simulation(Node *node)
 {
         Direction d1, d2;
-        
+
         do{
                 d1 = int_to_direction(MOD_RANDOM(random()));
         }while(
@@ -722,7 +728,7 @@ Judge Montecarlo::playout(Node *node, u8 depth)
         Node *prev = node;
 
         current = simulation(current);
-        
+
         while(depth--){
                 prev = current;
                 current = simulation(current);
@@ -740,7 +746,7 @@ Judge Montecarlo::playout(Node *node, u8 depth)
 std::array<Direction, 4> Montecarlo::find_random_legal_direction(Node *node)
 {
         Direction m1, m2, e1, e2;
-        
+
         do{
                 m1 = int_to_direction(MOD_RANDOM(random()));
         }while(!node->my_agent1.is_movable(node->field, m1) || !(node->check_panel_score(m1, node->my_agent1) >= 0));
@@ -805,7 +811,7 @@ void Montecarlo::__buffering_learning_data(Node *before, Node *after)
 #endif
         Direction d1 = after->get_last_action(0);
         Direction d2 = after->get_last_action(1);
-        
+
         buffered_data.emplace_back(states.at(0).state_hash, d1);
         buffered_data.emplace_back(states.at(1).state_hash, d2);
 }
@@ -824,7 +830,7 @@ void Montecarlo::__buffering_learning_data(Node *node)
 std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
 {
         Direction m1, m2, e1, e2;
-        
+
         std::vector<action> &&actions = node->generate_state_hash();
 
         try{
@@ -843,7 +849,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                         m1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent1.is_movable(node->field, m1));
         }
-        
+
         try{
                 m2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, m2))
@@ -860,7 +866,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                         m2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent2.is_movable(node->field, m2));
         }
-        
+
         try{
                 e1 = learning_map.at(actions[2].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent1.is_movable(node->field, e1))
@@ -877,7 +883,7 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                         e1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, e1));
         }
-		
+
         try{
                 e2 = learning_map.at(actions[3].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, e2))
@@ -885,12 +891,12 @@ std::array<Direction, 4> Montecarlo::get_learning_direction(Node *node)
                 learning_found++;
         }catch(const std::out_of_range &e){
                 learning_not_found++;
-                //buffering_learning_data(node, ENEMY_TURN); 
-                do{            
+                //buffering_learning_data(node, ENEMY_TURN);
+                do{
                         e2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, e2));
         }catch(...){
-                do{            
+                do{
                         e2 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent2.is_movable(node->field, e2));
         }
@@ -906,7 +912,7 @@ std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::a
         m2 = dirs[1];
         e1 = dirs[2];
         e2 = dirs[3];
-        
+
         if(node->my_agent1.check_conflict(dirs[0], node->my_agent2, dirs[1]))
                 m1 = m2 = STOP;
         if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent1, dirs[2]))
@@ -919,14 +925,14 @@ std::array<Direction, 4> Montecarlo::check_direction_legality(Node *node, std::a
                 m2 = e2 = STOP;
         if(node->enemy_agent1.check_conflict(dirs[2], node->enemy_agent2, dirs[3]))
                 e1 = e2 = STOP;
-        
+
         return {m1, m2, e1, e2};
 }
 
 i8 Montecarlo::my_random_half_play(Node *node)
 {
         Direction d1, d2;
-        
+
         std::vector<action> &&actions = node->generate_state_hash(MY_TURN);
 
         try{
@@ -938,7 +944,7 @@ i8 Montecarlo::my_random_half_play(Node *node)
                         d1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->my_agent1.is_movable(node->field, d1));
         }
-        
+
         try{
                 d2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->my_agent2.is_movable(node->field, d2))
@@ -972,7 +978,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
                         d1 = int_to_direction(MOD_RANDOM(random()));
                 }while(!node->enemy_agent1.is_movable(node->field, d1));
         }
-		
+
         try{
                 d2 = learning_map.at(actions[1].state_hash)->random_select(random()).direction;
 		if(!node->enemy_agent2.is_movable(node->field, d2))
@@ -987,7 +993,7 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
                 return -1;
 
         node->play_half(d1, d2, ENEMY_TURN);
-        
+
         return 0;
 }
 
@@ -1003,7 +1009,7 @@ Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
         Judge result;
-        
+
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
@@ -1033,7 +1039,7 @@ Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
 #endif
         }else
                 result = DRAW;
-        
+
         delete current;
         return result;
 }
@@ -1042,7 +1048,7 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
         Node *current = new Node(node);
         Judge result;
-        
+
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
@@ -1076,7 +1082,7 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 #endif
         }else
                 result = DRAW;
-        
+
         delete current;
         return result;
 }
