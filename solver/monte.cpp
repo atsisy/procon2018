@@ -547,7 +547,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 各ノードに対してシュミレーションを行う
         printf("thinking");
         double cntlim = 0;
-        cntlim += (20*std::pow(1.25, index));
+        cntlim += (15*std::pow(1.01, index));
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 counter++;
                 if(counter == (u64)cntlim){
@@ -555,7 +555,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                                 continue;
                         }
                         result.push_back(original.at(index++));
-                        cntlim += (20*std::pow(1.25, index));
+                        cntlim += (15*std::pow(1.01, index));
 //                        std::cout << "result_size = " << result.size() << std::endl;
 //                        std::cout << "cntlim = " << cntlim << std::endl;
                         counter = 0;

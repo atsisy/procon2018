@@ -140,13 +140,23 @@ void command_switching(int argc, char **argv)
                 monte.create_database(node, std::atoi(argv[4]), std::atoi(argv[3]));
                 monte.write_out_data_base("db.bin");
                 delete node;
+        }else if(!strcmp(argv[1], "convert")){
+                Node *node;
+                if(std::string(argv[2]).find(".dat") != std::string::npos){
+                        FieldBuilder builder(new QRFormatParser(argv[2]));
+                        node = builder.create_root_node();
+                }else{
+                        node = new Node(argv[2]);
+                }
+                node->dump_json_file("cdump.json");
+                delete node;
         }else if(!strcmp(argv[1], "continue")){
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■■
-                const Node *ans = monte.let_me_monte(json_node, d >= 25 ? 25 : d);
+// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■
+                const Node *ans = monte.let_me_monte(json_node, d >= 35 ? 35 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
