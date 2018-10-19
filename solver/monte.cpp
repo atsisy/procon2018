@@ -17,7 +17,9 @@ i16 current_eval = 0;
 #define MOD_RANDOM(val) (val & 7)
 
 Montecarlo::Montecarlo()
-{}
+{
+        ucb_c = UCB_C;
+}
 
 static inline double get_win_average(std::vector<PlayoutResult *> &data)
 {
@@ -550,6 +552,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         cntlim += (15*std::pow(1.01, index));
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 counter++;
+                //update_ucb_c();
                 if(counter == (u64)cntlim){
                         if(original.size() <= index){
                                 continue;
