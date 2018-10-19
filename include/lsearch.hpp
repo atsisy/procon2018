@@ -170,7 +170,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.12;
+constexpr float UCB_C = std::sqrt(2);
 struct PlayoutResult {
 
         Node *node;
@@ -271,7 +271,14 @@ private:
         util::xor128 random;
         u8 depth;
         u32 limit;
+        float ucb_c;
         std::vector<db_element> buffered_data;
+
+        void update_ucb_c()
+                {
+                        static u64 count;
+                        ucb_c = UCB_C * std::pow(0.995, ++count);
+                }
 
         const Node *get_first_child(const Node *node);
         u64 playout_process(PlayoutResult *tmp, u16 limit);
