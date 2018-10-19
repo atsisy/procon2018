@@ -957,6 +957,11 @@ i8 Montecarlo::my_random_half_play(Node *node)
 
         if(node->my_agent1.check_conflict(d1, node->my_agent2, d2))
                 return -1;
+        if(node->my_agent1.check_conflict(d1, node->enemy_agent1, STOP) && node->my_agent1.check_conflict(d2, node->enemy_agent2, STOP))
+                return -1;
+        if(node->my_agent2.check_conflict(d1, node->enemy_agent1, STOP) && node->my_agent2.check_conflict(d2, node->enemy_agent2, STOP))
+                return -1;
+
 
         node->play_half(d1, d2, MY_TURN);
 
@@ -990,6 +995,10 @@ i8 Montecarlo::enemy_random_half_play(Node *node)
         }
 
         if(node->enemy_agent1.check_conflict(d1, node->enemy_agent2, d2))
+                return -1;
+        if(node->enemy_agent1.check_conflict(d1, node->my_agent1, STOP) && node->enemy_agent1.check_conflict(d2, node->my_agent2, STOP))
+                return -1;
+        if(node->enemy_agent2.check_conflict(d1, node->my_agent1, STOP) && node->enemy_agent2.check_conflict(d2, node->my_agent2, STOP))
                 return -1;
 
         node->play_half(d1, d2, ENEMY_TURN);

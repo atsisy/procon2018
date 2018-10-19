@@ -170,7 +170,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0.21;
+constexpr float UCB_C = 0.12;
 struct PlayoutResult {
 
         Node *node;
