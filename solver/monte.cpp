@@ -9,7 +9,7 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 500;
+constexpr u32 MONTE_EXPAND_LIMIT = 700;
 constexpr double MONTE_TIME_LIMIT = 11000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
@@ -495,18 +495,39 @@ u64 learning_not_found;
 
 bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
         float minu = 0;
+        float sum, variance, mean, precision;
         std::vector<float> ucbList;
 
         for(PlayoutResult *prin: pr) {
-                ucbList.push_back(prin->ucb);
+                if(prin->ucb >= 0) ucbList.push_back(prin->ucb);
         }
-        std::sort(std::begin(ucbList), std::end(ucbList), std::greater<float>());
+
+        // ucbListの平均
+        sum = 0;
+        for(float ucb: ucbList) {
+                sum += ucb;
+        }
+        mean = sum/(float)ucbList.size();    // 誤差対策
+
+        // 分散
+        sum = 0;
+        for(float ucb: ucbList) {
+                sum += pow(ucb-mean, 2);
+        }
+        variance = sum/(float)ucbList.size();
+        precision = 1.0/variance;
+        std::cout << "** UCB **" << std::endl;
+        std::cout << "mean = " << mean << std::endl;
+        std::cout << "variance = " << variance << std::endl;
+        std::cout << "precision = " << precision << std::endl;
+
+
+/*        std::sort(std::begin(ucbList), std::end(ucbList), std::greater<float>());
 
         for(int i=0; i<5; i++) {
                 minu += std::abs(ucbList[i]-ucbList[i+1]);
-        }
-        return (minu < 0.2) ? true : false;
-        return true;
+        }*/
+        return (precision > 20) ? true : false;
 }
 
 /*
