@@ -9,7 +9,7 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 700;
+constexpr u32 MONTE_EXPAND_LIMIT = 500;
 constexpr double MONTE_TIME_LIMIT = 11000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
@@ -493,12 +493,29 @@ u64 learning_found;
 u64 learning_not_found;
 
 
+bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
+        float minu = 0;
+        std::vector<float> ucbList;
+
+        for(PlayoutResult *prin: pr) {
+                ucbList.push_back(prin->ucb);
+        }
+        std::sort(std::begin(ucbList), std::end(ucbList), std::greater<float>());
+
+        for(int i=0; i<5; i++) {
+                minu += std::abs(ucbList[i]-ucbList[i+1]);
+        }
+        return (minu < 0.2) ? true : false;
+        return true;
+}
+
 /*
  * モンテカルロ法のアルゴリズム
  */
 const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 {
         std::vector<PlayoutResult *> original, result;
+        Node *nodesave = new Node(*node);
         u64 total_trying = 0;
         u64 counter = 0, index = 0;
         this->depth = depth;
@@ -562,7 +579,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 }
                 //printf("%ldnodes\n", result.
                 //put_dot();
-                // ■■■■■■■■ calc_ucb logの底問題 ■■■■■■■■
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -595,12 +611,31 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 #endif
         std::for_each(std::begin(original) + 1, std::end(original),
                       [](PlayoutResult *r){ delete r->node; delete r; });
+        if(isbadPlayoutResult(original)) {
+                // greedy_original
+                std::cout << "Greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeedy" << std::endl;
+                nodesave->expand();
+                for(Node *child : nodesave->ref_children())
+                        child->evaluate();
+                std::sort(std::begin(nodesave->ref_children()), std::end(nodesave->ref_children()),
+                        [](const Node *n1, const Node *n2){
+        #ifdef I_AM_ENEMY
+                                return n1->get_score() < n2->get_score();
+        #endif
+        #ifdef I_AM_ME
+                                return n1->get_score() > n2->get_score();
+        #endif
+                        });
+                //(nodesave->ref_children())[0];
+                //delete nodesave;
+        }
+
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
+        delete nodesave;
         return original.at(0)->node;
 }
-
 
 /*
  * データベース構築プログラム

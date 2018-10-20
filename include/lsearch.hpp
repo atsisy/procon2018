@@ -48,7 +48,7 @@ private:
         std::array<Direction, 2> last_action;
 
         std::vector<Node *> children;
-        
+
         /*
          * ルートノード生成用のコンストラクタ
          */
@@ -64,12 +64,12 @@ private:
         {
                 this->turn = turn;
         }
-        
+
         void play(std::array<Direction, 4> dirs);
         void play_half(Direction d1, Direction d2, u8 turn);
 
         bool has_same_pos(const Node *node);
-        
+
         std::string dump_json() const;
         std::vector<action> __generate_state_hash(std::vector<Agent> agents) const;
 
@@ -100,17 +100,17 @@ public:
         void draw() const;
 
         void dump_json_file(const char *file_name) const;
-        
+
         i8 check_panel_score(Direction d, Agent agent);
 
-        
+
         /*
          * 自分自身を評価するメソッド
          */
         i16 evaluate();
 
         void put_score_info();
-        
+
         /*
          * 展開するやつ
          */
@@ -118,7 +118,7 @@ public:
 
         Node *get_specific_child(Direction agent1, Direction agent2);
         std::vector<Node *> expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2);
-        
+
         void set_score(i16 score)
         {
                 this->score = score;
@@ -186,7 +186,7 @@ struct PlayoutResult {
                 trying = 0;
                 win = 0;
         }
-        
+
         void update(u16 trying, u16 win)
         {
                 this->trying += trying;
@@ -215,7 +215,7 @@ struct PlayoutResult {
         }
 
         /*
-         * N : そのノードでのplayoutの回数 
+         * N : そのノードでのplayoutの回数
          Pi : ノードのなかのi番目の指し手のプレイアウト時の勝率
          Si : ノードのなかのi番目の指し手のプレイアウトの回数
          */
@@ -256,7 +256,7 @@ struct LocalPlayoutResult {
 
         u16 times;
         u16 win;
-        
+
         LocalPlayoutResult(u16 times, u16 win){ this->times = times; this->win = win; }
 };
 
@@ -266,7 +266,7 @@ constexpr u8 MONTE_DEPTH = 70;
 class Montecarlo {
 
         friend initial_playout;
-        
+
 private:
         util::xor128 random;
         u8 depth;
@@ -298,11 +298,13 @@ private:
         void expand_not_ai_turn(Node *node, std::function<void(Node *)> apply_child);
         Direction learning_or_random(Node *node, Agent &agent, u64 hash);
 
+        bool isbadPlayoutResult(std::vector<PlayoutResult *> pr);
+
         void go_learning(Node *node, u8 turn);
         void buffering_learning_data(Node *node, u8 turn);
         void __buffering_learning_data(Node *before, Node *after);
         void __buffering_learning_data(Node *node);
-        
+
 public:
         void create_database(Node *node, i64 timelimit, u8 depth);
         const Node *let_me_monte(Node *node, u8 depth);
@@ -311,7 +313,7 @@ public:
         const Node *random_play(Node *node);
 
         void write_out_data_base(const char *file);
-        
+
         Montecarlo();
 };
 
@@ -321,7 +323,7 @@ private:
         PlayoutResult *pr;
         u16 times;
         Montecarlo *monte;
-        
+
 public:
         void run()
         {
