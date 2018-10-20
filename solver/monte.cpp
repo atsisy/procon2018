@@ -515,7 +515,6 @@ bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
 const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 {
         std::vector<PlayoutResult *> original, result;
-        Node *nodesave = new Node(*node);
         u64 total_trying = 0;
         u64 counter = 0, index = 0;
         this->depth = depth;
@@ -527,12 +526,15 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         if(!depth)
                 return select_final(node);
 
+        Node *nodesave(node);
         // 一個下のノードを展開
+        nodesave->expand();
         node->expand();
 
         // progressib widening
         for(Node *child : node->ref_children())
                 child->evaluate();
+        for(Node *child : nodesave->ref_children()) child->evaluate();  // greedy用
         std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
                   [](const Node *n1, const Node *n2){
 #ifdef I_AM_ENEMY
@@ -611,12 +613,11 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 #endif
         std::for_each(std::begin(original) + 1, std::end(original),
                       [](PlayoutResult *r){ delete r->node; delete r; });
+
+        // 各ノードのUCBの値を見て貪欲法に切り替える
         if(isbadPlayoutResult(original)) {
                 // greedy_original
                 std::cout << "Greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeedy" << std::endl;
-                nodesave->expand();
-                for(Node *child : nodesave->ref_children())
-                        child->evaluate();
                 std::sort(std::begin(nodesave->ref_children()), std::end(nodesave->ref_children()),
                         [](const Node *n1, const Node *n2){
         #ifdef I_AM_ENEMY
@@ -626,14 +627,12 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                                 return n1->get_score() > n2->get_score();
         #endif
                         });
-                //(nodesave->ref_children())[0];
-                //delete nodesave;
+                nodesave->ref_children().at(0)->evaluate();
+                return nodesave->ref_children().at(0);
         }
-
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
-        delete nodesave;
         return original.at(0)->node;
 }
 
