@@ -3,6 +3,7 @@
 #include <random>
 #include <array>
 #include <memory>
+#include <cmath>
 #include "types.hpp"
 
 using namespace util;
@@ -34,6 +35,7 @@ private:
         // 評価値
         i16 score;
         u8 turn;
+        u8 generation;
 
         const Node *parent;
 
@@ -170,7 +172,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = std::sqrt(2);
+constexpr float UCB_C = 0.12;
 struct PlayoutResult {
 
         Node *node;
@@ -213,6 +215,15 @@ struct PlayoutResult {
                 return (ucb = ((float)this->win / (float)this->trying)
                         + (UCB_C * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
         }
+
+        float calc_ucb(u32 global_total_trying, float ucb_c)
+                {
+                        if(ucb == -1)
+                                return -1;
+                        return (ucb = ((float)this->win / (float)this->trying)
+                                + (ucb_c * std::sqrt(std::log((float)global_total_trying) / (float)this->trying)));
+                }
+
 
         /*
          * N : そのノードでのplayoutの回数 
@@ -272,12 +283,16 @@ private:
         u8 depth;
         u32 limit;
         float ucb_c;
+        i16 upper_cut_off_score;
+        i16 lower_cut_off_score;
         std::vector<db_element> buffered_data;
 
         void update_ucb_c()
                 {
                         static u64 count;
-                        ucb_c = UCB_C * std::pow(0.995, ++count);
+                        ucb_c = UCB_C * std::pow(0.999, ++count);
+                        //std::cout << "ucb_c: " << ucb_c << std::endl;
+                        //ucb_c = 2.5 * std::sqrt(1.0 / (2 * M_PI)) * std::exp(-((3 * std::pow(count++, 2)) / (1 << 27)));
                 }
 
         const Node *get_first_child(const Node *node);

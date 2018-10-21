@@ -120,7 +120,7 @@ void command_switching(int argc, char **argv)
                 node->draw();
                 Montecarlo monte;
 		u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.let_me_monte(node, 20);
+                const Node *ans = monte.let_me_monte(node, 7);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
@@ -156,7 +156,7 @@ void command_switching(int argc, char **argv)
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■
-                const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
+                const Node *ans = monte.let_me_monte(json_node, d >= 60 ? 60 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
