@@ -495,6 +495,43 @@ u64 learning_found;
 u64 learning_not_found;
 
 
+bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
+        float minu = 0;
+        float sum, variance, mean, precision;
+        std::vector<float> ucbList;
+
+        for(PlayoutResult *prin: pr) {
+                if(prin->ucb >= 0) ucbList.push_back(prin->ucb);
+        }
+
+        // ucbListの平均
+        sum = 0;
+        for(float ucb: ucbList) {
+                sum += ucb;
+        }
+        mean = sum/(float)ucbList.size();    // 誤差対策
+
+        // 分散
+        sum = 0;
+        for(float ucb: ucbList) {
+                sum += pow(ucb-mean, 2);
+        }
+        variance = sum/(float)ucbList.size();
+        precision = 1.0/variance;
+        std::cout << "** UCB **" << std::endl;
+        std::cout << "mean = " << mean << std::endl;
+        std::cout << "variance = " << variance << std::endl;
+        std::cout << "precision = " << precision << std::endl;
+
+
+/*        std::sort(std::begin(ucbList), std::end(ucbList), std::greater<float>());
+
+        for(int i=0; i<5; i++) {
+                minu += std::abs(ucbList[i]-ucbList[i+1]);
+        }*/
+        return (precision > 20) ? true : false;
+}
+
 /*
  * モンテカルロ法のアルゴリズム
  */
@@ -512,12 +549,15 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         if(!depth)
                 return select_final(node);
 
+        Node *nodesave(node);
         // 一個下のノードを展開
+        nodesave->expand();
         node->expand();
 
         // progressib widening
         for(Node *child : node->ref_children())
                 child->evaluate();
+        for(Node *child : nodesave->ref_children()) child->evaluate();  // greedy用
         std::sort(std::begin(node->ref_children()), std::end(node->ref_children()),
                   [](const Node *n1, const Node *n2){
 #ifdef I_AM_ENEMY
@@ -565,7 +605,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 }
                 //printf("%ldnodes\n", result.
                 //put_dot();
-                // ■■■■■■■■ calc_ucb logの底問題 ■■■■■■■■
                 std::for_each(std::begin(result), std::end(result),
                               [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
@@ -598,12 +637,28 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 #endif
         std::for_each(std::begin(original) + 1, std::end(original),
                       [](PlayoutResult *r){ delete r->node; delete r; });
+
+        // 各ノードのUCBの値を見て貪欲法に切り替える
+        if(isbadPlayoutResult(original)) {
+                // greedy_original
+                std::cout << "Greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeedy" << std::endl;
+                std::sort(std::begin(nodesave->ref_children()), std::end(nodesave->ref_children()),
+                        [](const Node *n1, const Node *n2){
+        #ifdef I_AM_ENEMY
+                                return n1->get_score() < n2->get_score();
+        #endif
+        #ifdef I_AM_ME
+                                return n1->get_score() > n2->get_score();
+        #endif
+                        });
+                nodesave->ref_children().at(0)->evaluate();
+                return nodesave->ref_children().at(0);
+        }
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
         return original.at(0)->node;
 }
-
 
 /*
  * データベース構築プログラム

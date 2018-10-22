@@ -96,10 +96,10 @@ void write_log_file(const Node *node)
         if(!ofs){
                 std::cerr << "Failed to open file." << std::endl;
         }
-        
+
         Direction d1 = node->get_last_action(0);
         Direction d2 = node->get_last_action(1);
-        
+
         ofs << direction_to_str(d1) << " ";
         ofs << direction_to_str(d2);
 }
@@ -155,7 +155,6 @@ void command_switching(int argc, char **argv)
                 json_node->evaluate();
                 Montecarlo monte;
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■
                 const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
