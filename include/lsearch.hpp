@@ -110,6 +110,7 @@ public:
          * 自分自身を評価するメソッド
          */
         i16 evaluate();
+        i16 panel_only_evaluate();
 
         void put_score_info();
         
@@ -283,8 +284,8 @@ private:
         u8 depth;
         u32 limit;
         float ucb_c;
-        i16 upper_cut_off_score;
-        i16 lower_cut_off_score;
+        i16 default_upper_cut_off_score;
+        i16 default_lower_cut_off_score;
         std::vector<db_element> buffered_data;
 
         void update_ucb_c()

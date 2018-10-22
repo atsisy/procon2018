@@ -582,12 +582,19 @@ i16 Node::evaluate()
         return score;
 }
 
+i16 Node::panel_only_evaluate()
+{
+        score = 0;        
+        score += this->field->calc_sumpanel_score();
+        return score;
+}
+
 void Node::put_score_info()
 {
         puts("** SCORE INFORMATION **");
         std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
         std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;
         std::cout << "*Total*: " << evaluate() << std::endl;
 }
 

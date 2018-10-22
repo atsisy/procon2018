@@ -9,8 +9,8 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 350;
-constexpr double MONTE_TIME_LIMIT = 11000;
+constexpr u32 MONTE_EXPAND_LIMIT = 360;
+constexpr double MONTE_TIME_LIMIT = 15000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -107,9 +107,8 @@ w                        child->dump_json_file("after.json");
 
                 auto &&good_nodes = listup_node_greedy_turn(node, 1, MY_TURN);
                 for(Node *child : good_nodes){
-                        //child->expand();
-                        auto &&vec = listup_node_greedy(child, 4);
-                        std::for_each(std::begin(vec), std::end(vec), apply_child);
+                        child->expand();
+                        std::for_each(std::begin(child->ref_children()), std::end(child->ref_children()), apply_child);
                 }
                 /*
         }
@@ -487,6 +486,7 @@ const Node *Montecarlo::select_better_node(std::vector<PlayoutResult *> &sorted_
 #endif
                   });
 
+        
         return get_first_child(same_pos.at(0));
 }
 
@@ -505,8 +505,8 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u64 counter = 0, index = 0;
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
-        this->upper_cut_off_score = node->evaluate() - 6;
-        this->upper_cut_off_score = node->evaluate() + 5; 
+        this->default_upper_cut_off_score = node->evaluate() - 8;
+        this->default_lower_cut_off_score = node->evaluate() + 8;
         
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -1073,19 +1073,21 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         if(random_half_play(current, node->turn) == -1)
                 return LOSE;
         /*
-        std::cout << "not found case: " << learning_not_found << std::endl;
-        current->dump_json_file("debug.json");
-        getchar();
+          std::cout << "not found case: " << learning_not_found << std::endl;
+          current->dump_json_file("debug.json");
+          getchar();
         */
         while(depth--){
-                if(depth & 7){
+                if(depth & 1){
                         current->play(find_random_legal_direction(current));
                 }else{
-                        i16 score = current->evaluate();
-                        if(score < this->upper_cut_off_score){
-                                return WIN;
-                        }else if(score > this->lower_cut_off_score){
-                                return LOSE;
+                        if(depth & 7 == 7){
+                                i16 score = current->evaluate();
+                                if(score < this->default_upper_cut_off_score){
+                                        return WIN;
+                                }else if(score > this->default_lower_cut_off_score){
+                                        return LOSE;
+                                }
                         }
                         current->play(get_learning_direction(current));
                 }
