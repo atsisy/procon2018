@@ -499,7 +499,7 @@ bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
         std::vector<float> ucbList;
 
         for(PlayoutResult *prin: pr) {
-                if(prin->ucb >= 0) ucbList.push_back(prin->ucb);
+                ucbList.push_back(prin->percentage() * 100.0);
         }
 
         // ucbListの平均
@@ -509,7 +509,7 @@ bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
         }
         mean = sum/(float)ucbList.size();    // 誤差対策
 
-        // 分散
+        // 分
         sum = 0;
         for(float ucb: ucbList) {
                 sum += pow(ucb-mean, 2);
@@ -573,7 +573,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         {
                 ThreadPool tp(3, 100);
                 for(PlayoutResult *p : original){
-                        while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 10))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                         }
                 }
@@ -609,17 +609,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 std::sort(std::begin(result), std::end(result),
                           [](const PlayoutResult *r1, const PlayoutResult *r2){ return r1->ucb > r2->ucb; });
 
-                //result.at(0)->draw();
-                //std::thread th1([&](){
-                                        add_trying(&total_trying, select_and_play(result, result.at(0), 5));
-                                        //});
-                /*
-                        th2([&](){
-                                    add_trying(&total_trying, select_and_play(result, result.at(1), MONTE_INITIAL_TIMES));
-                            });
-                th2.join();
-                */
-                //th1.join();
+                add_trying(&total_trying, select_and_play(result, result.at(0), 5));
         }
         putchar('\n');
 
@@ -632,25 +622,28 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
 #endif
-        std::for_each(std::begin(original) + 1, std::end(original),
-                      [](PlayoutResult *r){ delete r->node; delete r; });
 
         // 各ノードのUCBの値を見て貪欲法に切り替える
         if(isbadPlayoutResult(original)) {
                 // greedy_original
                 std::cout << "Greeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeedy" << std::endl;
-                std::sort(std::begin(nodesave->ref_children()), std::end(nodesave->ref_children()),
-                        [](const Node *n1, const Node *n2){
-        #ifdef I_AM_ENEMY
-                                return n1->get_score() < n2->get_score();
-        #endif
-        #ifdef I_AM_ME
-                                return n1->get_score() > n2->get_score();
-        #endif
-                        });
-                nodesave->ref_children().at(0)->evaluate();
-                return nodesave->ref_children().at(0);
+                
+                std::sort(std::begin(original), std::end(original),
+                          [](const PlayoutResult *n1, const PlayoutResult *n2){
+#ifdef I_AM_ENEMY
+                                  return n1->node->get_score() < n2->node->get_score();
+#endif
+#ifdef I_AM_ME
+                                  return n1->node->get_score() > n2->node->get_score();
+#endif
+                          });
+                puts("Sorting is done");
         }
+
+        
+        std::for_each(std::begin(original) + 1, std::end(original),
+                      [](PlayoutResult *r){ delete r->node; delete r; });
+        
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
