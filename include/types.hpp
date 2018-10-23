@@ -287,7 +287,7 @@ public:
         std::string dump_json();
 
         void dump_json_file(const char *file_name);
-        
+
         // フィールドの描画関数
         void Draw();
 
@@ -555,7 +555,7 @@ private:
 
         Direction blockdirection;
         u8 blocktern;
-        
+
         void move_up()
                 {
                         y--;
@@ -778,4 +778,34 @@ private:
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);
+};
+
+class UF {
+private:
+        std::vector<Panel> data;
+
+        UF(std::vector<Panel> data):data(data) {}
+
+        bool Union(Panel x, Panel y) {
+                x = root(x);
+                y = root(y);
+                if(x != y) {
+                        if(data[y] < data[x]) swap(x,y);
+                        data[x] += data[y];
+                        data[y] = x;
+                }
+                return  x != y;
+        }
+
+        bool Find(Panel x, Panel y) {
+                return root(x) == root(y);
+        }
+
+        int root(int x) {
+                return data[x] < 0 ? x : data[x] = root(data[x]);
+        }
+
+        int size(int x) {
+                return -data[root(x)];
+        }
 };
