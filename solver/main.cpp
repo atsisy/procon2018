@@ -157,7 +157,6 @@ void command_switching(int argc, char **argv)
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
                 const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
                 ans->draw();
-                ans->getField()->fastcalc_mine_score(); // スコア計算のデバッグ
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
                 //write_learning_data(json_node, ans);

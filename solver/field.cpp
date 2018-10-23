@@ -224,18 +224,37 @@ i16 Field::fastcalc_mine_score() {
                                 else right = j;
                         }
                 }
-                std::cout << "right = " << right << ", left = " << left << std::endl;
-                if(right == -1 || left == -1) continue;
-                for(u8 j=left; j<=right; j++) {
+                std::cout << "left = " << left << ", right = " << right << std::endl;
+                // if(left != -1) field[xyIndex(left, i)].scorebuf = 1;
+                if(right == -1) continue;
+                for(u8 j=left+1; j<=right-; j++) {
                         field[xyIndex(j,i)].scorebuf = 1;
+                }
+        }
+
+        // 縦方向でフラグを立てる
+        for(u8 i=0; i<field_size_x; i++) {
+                up = -1, down = -1;
+                for(u8 j=0; j<field_size_y; j++) {
+                        if(this->at(i,j).is_my_panel()) {
+                                if(up == -1) up = j;
+                                else down = j;
+                        }
+                }
+                std::cout << "up = " << up << " , down = " << down << std::endl;
+                if(up != -1 && field[xyIndex(i, up)].scorebuf == 1) field[xyIndex(i, up)].scorebuf = 2;
+                if(down == -1 || up == -1) continue;
+                for(u8 j=up; j<=down; j++) {
+                        if(field[xyIndex(i,j)].scorebuf == 1) field[xyIndex(i,j)].scorebuf = 2;
                 }
         }
 
         std::cout << "*** Debug fastcalc ***" << std::endl;
         for(u8 i=0; i<field_size_y; i++) {
                 for(u8 j=0; j<field_size_x; j++) {
-                        if(this->at(j,i).scorebuf != 1) std::cout << ". ";
-                        else std::cout << "1 ";
+                        if(this->at(j,i).scorebuf == 1) std::cout << "1 ";
+                        else if(this->at(j,i).scorebuf == 2) std::cout << "2 ";
+                        else std::cout << ". ";
                 }
                 std::cout << std::endl;
         }

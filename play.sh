@@ -11,7 +11,7 @@ echo 0 0 > score.dat
 
 rm db.bin cdb.bin 
 
-./bin.d/bin db ./sample_qrformat.dat 50 17000
+./bin.d/bin db ./sample_qrformat.dat 1 17000
 
 mv db.bin cdb.bin
 
