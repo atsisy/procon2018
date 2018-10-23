@@ -103,6 +103,9 @@ public:
 
         i8 check_panel_score(Direction d, Agent agent);
 
+        Field *getField() const {
+                return this->field;
+        }
 
         /*
          * 自分自身を評価するメソッド

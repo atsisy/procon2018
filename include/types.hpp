@@ -78,6 +78,7 @@ private:
 	}
 
 public:
+        u8 scorebuf;
 
         bool is_my_panel() const
         {
@@ -279,6 +280,9 @@ public:
         Field *clone() const;
 
         u64 score();
+
+        // MINE のスコアをゲット
+        i16 fastcalc_mine_score();
 
         // フィールドのパネルの数値をランダムでセットする関数
         void randSetPanel();
@@ -778,34 +782,4 @@ private:
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);
-};
-
-class UF {
-private:
-        std::vector<Panel> data;
-
-        UF(std::vector<Panel> data):data(data) {}
-
-        bool Union(Panel x, Panel y) {
-                x = root(x);
-                y = root(y);
-                if(x != y) {
-                        if(data[y] < data[x]) swap(x,y);
-                        data[x] += data[y];
-                        data[y] = x;
-                }
-                return  x != y;
-        }
-
-        bool Find(Panel x, Panel y) {
-                return root(x) == root(y);
-        }
-
-        int root(int x) {
-                return data[x] < 0 ? x : data[x] = root(data[x]);
-        }
-
-        int size(int x) {
-                return -data[root(x)];
-        }
 };

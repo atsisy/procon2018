@@ -212,6 +212,36 @@ i16 Field::calc_sumpanel_score()
         return tmp_score;
 }
 
+i16 Field::fastcalc_mine_score() {
+        i16 left, right, up, down;
+
+        // 横方向でフラグを立てる
+        for(u8 i=0; i<field_size_y; i++) {
+                left = -1, right = -1;
+                for(u8 j=0; j<field_size_x; j++) {
+                        if(this->at(j,i).is_my_panel()) {
+                                if(left == -1) left = j;
+                                else right = j;
+                        }
+                }
+                std::cout << "right = " << right << ", left = " << left << std::endl;
+                if(right == -1 || left == -1) continue;
+                for(u8 j=left; j<=right; j++) {
+                        field[xyIndex(j,i)].scorebuf = 1;
+                }
+        }
+
+        std::cout << "*** Debug fastcalc ***" << std::endl;
+        for(u8 i=0; i<field_size_y; i++) {
+                for(u8 j=0; j<field_size_x; j++) {
+                        if(this->at(j,i).scorebuf != 1) std::cout << ". ";
+                        else std::cout << "1 ";
+                }
+                std::cout << std::endl;
+        }
+        return 0;
+}
+
 u64 Field::score()
 {
         /*
@@ -232,7 +262,6 @@ void Field::randSetPanel() {
 		this->field[i].set_score_value(rand33(mt)-16);	//field[i] に -16~16 の乱数をセット
 	}
 }
-
 /*
  *フィールドをパネルのスコアを使って描画します
 	*/

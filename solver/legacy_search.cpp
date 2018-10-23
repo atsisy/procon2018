@@ -52,7 +52,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
 #endif
 
         parent = NULL;
-        
+
         score = 0;
 }
 
@@ -64,7 +64,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
  * 引数
  * const Node *parent
  * クローン元になるNodeオブジェクト
- * 
+ *
  */
 Node::Node(const Node *parent)
         : my_agent1(parent->my_agent1),
@@ -99,7 +99,7 @@ Node::Node(const char *json_path)
                 std::cerr << err << std::endl;
                 exit(1);
         }
-        
+
         picojson::object& obj = v.get<picojson::object>();
         my_agent1.x = (int)obj["agent_m1_x"].get<double>();
         my_agent1.y = (int)obj["agent_m1_y"].get<double>();
@@ -113,12 +113,12 @@ Node::Node(const char *json_path)
         picojson::array& array = obj["Field"].get<picojson::array>();
         FieldBuilder builer((i32)obj["width"].get<double>(), (i32)obj["height"].get<double>());
         field = new Field();
-        
+
         for(picojson::value &e : array){
                 picojson::object &object = e.get<picojson::object>();
                 field->set_score_at(object["x"].get<double>(), object["y"].get<double>(), object["score"].get<double>());
                 field->make_at(object["x"].get<double>(), object["y"].get<double>(), [](std::string key){
-                                                                                                  if(key == "P")
+                                                                                                        if(key == "P")
                                                                                                           return PURE_ATTR;
                                                                                                   else if(key == "M")
                                                                                                           return MINE_ATTR;
@@ -203,7 +203,7 @@ std::string Node::dump_json() const
         root.insert(std::make_pair("height", picojson::value((double)Field::field_size_y)));
         std::cout << (double)get_score() << std::endl;
         root.insert(std::make_pair("total_score", picojson::value((double)get_score())));
-        
+
 
         for(u8 y = 0;y < Field::field_size_y;y++){
                 for(u8 x = 0;x < Field::field_size_x;x++){
@@ -264,7 +264,7 @@ std::array<Direction, 4> Node::agent_diff(const Node *node) const
         ret[2] = which_direction(tmp.first, tmp.second);
         tmp = enemy_agent2.diff(node->enemy_agent2);
         ret[3] = which_direction(tmp.first, tmp.second);
-        
+
         return ret;
 }
 
@@ -314,7 +314,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
 
         i8 x, y;
         Panel panel;
-        
+
         for(x = agent.x - 1;x <= agent.x + 1;x++){
                 for(y = agent.y - 1;y <= agent.y + 1;y++){
                         if(!field->is_within(x, y))
@@ -329,7 +329,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                         }
 
                         //std::cout << "x : y = " << (int)x << " : " << (int)y << " score: " << score << std::endl;
-                        
+
                         if(max < score){
                                 max = score;
                         }
@@ -348,7 +348,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                         }else{
                                 score = field->at(x, y).get_score_value();
                         }
-                        
+
                         if(max == score)
                                 ret.push_back(which_direction(x - agent.x, y - agent.y));
                 }
@@ -363,7 +363,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
         }
         getchar();
         */
-        
+
         Direction ans = ret.at(rand % ret.size());
         /*
         if(ans == STOP){
@@ -376,7 +376,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                 getchar();
         }
         */
-        
+
         return ans;
 }
 
@@ -384,7 +384,7 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
 std::vector<action> Node::generate_state_hash(u8 turn) const
 {
         std::vector<Agent> agents;
-        
+
         if(IS_MYTURN(turn)){
                 agents.push_back(my_agent1);
                 agents.push_back(my_agent2);
@@ -406,7 +406,7 @@ void Node::expand_enemy_node()
         //children.reserve(81);
         std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = enemy_agent2.movable_direction(this->field);
-        
+
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
 
@@ -436,14 +436,14 @@ bool Node::has_same_pos(const Node *node)
                 this->my_agent2.same_location(node->my_agent2) &&
                 this->enemy_agent1.same_location(node->enemy_agent1) &&
                 this->enemy_agent2.same_location(node->enemy_agent2);
-                
+
 }
 
 void Node::expand_my_node()
 {
         std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
         std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
-        
+
         for(const Direction dir1 : directions1){
                 for(const Direction dir2 : directions2){
 
@@ -454,7 +454,7 @@ void Node::expand_my_node()
                            this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
                                 continue;
                         }
-                        
+
                         /** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
@@ -490,7 +490,7 @@ Node *Node::get_specific_child(Direction agent1, Direction agent2)
                 clone->my_agent2.move(clone->field, agent2);
         }else{
                 clone->enemy_agent1.move(clone->field, agent1);
-                clone->enemy_agent2.move(clone->field, agent2);  
+                clone->enemy_agent2.move(clone->field, agent2);
         }
         return clone;
 }
@@ -499,7 +499,7 @@ std::vector<Node *> Node::expand_my_specific_children(std::vector<Direction> &fo
 {
         std::vector<Node *> nodes;
         nodes.reserve(36);
-        
+
         for(const Direction dir1 : for_a1){
                 for(const Direction dir2 : for_a2){
 
@@ -562,7 +562,7 @@ i16 Node::evaluate()
          * 初期化
          */
         score = 0;
-        
+
         /*
          * FIXME
          * 一発でenemyとmineか判定したい
@@ -576,7 +576,7 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-        
+
         return score;
 }
 
@@ -585,7 +585,7 @@ void Node::put_score_info()
         puts("** SCORE INFORMATION **");
         std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
         std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;
         std::cout << "*Total*: " << evaluate() << std::endl;
 }
 
@@ -629,7 +629,7 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
         if(!depth){
                 return node->evaluate();
         }
-        
+
         node->expand();
 
         for(Node *child : node->ref_children()){
@@ -649,42 +649,42 @@ i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
 }
 
 i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
-	
+
 	int ds = -10000;
 	int tmp;
 	std::vector<i8> discore(4,0);			// up, right, down, left
-	
+
 	if(depth == 0) {
 		// Up
 		tmp = agent.get_blockscore(field, UP);
 		if(ds < tmp) ds = tmp;
-		
+
 		// Right
 		tmp = agent.get_blockscore(field, RIGHT);
 		if(ds < tmp) ds = tmp;
-		
+
 		// Down
 		tmp = agent.get_blockscore(field, DOWN);
-		if(ds < tmp) ds = tmp;	
-		
+		if(ds < tmp) ds = tmp;
+
 		// Left
 		tmp = agent.get_blockscore(field, LEFT);
 		if(ds < tmp) ds = tmp;
-	
+
 		return tmp;
 	}
-	
+
 	Direction weast;
 	discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
 	discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
 	discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
 	discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
-	
+
 	i8 max = *std::max_element(discore.begin(), discore.end());
-	
+
 	for(int i=0;i<4; i++)
-		if(discore[i] == max) *result = (Direction)(i*2); 
-	
+		if(discore[i] == max) *result = (Direction)(i*2);
+
 	return max;
 }
 
@@ -703,6 +703,6 @@ Node *Search::absearch(Node *root)
 i8 Search::slantsearch(Agent agent, Field & field) {
 	Direction ret;
 	slant(agent, field, 1, &ret);
-	
+
 	return ret;
 }
