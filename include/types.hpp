@@ -781,23 +781,23 @@ public:
 };
 
 class UF {
-private:
-        std::vector<Panel> data;
+public:
+        std::vector<int> data;
 
-        UF(std::vector<Panel> data):data(data) {}
+        UF(int size):data(size, -1) {}
 
-        bool Union(Panel x, Panel y) {
+        bool Union(int x, int y) {
                 x = root(x);
                 y = root(y);
                 if(x != y) {
-                        if(data[y] < data[x]) swap(x,y);
+                        if(data[y] < data[x]) std::swap(x,y);
                         data[x] += data[y];
                         data[y] = x;
                 }
                 return  x != y;
         }
 
-        bool Find(Panel x, Panel y) {
+        bool Find(int x, int y) {
                 return root(x) == root(y);
         }
 
