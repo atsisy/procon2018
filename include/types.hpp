@@ -209,15 +209,19 @@ class Closed;
 class UF {
 public:
         std::vector<int> data;
+        std::vector<int> rank;
 
         UF(int size) {
                 data = std::vector<int>(size);
-                for(int i=0; i<size; i++) data[i] = i;
+                rank = std::vector<int>(size);
+                for(int i=0; i<size; i++) {
+                        data[i] = i;
+                        rank[i] = 0;
+                }
         }
 
         int root(int x) {
-                if(data[x] == x) return x;
-                else return data[x] = root(data[x]);
+                return data[x] == x ? x : data[x] = root(data[x]);
         }
 
         bool same(int x, int y) {
@@ -228,7 +232,13 @@ public:
                 x = root(x);
                 y = root(y);
                 if(x == y) return;
-                data[x] = y;
+
+                if(rank[x] < rank[y]) {
+                        data[x] = y;
+                } else {
+                        data[y] = x;
+                        if(rank[x]  == rank[y]) rank[x]++;
+                }
         }
 };
 
