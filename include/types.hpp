@@ -346,6 +346,10 @@ public:
 
         UF makePureTree();
         std::unordered_map<int, std::vector<int>> makePureTerritory(UF pureTree);
+
+        // panelを含むpurePanelモデルのスコアを計算
+        i16 calcLocalArea(Panel panel);
+        i16 calcMineScore(std::unordered_map<int, std::vector<int>> pureTree);
 };
 
 /*

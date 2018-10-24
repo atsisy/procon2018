@@ -356,8 +356,32 @@ std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF pureTree) 
                 for(int index: vec)  std::cout << std::setw(3) << index << " ";
                 std::cout << std::endl;
         }
+        std::cout << std::endl;
 
         return retn;
+}
+
+i16 Field::calcLocalArea(Panel panel) {
+        i16 score = 0;
+
+        return score;
+}
+
+i16 Field::calcMineScore(std::unordered_map<int, std::vector<int>> pureTree) {
+        i16 score;
+
+        std::cout << "*** calcMineScore info***" << std::endl;
+        for(const auto& [key, vec]: pureTree) {
+        // 各ピュアパネルの纏まりの代表のパネルが渡されるのでその纏まりのスコアを広げていくやつで計算したい
+        // keyは各ピュアパネルの纏まりのタグとなる番号
+        // vecにはkeyの纏まりに属しているindexのベクター
+                score = calcLocalArea(this->field[vec[0]]);
+                std::cout << "[" << key << "] : " << score << std::endl;
+        }
+
+        std::cout << "___ calcMineScore info END ___" << std::endl << std::endl;
+
+        return 0;
 }
 
 #define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \
