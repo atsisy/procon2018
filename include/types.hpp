@@ -303,6 +303,18 @@ private:
 		return x+(y<<Field::ac_shift_offset);
 	}
 
+        u8 indexY(u8 index) {
+                return index/(field_size/field_size_y);
+        }
+
+        u8 indexX(u8 index) {
+                return index-indexY(index)*(field_size/field_size_y);
+        }
+
+        // ある属性のパネルに挟まれているか調べる関数
+        bool isPanelMineBetween(int x, int y);
+        bool isPanelEnemyBetween(int x, int y);
+
 public:
         Field();
 
@@ -348,8 +360,9 @@ public:
         std::unordered_map<int, std::vector<int>> makePureTerritory(UF pureTree);
 
         // panelを含むpurePanelモデルのスコアを計算
-        i16 calcLocalArea(Panel panel);
+        bool checkLocalArea(int x, int y, u8 attr);
         i16 calcMineScore(std::unordered_map<int, std::vector<int>> pureTree);
+        i16 calcEnemyScore(std::unordered_map<int, std::vector<int>> pureTree);
 };
 
 /*
