@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <type_traits>
 #include <deque>
+#include <unordered_map>
 
 #include "debug.hpp"
 
@@ -344,6 +345,7 @@ public:
         }
 
         UF makePureTree();
+        std::unordered_map<int, std::vector<int>> makePureTerritory(UF pureTree);
 };
 
 /*
