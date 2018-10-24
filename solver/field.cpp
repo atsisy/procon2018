@@ -296,40 +296,35 @@ void Field::dump_json_file(const char *file_name)
 }
 
  UF Field::makePureTree() {
-        i16 xbuf, ybuf;
         UF pureTree(field_size);
 
         for(int i=0; i<field_size_y; i++) {
                 for(int j=0; j<field_size_x; j++) {
                         if(!this->at(j,i).is_pure_panel()) continue;
                         // UP
-                        /*ybuf = i-1;
-                        if(ybuf >= 0) {
-                                if(this->at(j, ybuf).is_pure_panel()) {
-                                        pureTree.Union(xyIndex(j,i), xyIndex(j,ybuf));
+                        if(i-1 >= 0) {
+                                if(this->at(j, i-1).is_pure_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j,i-1));
                                 }
-                        }*/
-/*                        // DOWN
-                        ybuf = i+1;
-                        if(ybuf < field_size_y) {
-                                if(this->at(j, ybuf).is_pure_panel()) {
-                                        pureTree.Union(xyIndex(j,i), xyIndex(j,ybuf));
+                        }
+                       // DOWN
+                        if(i+1 < field_size_y) {
+                                if(this->at(j, i+1).is_pure_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j,i+1));
                                 }
                         }
                         // RIGHT
-                        xbuf = j+1;
-                        if(xbuf < field_size_x) {
-                                if(this->at(xbuf, i).is_pure_panel()) {
-                                        pureTree.Union(xyIndex(j,i), xyIndex(xbuf, i));
+                        if(j+1 < field_size_x) {
+                                if(this->at(j+1, i).is_pure_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j+1, i));
                                 }
                         }
                         // LEFT
-                        xbuf = j-1;
-                        if(xbuf >= 0) {
-                                if(this->at(xbuf, i).is_pure_panel()) {
-                                        pureTree.Union(xyIndex(j,i), xyIndex(xbuf, i));
+                        if(j-1 >= 0) {
+                                if(this->at(j-1, i).is_pure_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j-1, i));
                                 }
-                        }*/
+                        }
                 }
         }
 
@@ -339,7 +334,7 @@ void Field::dump_json_file(const char *file_name)
         this->draw_status();
         for(int i=0; i<field_size_y; i++) {
                 for(int j=0; j<field_size_x; j++)
-                        std::cout << std::setw(3) << pureTree.data[xyIndex(j,i)] << " ";
+                        std::cout << std::setw(3) << pureTree.root(pureTree.data[xyIndex(j,i)]) << " ";
                 std::cout << std::endl;
         }
 
