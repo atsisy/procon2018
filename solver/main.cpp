@@ -7,6 +7,7 @@
 #include <cstring>
 #include "types.hpp"
 #include "learn.hpp"
+#include <unordered_map>
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
 void command_switching(int argc, char **argv);
@@ -157,7 +158,7 @@ void command_switching(int argc, char **argv)
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
                 const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
                 ans->draw();
-                json_node->getField()->makePureTerritory(json_node->getField()->makePureTree());
+                json_node->getField()->calcMineScore(json_node->getField()->makePureTerritory(json_node->getField()->makePureTree()));
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
                 //write_learning_data(json_node, ans);
