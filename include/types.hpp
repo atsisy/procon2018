@@ -205,6 +205,33 @@ constexpr u8 NEGATIVE_ONLY = 1;
 constexpr u8 WHOLE = 2;
 
 class Closed;
+
+class UF {
+public:
+        std::vector<int> data;
+
+        UF(int size) {
+                data = std::vector<int>(size);
+                for(int i=0; i<size; i++) data[i] = i;
+        }
+
+        int root(int x) {
+                if(data[x] == x) return x;
+                else return data[x] = root(data[x]);
+        }
+
+        bool same(int x, int y) {
+                return root(x) == root(y);
+        }
+
+        void unite(int x, int y) {
+                x = root(x);
+                y = root(y);
+                if(x == y) return;
+                data[x] = y;
+        }
+};
+
 /*
  * Fieldクラス
  * 一つのフィールドを表すクラス
@@ -220,6 +247,8 @@ class Field {
 
         friend bool is_edge(u8 value);
         friend Closed;
+
+        friend UF;
 
 private:
         // アクセスのとき、y座標をどれだけシフトするか
@@ -264,7 +293,6 @@ private:
 	}
 
 public:
-
         Field();
 
         /*
@@ -304,6 +332,8 @@ public:
         {
                 return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
         }
+
+        UF makePureTree();
 };
 
 /*
@@ -778,34 +808,4 @@ private:
 public:
         static i16 calc_local_area(const Field *field);
         static void set_target(u8 flag);
-};
-
-class UF {
-public:
-        std::vector<int> data;
-
-        UF(int size):data(size, -1) {}
-
-        bool Union(int x, int y) {
-                x = root(x);
-                y = root(y);
-                if(x != y) {
-                        if(data[y] < data[x]) std::swap(x,y);
-                        data[x] += data[y];
-                        data[y] = x;
-                }
-                return  x != y;
-        }
-
-        bool Find(int x, int y) {
-                return root(x) == root(y);
-        }
-
-        int root(int x) {
-                return data[x] < 0 ? x : data[x] = root(data[x]);
-        }
-
-        int size(int x) {
-                return -data[root(x)];
-        }
 };

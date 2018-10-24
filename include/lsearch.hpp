@@ -99,6 +99,11 @@ public:
          */
         void draw() const;
 
+        // デバッグ用
+        Field *getField() const {
+                return field;
+        }
+
         void dump_json_file(const char *file_name) const;
 
         i8 check_panel_score(Direction d, Agent agent);

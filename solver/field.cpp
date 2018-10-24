@@ -7,6 +7,7 @@
 #include <iterator>
 #include <fstream>
 #include "picojson.h"
+#include <ios>
 
 u8 Field::ac_shift_offset;
 u8 Field::field_size;
@@ -292,6 +293,57 @@ void Field::dump_json_file(const char *file_name)
 {
         std::ofstream f(file_name);
         f << dump_json();
+}
+
+ UF Field::makePureTree() {
+        i16 xbuf, ybuf;
+        UF pureTree(field_size);
+
+        for(int i=0; i<field_size_y; i++) {
+                for(int j=0; j<field_size_x; j++) {
+                        if(!this->at(j,i).is_pure_panel()) continue;
+                        // UP
+                        /*ybuf = i-1;
+                        if(ybuf >= 0) {
+                                if(this->at(j, ybuf).is_pure_panel()) {
+                                        pureTree.Union(xyIndex(j,i), xyIndex(j,ybuf));
+                                }
+                        }*/
+/*                        // DOWN
+                        ybuf = i+1;
+                        if(ybuf < field_size_y) {
+                                if(this->at(j, ybuf).is_pure_panel()) {
+                                        pureTree.Union(xyIndex(j,i), xyIndex(j,ybuf));
+                                }
+                        }
+                        // RIGHT
+                        xbuf = j+1;
+                        if(xbuf < field_size_x) {
+                                if(this->at(xbuf, i).is_pure_panel()) {
+                                        pureTree.Union(xyIndex(j,i), xyIndex(xbuf, i));
+                                }
+                        }
+                        // LEFT
+                        xbuf = j-1;
+                        if(xbuf >= 0) {
+                                if(this->at(xbuf, i).is_pure_panel()) {
+                                        pureTree.Union(xyIndex(j,i), xyIndex(xbuf, i));
+                                }
+                        }*/
+                }
+        }
+
+        std::cout << std::endl << "*** UnionFind info ***" << std::endl;
+        std::cout << "field_size_x = " << (int)field_size_x << std::endl;
+        std::cout << "field_size_y = " << (int)field_size_y << std::endl;
+        this->draw_status();
+        for(int i=0; i<field_size_y; i++) {
+                for(int j=0; j<field_size_x; j++)
+                        std::cout << std::setw(3) << pureTree.data[xyIndex(j,i)] << " ";
+                std::cout << std::endl;
+        }
+
+        return pureTree;
 }
 
 #define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \
