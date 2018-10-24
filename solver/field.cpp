@@ -341,6 +341,25 @@ UF Field::makePureTree() {
         return pureTree;
 }
 
+std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF pureTree) {
+        std::unordered_map<int, std::vector<int>> retn;
+
+        for(int i=0; i<field_size_y; i++) {
+                for(int j=0; j<field_size_x; j++) {
+                        if(this->at(j,i).is_pure_panel()) retn[pureTree.root(xyIndex(j,i))].push_back(xyIndex(j,i));
+                }
+        }
+
+        std::cout << "*** makePureTerritory info ***" << std::endl;
+        for(const auto& [key, vec]: retn) {
+                std::cout << "[" << key << "] =>";
+                for(int index: vec)  std::cout << std::setw(3) << index << " ";
+                std::cout << std::endl;
+        }
+
+        return retn;
+}
+
 #define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \
                         !panel.are_you(meta_data & EXTRACT_PLAYER_INFO) && \
                         std::find(std::begin(list), std::end(list), point) == std::end(list)) \
