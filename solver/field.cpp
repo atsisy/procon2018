@@ -295,7 +295,7 @@ void Field::dump_json_file(const char *file_name)
         f << dump_json();
 }
 
- UF Field::makePureTree() {
+UF Field::makePureTree() {
         UF pureTree(field_size);
 
         for(int i=0; i<field_size_y; i++) {
