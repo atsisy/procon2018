@@ -361,27 +361,143 @@ std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF pureTree) 
         return retn;
 }
 
-i16 Field::calcLocalArea(Panel panel) {
-        i16 score = 0;
+bool Field::isPanelMineBetween(int x, int y) {
+        int buf = 0;
+        // 左
+        for(int i=x-1; i>=0; i--) {
+                if(this->at(i, y).is_my_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 0) return false;
 
-        return score;
+        // 右
+        for(int i=x+1; i<field_size_x; i++) {
+                if(this->at(i, y).is_my_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 1) return false;
+
+        // 上
+        for(int i=y-1; i>=0; i--) {
+                if(this->at(x,i).is_my_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 2) return false;
+
+        // 下
+        for(int i=y+1; i<field_size_y; i++) {
+                if(this->at(x,i).is_my_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 3) return false;
+        return true;
+}
+
+bool Field::isPanelEnemyBetween(int x, int y) {
+        int buf = 0;
+        // 左
+        for(int i=x-1; i>=0; i--) {
+                if(this->at(i, y).is_enemy_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 0) return false;
+
+        // 右
+        for(int i=x+1; i<field_size_x; i++) {
+                if(this->at(i, y).is_enemy_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 1) return false;
+
+        // 上
+        for(int i=y-1; i>=0; i--) {
+                if(this->at(x,i).is_enemy_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 2) return false;
+
+        // 下
+        for(int i=y+1; i<field_size_y; i++) {
+                if(this->at(x,i).is_enemy_panel()) {
+                        buf++;
+                        break;
+                }
+        }
+        if(buf == 3) return false;
+        return true;
+}
+
+bool Field::checkLocalArea(int x, int y, u8 attr) {
+        if(attr == MINE_ATTR) {
+                return isPanelMineBetween(x, y);
+        }
+        return isPanelEnemyBetween(x,y);
 }
 
 i16 Field::calcMineScore(std::unordered_map<int, std::vector<int>> pureTree) {
-        i16 score;
+        i16 totalscore = 0, score = 0;
+        bool check;
 
         std::cout << "*** calcMineScore info***" << std::endl;
         for(const auto& [key, vec]: pureTree) {
-        // 各ピュアパネルの纏まりの代表のパネルが渡されるのでその纏まりのスコアを広げていくやつで計算したい
-        // keyは各ピュアパネルの纏まりのタグとなる番号
-        // vecにはkeyの纏まりに属しているindexのベクター
-                score = calcLocalArea(this->field[vec[0]]);
-                std::cout << "[" << key << "] : " << score << std::endl;
+                check = true;
+                score = 0;
+                for(auto pn: vec) {
+                        if(!checkLocalArea(indexX(pn), indexY(pn), MINE_ATTR)) {
+                                check = false;
+                                std::cout << "[" << key << "] : false" << std::endl;
+                                break;
+                        }
+                        score += std::abs(field.at(pn).get_score_value());
+                }
+                if(check == true) {
+                        totalscore += score;
+                        std::cout << "[" << key << "] : true, score = " << score << ", total = " << totalscore << std::endl;
+                }
         }
-
         std::cout << "___ calcMineScore info END ___" << std::endl << std::endl;
 
-        return 0;
+        return totalscore;
+}
+
+i16 Field::calcEnemyScore(std::unordered_map<int, std::vector<int>> pureTree) {
+        i16 totalscore = 0, score = 0;
+        bool check;
+
+        std::cout << "*** calcEnemyScore info***" << std::endl;
+        for(const auto& [key, vec]: pureTree) {
+                check = true;
+                score = 0;
+                for(auto pn: vec) {
+                        if(!checkLocalArea(indexX(pn), indexY(pn), ENEMY_ATTR)) {
+                                check = false;
+                                std::cout << "[" << key << "] : false" << std::endl;
+                                break;
+                        }
+                        score += std::abs(field.at(pn).get_score_value());
+                }
+                if(check == true) {
+                        totalscore += score;
+                        std::cout << "[" << key << "] : true, score = " << score << ", total = " << totalscore << std::endl;
+                }
+        }
+        std::cout << "___ calcEnemyScore info END ___" << std::endl << std::endl;
+
+        return totalscore;
 }
 
 #define PUSH_AROUND(dst_queue, panel, point, list) { if (                    \
