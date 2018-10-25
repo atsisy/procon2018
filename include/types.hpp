@@ -587,130 +587,134 @@ private:
                 {
                         x--;
                         y++;
-                }
+                }void move_left()
+	{
+		x--;
+	}
 
-        void move_left()
-                {
-                        x--;
-                }
+	void move_lup()
+	{
+		x--;
+		y--;
+	}
 
-        void move_lup()
-                {
-                        x--;
-                        y--;
-                }
+	void move_stop()
+	{
+	}
 
-        void move_stop()
-                {}
+	u8 extract_player_info() const
+	{
+		return meta_info & EXTRACT_PLAYER_INFO;
+	}
 
-        u8 extract_player_info() const
-                {
-                        return meta_info & EXTRACT_PLAYER_INFO;
-                }
+	void just_move(Direction direction);
+	void turn_back(Direction direction);
+	std::vector<Direction> movable_direction(Field *field) const;
 
-        void just_move(Direction direction);
-        void turn_back(Direction direction);
-        std::vector<Direction> movable_direction(Field *field) const;
-
-        /*
+	/*
          *自分の位置からdirectionの方向を見て色が存在するか判定する関数
          *8近傍を見るとき for でループさせる。このとき 第二引数に i を入れるときは型キャストを忘れないこと！ (Direction)i
          */
-        bool isMine_LookNear(Field & field, Direction direction);
+	bool isMine_LookNear(Field &field, Direction direction);
 
-public:
-        Agent(u8 x, u8 y, u8 meta);
-        Agent(u8 meta);
+    public:
+	Agent(u8 x, u8 y, u8 meta);
+	Agent(u8 meta);
 
-        void move(Field *field, Direction direction);
+	void move(Field *field, Direction direction);
 
-        bool is_movable(Field *field, Direction dir);
+	bool is_movable(Field *field, Direction dir);
 
-        i8 get_blockscore(Field &field, Direction k) {
-                u8 kx = this->x+((k/2+1)%4-1)%2;		// kx = agent.x+direction(1)
-                u8 ky = this->y+(k/2-1)%2;				// ky = agent.y+direction(1)
-                i8 score = field.at(kx+1,ky).get_score_value()+field.at(kx-1,ky).get_score_value()+field.at(kx,ky+1).get_score_value()+field.at(kx,ky-1).get_score_value();
-                return score;
-        }
+	i8 get_blockscore(Field &field, Direction k)
+	{
+		u8 kx = this->x +
+			((k / 2 + 1) % 4 - 1) % 2; // kx = agent.x+direction(1)
+		u8 ky = this->y + (k / 2 - 1) % 2; // ky = agent.y+direction(1)
+		i8 score = field.at(kx + 1, ky).get_score_value() +
+			   field.at(kx - 1, ky).get_score_value() +
+			   field.at(kx, ky + 1).get_score_value() +
+			   field.at(kx, ky - 1).get_score_value();
+		return score;
+	}
 
-        Agent aftermove_agent(u8 addx, u8 addy) {
-                return Agent(this->x+addx, this->y+addy, MINE_ATTR);
-        }
+	Agent aftermove_agent(u8 addx, u8 addy)
+	{
+		return Agent(this->x + addx, this->y + addy, MINE_ATTR);
+	}
 
-        void setblockdirection(Direction direction) {
-                this->blockdirection = direction;
-        }
+	void setblockdirection(Direction direction)
+	{
+		this->blockdirection = direction;
+	}
 
-        void moveblock(Field &field) {
-                // 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
-                this->move(field, int_to_direction(((7+blockdirection)%8+2*blocktern)%8));
-        }
+	void moveblock(Field &field)
+	{
+		// 進むべきブロックの方向と今のターン数から今進むべき方向を計算し移動
+		this->move(field, int_to_direction(((7 + blockdirection) % 8 +
+						    2 * blocktern) %
+						   8));
+	}
 
-        bool check_conflict(Direction mine, Agent enemy, Direction es);
+	bool check_conflict(Direction mine, Agent enemy, Direction es);
 
-        void draw() const;
+	void draw() const;
 
-        void move(Field & field, Direction direction);
-        void protected_move(Field *field, Direction direction);
-        std::vector<u8> locus;	//エージェントの動作の軌跡
+	void move(Field &field, Direction direction);
+	void protected_move(Field *field, Direction direction);
+	std::vector<u8> locus; //エージェントの動作の軌跡bool is_mine();
+	bool is_enemy();
 
-        bool is_mine();
-        bool is_enemy();
+	bool operator==(const Agent &agent)
+	{
+		return this->x == agent.x && this->y == agent.y &&
+		       this->meta_info == agent.meta_info;
+	}
 
-        bool operator==(const Agent &agent)
-        {
-                return this->x == agent.x &&
-                        this->y == agent.y &&
-                        this->meta_info == agent.meta_info;
-        }
+	bool same_location(const Agent &agent) const
+	{
+		return this->x == agent.x && this->y == agent.y;
+	}
 
-        bool same_location(const Agent &agent) const
-        {
-                return this->x == agent.x &&
-                        this->y == agent.y;
-        }
+	bool same_location(i8 x, i8 y) const
+	{
+		return this->x == x && this->y == y;
+	}
 
-        bool same_location(i8 x, i8 y) const
-                {
-                        return this->x == x &&
-                                this->y == y;
-                }
+	std::pair<i8, i8> diff(const Agent agent) const
+	{
+		return std::make_pair(this->x - agent.x, this->y - agent.y);
+	}
 
-        std::pair<i8, i8> diff(const Agent agent) const
-        {
-                return std::make_pair(
-                        this->x - agent.x,
-                        this->y - agent.y
-                        );
-        }
-
-        bool debug_out(Field *field)
-                {
-                        return !field->is_within(x, y);
-                }
+	bool debug_out(Field *field)
+	{
+		return !field->is_within(x, y);
+	}
 };
-
 
 // 二人のエージェントで閉路を作るときのフラグを管理するクラス
 class ClosedFlag {
-private:
+    private:
 	u8 index_me, index_pair;
 
-public:
-	u8 indexme() {
+    public:
+	u8 indexme()
+	{
 		return this->index_me;
 	}
-	u8 indexpair() {
+	u8 indexpair()
+	{
 		return this->index_pair;
 	}
 
 	ClosedFlag();
-	ClosedFlag(u8 index_me, u8 index_pair):index_me(index_me),index_pair(index_pair) {
+	ClosedFlag(u8 index_me, u8 index_pair)
+		: index_me(index_me), index_pair(index_pair)
+	{
 	}
 };
 
 class Closed {
-private:
+    private:
 	// 閉路が作成できたか
 	bool canMake;
 
@@ -720,16 +724,16 @@ private:
 	//引数x,yで示した盤面の位置から見てDirectionの方向にこのclosedのパネルが存在し、かつ指定した座標が閉路の辺の座標でないか判定する関数
 	bool CheckPanelLine(u8 x, u8 y, Direction direction);
 
-public:
-
+    public:
 	// 二人で閉路を作るときのフラグ管理ベクター
 	static std::vector<ClosedFlag> closedFlag;
 
 	//今の閉路のスコアを計算する関数
-	u64 CalcScore(Field & field);
+	u64 CalcScore(Field &field);
 
 	// この閉路が正しく作れているか返す関数
-	bool canMakeClosed() {
+	bool canMakeClosed()
+	{
 		return this->canMake;
 	}
 
@@ -737,45 +741,111 @@ public:
 	Closed();
 
 	// 一人のエージェントで閉路を生成するコンストラクタ
-	Closed(Agent agent, Field & field, u8 end_x, u8 end_y);
+	Closed(Agent agent, Field &field, u8 end_x, u8 end_y);
 
 	// 二人のエージェントで Closed::closedFlag をもとに閉路を生成するコンストラクタ
 	Closed(Agent a1, Agent a2);
 
 #ifdef __DEBUG_MODE
-        void print_closed(Field & field)
-        {
-			int sum = 0;
-			i8 score;
-			_DEBUG_PUTS_SEPARATOR();
-			puts("closed's debug message.");
-            for(u8 panel:closed) {
-				score = field.field[panel].get_score_value();
-                printf("score: %d\n", (int)score);
-                sum += score;
-			}
-			printf("\nTotal Score: %d\n", (int)CalcScore(field));
-			_DEBUG_PUTS_SEPARATOR();
-        }
+	void print_closed(Field &field)
+	{
+		int sum = 0;
+		i8 score;
+		_DEBUG_PUTS_SEPARATOR();
+		puts("closed's debug message.");
+		for (u8 panel : closed) {
+			score = field.field[panel].get_score_value();
+			printf("score: %d\n", (int)score);
+			sum += score;
+		}
+		printf("\nTotal Score: %d\n", (int)CalcScore(field));
+		_DEBUG_PUTS_SEPARATOR();
+	}
 #endif
 
 	void Draw();
 };
 
-
 class FieldEvaluater {
-private:
-        static u8 meta_data;
-        static i16 calc_sub_local_area_score(const Field *field,
-                                             const Panel panel,
-                                             util::queue<std::pair<Panel, u8>> & queue,
-                                             std::vector<u8> & done_list);
-        static i16 expand_to_arounds(const Field *field,
-                                     u8 point,
-                                     util::queue<std::pair<Panel, u8>> & queue,
-                                     std::vector<u8> & done_list,
-                                     std::vector<u8> & checking);
-public:
-        static i16 calc_local_area(const Field *field);
-        static void set_target(u8 flag);
+    private:
+	static u8 meta_data;
+	static i16
+	calc_sub_local_area_score(const Field *field, const Panel panel,
+				  util::queue<std::pair<Panel, u8> > &queue,
+				  std::vector<u8> &done_list);
+	static i16 expand_to_arounds(const Field *field, u8 point,
+				     util::queue<std::pair<Panel, u8> > &queue,
+				     std::vector<u8> &done_list,
+				     std::vector<u8> &checking);
+
+    public:
+	static i16 calc_local_area(const Field *field);
+	static void set_target(u8 flag);
+};
+
+class Plan {
+    private:
+	Direction d1;
+	Direction d2;
+
+    public:
+	Plan(Direction d1, Direction d2)
+	{
+		this->d1 = d1;
+		this->d2 = d2;
+	}
+
+	u64 encode_hash()
+	{
+		u64 hash = 0;
+		hash |= (char)d1;
+		hash <<= 4;
+		hash |= (char)d2;
+		return hash;
+	}
+
+	Plan decode_hash(u64 hash)
+	{
+		Direction d1, d2;
+		d2 = int_to_direction(hash & 0x0f);
+		hash >>= 4;
+		d1 = int_to_direction(hash & 0x0f);
+
+		return Plan(d1, d2);
+	}
+
+	std::pair<Direction, Direction> get_direction()
+	{
+		return std::make_pair(d1, d2);
+	}
+};
+
+template <typename Cand> class VoteBox {
+    private:
+	std::unordered_map<Cand, int> box;
+
+    public:
+	void vote(Cand cand)
+	{
+		if (box.find(cand) != std::end(box)) {
+			box[cand]++;
+		} else {
+			box[cand] = 0;
+		}
+	}
+
+	Cand select()
+	{
+		int max = 0;
+		Cand top;
+
+		for (auto &[cand, count] : box) {
+			if (count > max) {
+				max = count;
+				top = cand;
+			}
+		}
+
+		return top;
+	}
 };
