@@ -358,12 +358,12 @@ public:
 
         UF makePureTreeMine();
         UF makePureTreeEnemy();
-        std::unordered_map<int, std::vector<int>> makePureTerritory(UF pureTree);
+        std::unordered_map<int, std::vector<int>> makePureTerritory(UF &&pureTree);
 
         // panelを含むpurePanelモデルのスコアを計算
         bool checkLocalArea(int x, int y, u8 attr);
-        i16 calcMineScore(std::unordered_map<int, std::vector<int>> pureTree);
-        i16 calcEnemyScore(std::unordered_map<int, std::vector<int>> pureTree);
+        i16 calcMineScore(std::unordered_map<int, std::vector<int>> &pureTree);
+        i16 calcEnemyScore(std::unordered_map<int, std::vector<int>> &pureTree);
 };
 
 /*
