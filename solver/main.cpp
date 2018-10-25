@@ -123,9 +123,7 @@ void multi_thread_carlo(const char *json_name, u8 turn)
 {
         std::vector<std::future<Plan>> plans;
         std::vector<Plan> debug_voting;
-        VoteBox<Direction> box1;
-        VoteBox<Direction> box2;
-        Direction d1, d2;
+        VoteBox<u64> box;
         
         std::cout << "**Multi Threading Montecarlo**\nNUMBER OF THREAD ==> " << (int)MT_NUM_OF_THREAD << std::endl;
 
@@ -135,8 +133,7 @@ void multi_thread_carlo(const char *json_name, u8 turn)
 
         for(auto &plan : plans){
                 Plan tmp = plan.get();
-                box1.vote(tmp.get_d1());
-                box2.vote(tmp.get_d2());
+                box.vote(tmp.encode_hash());
                 debug_voting.push_back(tmp);
         }
 
@@ -144,8 +141,8 @@ void multi_thread_carlo(const char *json_name, u8 turn)
                 p.draw();
         }
 
-        d1 = box1.select();
-        d2 = box2.select();
+        auto [d1, d2] = Plan::decode_hash(box.select()).get_direction();
+        
         Plan(d1, d2).draw();
 
         std::ofstream ofs("direction.dat");

@@ -847,7 +847,7 @@ template <typename Cand> class VoteBox {
 		if (box.find(cand) != std::end(box)) {
 			box[cand]++;
 		} else {
-			box[cand] = 0;
+			box[cand] = 1;
 		}
 	}
 
