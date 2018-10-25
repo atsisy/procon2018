@@ -575,7 +575,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         {
                 ThreadPool tp(3, 100);
                 for(PlayoutResult *p : original){
-                        while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 70))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                         }
                 }
@@ -699,7 +699,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         for(PlayoutResult *p : original){
                 put_dot();
-                dbbuild_playout_process(p, 700);
+                dbbuild_playout_process(p, 800);
         }
         printf("\n");
 

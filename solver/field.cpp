@@ -327,7 +327,7 @@ UF Field::makePureTreeMine() {
                         }
                 }
         }
-
+/*
         std::cout << std::endl << "*** UnionFind info ***" << std::endl;
         std::cout << "field_size_x = " << (int)field_size_x << std::endl;
         std::cout << "field_size_y = " << (int)field_size_y << std::endl;
@@ -337,6 +337,7 @@ UF Field::makePureTreeMine() {
                         std::cout << std::setw(3) << pureTree.root(pureTree.data[xyIndex(j,i)]) << " ";
                 std::cout << std::endl;
         }
+*/
 
         return pureTree;
 }
@@ -374,6 +375,7 @@ UF Field::makePureTreeEnemy() {
                 }
         }
 
+        /*
         std::cout << std::endl << "*** UnionFind info ***" << std::endl;
         std::cout << "field_size_x = " << (int)field_size_x << std::endl;
         std::cout << "field_size_y = " << (int)field_size_y << std::endl;
@@ -383,11 +385,12 @@ UF Field::makePureTreeEnemy() {
                         std::cout << std::setw(3) << pureTree.root(pureTree.data[xyIndex(j,i)]) << " ";
                 std::cout << std::endl;
         }
+        */
 
         return pureTree;
 }
 
-std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF pureTree) {
+std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF &&pureTree) {
         std::unordered_map<int, std::vector<int>> retn;
 
         for(int i=0; i<field_size_y; i++) {
@@ -395,14 +398,6 @@ std::unordered_map<int, std::vector<int>> Field::makePureTerritory(UF pureTree) 
                         if(this->at(j,i).is_pure_panel()) retn[pureTree.root(xyIndex(j,i))].push_back(xyIndex(j,i));
                 }
         }
-
-        std::cout << "*** makePureTerritory info ***" << std::endl;
-        for(const auto& [key, vec]: retn) {
-                std::cout << "[" << key << "] =>";
-                for(int index: vec)  std::cout << std::setw(3) << index << " ";
-                std::cout << std::endl;
-        }
-        std::cout << std::endl;
 
         return retn;
 }
@@ -494,54 +489,48 @@ bool Field::checkLocalArea(int x, int y, u8 attr) {
         return isPanelEnemyBetween(x,y);
 }
 
-i16 Field::calcMineScore(std::unordered_map<int, std::vector<int>> pureTree) {
+i16 Field::calcMineScore(std::unordered_map<int, std::vector<int>> &pureTree) {
         i16 totalscore = 0, score = 0;
         bool check;
 
-        std::cout << "*** calcMineScore info***" << std::endl;
+        //std::cout << "*** calcMineScore info***" << std::endl;
         for(const auto& [key, vec]: pureTree) {
                 check = true;
                 score = 0;
                 for(auto pn: vec) {
                         if(!checkLocalArea(indexX(pn), indexY(pn), MINE_ATTR)) {
                                 check = false;
-                                std::cout << "[" << key << "] : false" << std::endl;
                                 break;
                         }
                         score += std::abs(field.at(pn).get_score_value());
                 }
                 if(check == true) {
                         totalscore += score;
-                        std::cout << "[" << key << "] : true, score = " << score << ", total = " << totalscore << std::endl;
                 }
         }
-        std::cout << "___ calcMineScore info END ___" << std::endl << std::endl;
+        //std::cout << "___ calcMineScore info END ___" << std::endl << std::endl;
 
         return totalscore;
 }
 
-i16 Field::calcEnemyScore(std::unordered_map<int, std::vector<int>> pureTree) {
+i16 Field::calcEnemyScore(std::unordered_map<int, std::vector<int>> &pureTree) {
         i16 totalscore = 0, score = 0;
         bool check;
 
-        std::cout << "*** calcEnemyScore info***" << std::endl;
         for(const auto& [key, vec]: pureTree) {
                 check = true;
                 score = 0;
                 for(auto pn: vec) {
                         if(!checkLocalArea(indexX(pn), indexY(pn), ENEMY_ATTR)) {
                                 check = false;
-                                std::cout << "[" << key << "] : false" << std::endl;
                                 break;
                         }
                         score += std::abs(field.at(pn).get_score_value());
                 }
                 if(check == true) {
                         totalscore += score;
-                        std::cout << "[" << key << "] : true, score = " << score << ", total = " << totalscore << std::endl;
                 }
         }
-        std::cout << "___ calcEnemyScore info END ___" << std::endl << std::endl;
 
         return totalscore;
 }
