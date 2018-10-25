@@ -295,33 +295,79 @@ void Field::dump_json_file(const char *file_name)
         f << dump_json();
 }
 
-UF Field::makePureTree() {
+UF Field::makePureTreeMine() {
         UF pureTree(field_size);
 
         for(int i=0; i<field_size_y; i++) {
                 for(int j=0; j<field_size_x; j++) {
-                        if(!this->at(j,i).is_pure_panel()) continue;
+                        if(!this->at(j,i).is_pure_panel() && !this->at(j,i).is_enemy_panel()) continue;
                         // UP
                         if(i-1 >= 0) {
-                                if(this->at(j, i-1).is_pure_panel()) {
+                                if(this->at(j, i-1).is_pure_panel() || this->at(j, i-1).is_enemy_panel()) {
                                         pureTree.unite(xyIndex(j,i), xyIndex(j,i-1));
                                 }
                         }
                        // DOWN
                         if(i+1 < field_size_y) {
-                                if(this->at(j, i+1).is_pure_panel()) {
+                                if(this->at(j, i+1).is_pure_panel() || this->at(j, i+1).is_enemy_panel()) {
                                         pureTree.unite(xyIndex(j,i), xyIndex(j,i+1));
                                 }
                         }
                         // RIGHT
                         if(j+1 < field_size_x) {
-                                if(this->at(j+1, i).is_pure_panel()) {
+                                if(this->at(j+1, i).is_pure_panel() || this->at(j+1, i).is_enemy_panel()) {
                                         pureTree.unite(xyIndex(j,i), xyIndex(j+1, i));
                                 }
                         }
                         // LEFT
                         if(j-1 >= 0) {
-                                if(this->at(j-1, i).is_pure_panel()) {
+                                if(this->at(j-1, i).is_pure_panel()  || this->at(j-1, i).is_enemy_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j-1, i));
+                                }
+                        }
+                }
+        }
+
+        std::cout << std::endl << "*** UnionFind info ***" << std::endl;
+        std::cout << "field_size_x = " << (int)field_size_x << std::endl;
+        std::cout << "field_size_y = " << (int)field_size_y << std::endl;
+        this->draw_status();
+        for(int i=0; i<field_size_y; i++) {
+                for(int j=0; j<field_size_x; j++)
+                        std::cout << std::setw(3) << pureTree.root(pureTree.data[xyIndex(j,i)]) << " ";
+                std::cout << std::endl;
+        }
+
+        return pureTree;
+}
+
+UF Field::makePureTreeEnemy() {
+        UF pureTree(field_size);
+
+        for(int i=0; i<field_size_y; i++) {
+                for(int j=0; j<field_size_x; j++) {
+                        if(!this->at(j,i).is_pure_panel() && !this->at(j,i).is_my_panel()) continue;
+                        // UP
+                        if(i-1 >= 0) {
+                                if(this->at(j, i-1).is_pure_panel() || this->at(j, i-1).is_my_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j,i-1));
+                                }
+                        }
+                       // DOWN
+                        if(i+1 < field_size_y) {
+                                if(this->at(j, i+1).is_pure_panel() || this->at(j, i+1).is_my_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j,i+1));
+                                }
+                        }
+                        // RIGHT
+                        if(j+1 < field_size_x) {
+                                if(this->at(j+1, i).is_pure_panel() || this->at(j+1, i).is_my_panel()) {
+                                        pureTree.unite(xyIndex(j,i), xyIndex(j+1, i));
+                                }
+                        }
+                        // LEFT
+                        if(j-1 >= 0) {
+                                if(this->at(j-1, i).is_pure_panel() || this->at(j-1, i).is_my_panel()) {
                                         pureTree.unite(xyIndex(j,i), xyIndex(j-1, i));
                                 }
                         }

@@ -356,7 +356,8 @@ public:
                 return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
         }
 
-        UF makePureTree();
+        UF makePureTreeMine();
+        UF makePureTreeEnemy();
         std::unordered_map<int, std::vector<int>> makePureTerritory(UF pureTree);
 
         // panelを含むpurePanelモデルのスコアを計算

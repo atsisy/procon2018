@@ -160,9 +160,10 @@ void command_switching(int argc, char **argv)
                 ans->draw();
 
                 /* debug */
-                std::unordered_map<int, std::vector<int>> pureterritory = json_node->getField()->makePureTerritory(json_node->getField()->makePureTree());
-                json_node->getField()->calcMineScore(pureterritory);
-                json_node->getField()->calcEnemyScore(pureterritory);
+                std::unordered_map<int, std::vector<int>> pureterritoryMine = json_node->getField()->makePureTerritory(json_node->getField()->makePureTreeMine());
+                std::unordered_map<int, std::vector<int>> pureterritoryEnemy = json_node->getField()->makePureTerritory(json_node->getField()->makePureTreeEnemy());
+                json_node->getField()->calcMineScore(pureterritoryMine);
+                json_node->getField()->calcEnemyScore(pureterritoryEnemy);
                 /* */
 
                 ans->dump_json_file("cdump.json");
