@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 11000;
+constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -573,9 +573,9 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
 
         {
-                ThreadPool tp(3, 100);
+                ThreadPool tp(2, 100);
                 for(PlayoutResult *p : original){
-                        while(!tp.add(std::make_shared<initial_playout>(this, p, 700))){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 70))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                         }
                 }

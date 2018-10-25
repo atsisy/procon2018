@@ -41,114 +41,113 @@ class Field;
  * パネルの情報を保持するクラス
  */
 class Panel {
-
-        /*
+	/*
          * PanelをFieldから操作したいのでフレンドクラスとする
          */
-        friend Field;
-private:
-        /*
+	friend Field;
+
+    private:
+	/*
          * 一度に全ビットを扱いたい場合はplain_bitsを使用
          * ビットフィールドで扱いたい場合はvalueもしくはmeta_infoを使用
          */
-        union {
-                struct {
-                        // パネルのスコア。符号ありa
-                        i8 value: 6;
+	union {
+		struct {
+			// パネルのスコア。符号ありa
+			i8 value : 6;
 
-                        /*
+			/*
                          * メタ情報ビット (2bit)
                          * 上位ビット: ここが1ならば敵のパネル
                          * 下位ビット: ここが1ならば味方のパネル
                          * どちらとも0ならば、どちらにも占領されていないことを示す
                          */
-                        u8 meta_info: 2;
-                };
+			u8 meta_info : 2;
+		};
 
-                u8 plain_bits;
-        };
+		u8 plain_bits;
+	};
 
-
-        /*
+	/*
          * パネルにスコアを格納
          * score:代入する数値
          */
-	void set_score_value(i8 score) {
+	void set_score_value(i8 score)
+	{
 		value = score;
 	}
 
-public:
+    public:
+	bool is_my_panel() const
+	{
+		return meta_info & MINE_ATTR;
+	}
 
-        bool is_my_panel() const
-        {
-                return meta_info & MINE_ATTR;
-        }
+	bool is_enemy_panel() const
+	{
+		return meta_info & ENEMY_ATTR;
+	}
 
-        bool is_enemy_panel() const
-        {
-                return meta_info & ENEMY_ATTR;
-        }
+	bool is_not_pure_panel() const
+	{
+		return meta_info;
+	}
 
-        bool is_not_pure_panel() const
-        {
-                return meta_info;
-        }
+	bool is_pure_panel() const
+	{
+		return !meta_info;
+	}
 
-        bool is_pure_panel() const
-        {
-                return !meta_info;
-        }
+	void make_mine()
+	{
+		meta_info |= MINE_ATTR;
+	}
 
-        void make_mine()
-        {
-                meta_info |= MINE_ATTR;
-        }
+	void make_enemy()
+	{
+		meta_info |= ENEMY_ATTR;
+	}
 
-        void make_enemy()
-        {
-                meta_info |= ENEMY_ATTR;
-        }
+	void clear_meta()
+	{
+		meta_info = 0;
+	}
 
-        void clear_meta()
-        {
-                meta_info = 0;
-        }
+	i8 get_score_value() const
+	{
+		return value;
+	}
 
-        i8 get_score_value() const
-        {
-                return value;
-        }
+	u8 get_plain_bits() const
+	{
+		return plain_bits;
+	}
 
-        u8 get_plain_bits() const
-        {
-                return plain_bits;
-        }
+	bool are_you(u8 flag) const
+	{
+		return meta_info & flag;
+	}
 
-        bool are_you(u8 flag) const
-        {
-                return meta_info & flag;
-        }
+	u8 get_meta() const
+	{
+		return meta_info;
+	}
 
-        u8 get_meta() const
-        {
-                return meta_info;
-        }
-
-        bool is_abs_my_panel()
-        {
+	bool is_abs_my_panel()
+	{
 #ifdef I_AM_ME
-                return meta_info & MINE_ATTR;
+		return meta_info & MINE_ATTR;
 #endif
 #ifdef I_AM_ENEMY
-                return meta_info & ENEMY_ATTR;
+		return meta_info & ENEMY_ATTR;
 #endif
-        }
+	}
 
-        u8 simplified_hash(i8 pos_avg, i8 neg_avg, u8 who, bool on_agent) const
-        {
-                u8 ret = 0, tmp = 0;
+	u8 simplified_hash(i8 pos_avg, i8 neg_avg, u8 who, bool on_agent) const
+	{
+		u8 ret = 0, tmp = 0;
 
-                /*
+		/*
                  * スコアの状態で3bit
                  * 平均以上 ... 0b0100
                  * 平均以下 ... 0b0011
@@ -156,41 +155,41 @@ public:
                  * 平均未満負 ... 0b0001
                  * 平均以下負 ... 0b0000
                  */
-                i8 score = get_score_value();
-                if(score >= pos_avg)
-                        tmp = 4;
-                else if(score > 0)
-                        tmp = 3;
-                else if(score == 0)
-                        tmp = 2;
-                else if(score >= neg_avg)
-                        tmp = 1;
-                else
-                        tmp = 0;
-                ret |= tmp;
-                ret <<= 2;
+		i8 score = get_score_value();
+		if (score >= pos_avg)
+			tmp = 4;
+		else if (score > 0)
+			tmp = 3;
+		else if (score == 0)
+			tmp = 2;
+		else if (score >= neg_avg)
+			tmp = 1;
+		else
+			tmp = 0;
+		ret |= tmp;
+		ret <<= 2;
 
-                /*
+		/*
                  * パネルの占有状態で2bit
                  */
-                if(is_pure_panel())
-                        tmp = 0;
-                else if(are_you(who))
-                        tmp = 1;
-                else
-                        tmp = 2;
-                ret |= tmp;
-                ret <<= 1;
+		if (is_pure_panel())
+			tmp = 0;
+		else if (are_you(who))
+			tmp = 1;
+		else
+			tmp = 2;
+		ret |= tmp;
+		ret <<= 1;
 
-                /*
+		/*
                  * エージェントがその上に乗っているかで1bit
                  */
-                if(on_agent){
-                        ret |= 1;
-                }
+		if (on_agent) {
+			ret |= 1;
+		}
 
-                return ret;
-        }
+		return ret;
+	}
 };
 
 class FieldBuilder;
@@ -210,100 +209,102 @@ class Closed;
  * 一つのフィールドを表すクラス
  */
 class Field {
-        /*
+	/*
          * FieldBuilderクラスからはメタ情報を受け取るため、フレンドクラスとする。
          */
-        friend FieldBuilder;
-        friend Agent;
-        friend Node;
-        friend FieldEvaluater;
+	friend FieldBuilder;
+	friend Agent;
+	friend Node;
+	friend FieldEvaluater;
 
-        friend bool is_edge(u8 value);
-        friend Closed;
+	friend bool is_edge(u8 value);
+	friend Closed;
 
-private:
-        // アクセスのとき、y座標をどれだけシフトするか
-        static u8 ac_shift_offset;
+    private:
+	// アクセスのとき、y座標をどれだけシフトするか
+	static u8 ac_shift_offset;
 
-        // フィールドの要素数
-        static u8 field_size;
+	// フィールドの要素数
+	static u8 field_size;
 
-        //フィールドのxサイズyサイズ
-        static u8 field_size_x;
-        static u8 field_size_y;
+	//フィールドのxサイズyサイズ
+	static u8 field_size_x;
+	static u8 field_size_y;
 
-        std::vector<Panel> field;
+	std::vector<Panel> field;
 
-        /*
+	/*
          * フィールド上の得点を計算するメソッド
          */
-        // 自分のパネルが置かれている部分の合計得点
-        i16 calc_mypanels_score();
-        // 敵のパネルが置かれている部分の合計得点
-        i16 calc_enemypanels_score();
-        // 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
-        i16 calc_sumpanel_score();
+	// 自分のパネルが置かれている部分の合計得点
+	i16 calc_mypanels_score();
+	// 敵のパネルが置かれている部分の合計得点
+	i16 calc_enemypanels_score();
+	// 自分の合計と敵の合計の差。上記２つの関数を使って差を求めるよりも高速
+	i16 calc_sumpanel_score();
 
-/*
+	/*
  * make_atメソッド フィールド情報のアクセサメソッド
  * このメソッドは、fieldメンバを変更することができる
  */
-        void make_at(u8 x, u8 y, u8 attribute);
+	void make_at(u8 x, u8 y, u8 attribute);
 
-        /*
+	/*
          * set_score_atメソッド フィールド情報のアクセサメソッド
          * このメソッドは、fieldメンバを変更することができる
          */
-        void set_score_at(u8 x, u8 y, i8 score);
+	void set_score_at(u8 x, u8 y, i8 score);
 
-/*
+	/*
  * フィールドのx,yの値を受け取り、Field一次元配列での要素番号を返す
  */
-	u8 xyIndex(u8 x, u8 y) {
-		return x+(y<<Field::ac_shift_offset);
+	u8 xyIndex(u8 x, u8 y)
+	{
+		return x + (y << Field::ac_shift_offset);
 	}
 
-public:
+    public:
+	Field();
 
-        Field();
-
-        /*
+	/*
          * atメソッド フィールド情報のアクセサメソッド
          * このメソッドは、fieldメンバを変更することはできない
          */
-        Panel at(u8 x, u8 y) const;
+	Panel at(u8 x, u8 y) const;
 
-        /*
+	/*
          * 自分の複製を返すメソッド
          */
-        Field *clone() const;
+	Field *clone() const;
 
-        u64 score();
+	u64 score();
 
-        // フィールドのパネルの数値をランダムでセットする関数
-        void randSetPanel();
+	// フィールドのパネルの数値をランダムでセットする関数
+	void randSetPanel();
 
-        // jsonの文字列返却するメソッド
-        std::string dump_json();
+	// jsonの文字列返却するメソッド
+	std::string dump_json();
 
-        void dump_json_file(const char *file_name);
-        
-        // フィールドの描画関数
-        void Draw();
+	void dump_json_file(const char *file_name);
 
-        void draw_status();
+	// フィールドの描画関数
+	void Draw();
 
-        i8 get_field_score_avg(u8 flag);
+	void draw_status();
 
-        bool is_within(i8 x, i8 y) const
-        {
-                return (x >= 0 && x < field_size_x) && (y >= 0 && y < field_size_y);
-        }
+	i8 get_field_score_avg(u8 flag);
 
-        bool is_edge(i8 x, i8 y) const
-        {
-                return (x <= 0 || x >= (field_size_x - 1)) || (y <= 0 || y >= (field_size_y - 1));
-        }
+	bool is_within(i8 x, i8 y) const
+	{
+		return (x >= 0 && x < field_size_x) &&
+		       (y >= 0 && y < field_size_y);
+	}
+
+	bool is_edge(i8 x, i8 y) const
+	{
+		return (x <= 0 || x >= (field_size_x - 1)) ||
+		       (y <= 0 || y >= (field_size_y - 1));
+	}
 };
 
 /*
@@ -311,9 +312,10 @@ public:
  */
 inline bool is_edge(u8 value)
 {
-        return ((u8)((value & 0x0f) - (Field::field_size_x - 1)) <= (u8)(-Field::field_size_x + 1))
-                 ||
-                ((u8)((value >> 4) - (Field::field_size_y - 1)) <= (u8)(-Field::field_size_y + 1));
+	return ((u8)((value & 0x0f) - (Field::field_size_x - 1)) <=
+		(u8)(-Field::field_size_x + 1)) ||
+	       ((u8)((value >> 4) - (Field::field_size_y - 1)) <=
+		(u8)(-Field::field_size_y + 1));
 }
 
 /*
@@ -328,45 +330,42 @@ inline bool is_out(u8 value)
 }
 */
 
-
 class QRFormatParser;
 
 class FieldBuilder {
+    private:
+	QRFormatParser *original_data;
 
-private:
-        QRFormatParser *original_data;
-
-public:
-        /*
+    public:
+	/*
          * コンストラクタ
          * QRFormatparserオブジェクトへのポインタを渡す
          */
-        FieldBuilder(QRFormatParser *parser);
+	FieldBuilder(QRFormatParser *parser);
 
-        FieldBuilder(i32 field_size_x, i32 field_size_y);
+	FieldBuilder(i32 field_size_x, i32 field_size_y);
 
-        /*
+	/*
          * リソースを解放するメソッド
          */
-        void release_resource();
-        /*
+	void release_resource();
+	/*
          * 初期状態のnodeを生成するメソッド
          */
-        Node *create_root_node();
-
+	Node *create_root_node();
 
 #ifdef __DEBUG_MODE
-        void print_status()
-        {
-                _DEBUG_PUTS_SEPARATOR();
-                puts("class FieldBuilder debug message.");
-                _DEBUG_PRINTPI("Field::ac_shift_offset", Field::ac_shift_offset);
-                _DEBUG_PRINTPI("Field::field_size", Field::field_size);
-                _DEBUG_PUTS_SEPARATOR();
-        }
+	void print_status()
+	{
+		_DEBUG_PUTS_SEPARATOR();
+		puts("class FieldBuilder debug message.");
+		_DEBUG_PRINTPI("Field::ac_shift_offset",
+			       Field::ac_shift_offset);
+		_DEBUG_PRINTPI("Field::field_size", Field::field_size);
+		_DEBUG_PUTS_SEPARATOR();
+	}
 #endif
 };
-
 
 /*
  * Rectクラス
@@ -374,220 +373,218 @@ public:
  * まあ、幅と高さを表したいときはこのクラス使ってください。
  * 型はご自由に。
  */
-template <typename T>
-class Rect {
-public:
-        T width;
-        T height;
+template <typename T> class Rect {
+    public:
+	T width;
+	T height;
 
-        Rect(T width, T height)
-        {
-                this->width = width;
-                this->height = height;
-        }
+	Rect(T width, T height)
+	{
+		this->width = width;
+		this->height = height;
+	}
 
-        Rect()
-        {
-                this->width = 0;
-                this->height = 0;
-        }
+	Rect()
+	{
+		this->width = 0;
+		this->height = 0;
+	}
 };
 
 /*
  * QRコードフォーマットのパーサ
  */
 class QRFormatParser {
+	friend FieldBuilder;
 
-        friend FieldBuilder;
+    private:
+	// パネルスコアの羅列
+	std::vector<i8> scores;
 
-private:
-        // パネルスコアの羅列
-        std::vector<i8> scores;
+	// エージェントの座標
+	std::vector<Rect<i16> > my_agent_point;
 
-        // エージェントの座標
-        std::vector<Rect<i16>> my_agent_point;
+	// フィールドの幅と高さ
+	Rect<i16> width_height;
 
-        // フィールドの幅と高さ
-        Rect<i16> width_height;
-
-        /*
+	/*
          * 詳細はメソッド定義の部分に記述
          */
-        Rect<i16> get_pair_numbers(const std::string &first_two_part);
-        std::vector<i8> load_one_line(const std::string &part_str);
-        Rect<i16> translate_to_agent_point(const Rect<i16> point);
-        std::vector<std::string> split(const std::string &&s, char delim);
-        std::string load_full_string(std::string file_name);
+	Rect<i16> get_pair_numbers(const std::string &first_two_part);
+	std::vector<i8> load_one_line(const std::string &part_str);
+	Rect<i16> translate_to_agent_point(const Rect<i16> point);
+	std::vector<std::string> split(const std::string &&s, char delim);
+	std::string load_full_string(std::string file_name);
 
-public:
-        QRFormatParser(std::string file_name);
+    public:
+	QRFormatParser(std::string file_name);
 };
 
 enum Direction {
-        UP = 0,
-        RUP = 1,
-        RIGHT = 2,
-        RDOWN = 3,
-        DOWN = 4,
-        LDOWN = 5,
-        LEFT = 6,
-        LUP = 7,
-        STOP = 8
+	UP = 0,
+	RUP = 1,
+	RIGHT = 2,
+	RDOWN = 3,
+	DOWN = 4,
+	LDOWN = 5,
+	LEFT = 6,
+	LUP = 7,
+	STOP = 8
 };
 
-inline Direction int_to_direction(int num) {
-	switch(num) {
-		case 0:
-			return UP;
-		case 1:
-			return RUP;
-		case 2:
-			return RIGHT;
-		case 3:
-			return RDOWN;
-		case 4:
-			return DOWN;
-		case 5:
-			return LDOWN;
-		case 6:
-			return LEFT;
-		case 7:
-			return LUP;
-		case 8:
-			return STOP;
-		default:
+inline Direction int_to_direction(int num)
+{
+	switch (num) {
+	case 0:
+		return UP;
+	case 1:
+		return RUP;
+	case 2:
+		return RIGHT;
+	case 3:
+		return RDOWN;
+	case 4:
+		return DOWN;
+	case 5:
+		return LDOWN;
+	case 6:
+		return LEFT;
+	case 7:
+		return LUP;
+	case 8:
+		return STOP;
+	default:
 #ifdef __DEBUG_MODE
-			std::cout << "invalid number: " << num << std::endl;
+		std::cout << "invalid number: " << num << std::endl;
 #endif
-			return STOP;
+		return STOP;
 	};
 }
 
-inline std::string direction_to_str(Direction dir) {
-	switch(dir) {
-        case UP:
-                return std::string("UP");
-        case RUP:
-                return std::string("RUP");
-        case RIGHT:
-                return std::string("RIGHT");
-        case RDOWN:
-                return std::string("RDOWN");
-        case DOWN:
-                return std::string("DOWN");
-        case LDOWN:
-                return std::string("LDOWN");
-        case LEFT:
-                return std::string("LEFT");
-        case LUP:
-                return std::string("LUP");
-        case STOP:
-                return std::string("STOP");
-        default:
-                return std::string("STOP");
+inline std::string direction_to_str(Direction dir)
+{
+	switch (dir) {
+	case UP:
+		return std::string("UP");
+	case RUP:
+		return std::string("RUP");
+	case RIGHT:
+		return std::string("RIGHT");
+	case RDOWN:
+		return std::string("RDOWN");
+	case DOWN:
+		return std::string("DOWN");
+	case LDOWN:
+		return std::string("LDOWN");
+	case LEFT:
+		return std::string("LEFT");
+	case LUP:
+		return std::string("LUP");
+	case STOP:
+		return std::string("STOP");
+	default:
+		return std::string("STOP");
 	};
 }
 
 inline Direction which_direction(i8 x, i8 y)
 {
-        if(x == -1 && y == -1)
-                return LUP;
-        else if(x == 0 && y == -1)
-                return UP;
-        else if(x == 1 && y == -1)
-                return RUP;
-        else if(x == -1 && y == 0)
-                return LEFT;
-        else if(x == 0 && y == 0)
-                return STOP;
-        else if(x == 1 && y == 0)
-                return RIGHT;
-        else if(x == -1 && y == 1)
-                return LDOWN;
-        else if(x == 0 && y == 1)
-                return DOWN;
-        else if(x == 1 && y == 1)
-                return RDOWN;
-        else{
-                puts("BUG in which_direction");
-                std::cout << (int)x << ":" << (int)y << std::endl;
-        }
-        return STOP;
+	if (x == -1 && y == -1)
+		return LUP;
+	else if (x == 0 && y == -1)
+		return UP;
+	else if (x == 1 && y == -1)
+		return RUP;
+	else if (x == -1 && y == 0)
+		return LEFT;
+	else if (x == 0 && y == 0)
+		return STOP;
+	else if (x == 1 && y == 0)
+		return RIGHT;
+	else if (x == -1 && y == 1)
+		return LDOWN;
+	else if (x == 0 && y == 1)
+		return DOWN;
+	else if (x == 1 && y == 1)
+		return RDOWN;
+	else {
+		puts("BUG in which_direction");
+		std::cout << (int)x << ":" << (int)y << std::endl;
+	}
+	return STOP;
 }
 
-
-template <typename Head, typename ... Tail>
-constexpr u8 generate_agent_meta(const Head head, Tail ... tails) noexcept
+template <typename Head, typename... Tail>
+constexpr u8 generate_agent_meta(const Head head, Tail... tails) noexcept
 {
-        u8 result = head;
-        using swallow = std::initializer_list<int>;
-        (void)swallow{ (void(result |= tails), 0)... };
-        return result;
+	u8 result = head;
+	using swallow = std::initializer_list<int>;
+	(void)swallow{ (void(result |= tails), 0)... };
+	return result;
 }
 
 #ifdef __DEBUG_MODE
 inline void test_generate_agent_meta()
 {
-        _DEBUG_PUTS_SEPARATOR();
-        puts("*debug test for generate_agent_meta constexpr function*");
-        constexpr u8 data = generate_agent_meta(MINE_ATTR, ENEMY_ATTR, 4, 8);
-        constexpr u8 conv = MINE_ATTR | ENEMY_ATTR | 4 | 8;
-        printf("expected -> 0x%x\n", conv);
-        printf("result of function ->0x%x\n", data);
-        if(conv == data){
-                puts("SUCCESS!!");
-        }else{
-                puts("BUG FIXME: 'u8 generate_agent_meta()'");
-        }
-        _DEBUG_PUTS_SEPARATOR();
+	_DEBUG_PUTS_SEPARATOR();
+	puts("*debug test for generate_agent_meta constexpr function*");
+	constexpr u8 data = generate_agent_meta(MINE_ATTR, ENEMY_ATTR, 4, 8);
+	constexpr u8 conv = MINE_ATTR | ENEMY_ATTR | 4 | 8;
+	printf("expected -> 0x%x\n", conv);
+	printf("result of function ->0x%x\n", data);
+	if (conv == data) {
+		puts("SUCCESS!!");
+	} else {
+		puts("BUG FIXME: 'u8 generate_agent_meta()'");
+	}
+	_DEBUG_PUTS_SEPARATOR();
 }
 #endif
 
-
 class Agent {
+	friend Node;
 
-        friend Node;
+    private:
+	u8 x : 4;
+	u8 y : 4;
+	u8 meta_info;
 
-private:
-        u8 x: 4;
-        u8 y: 4;
-        u8 meta_info;
+	Direction blockdirection;
+	u8 blocktern;
 
-        Direction blockdirection;
-        u8 blocktern;
-        
-        void move_up()
-                {
-                        y--;
-                }
+	void move_up()
+	{
+		y--;
+	}
 
-        void move_rup()
-                {
-                        x++;
-                        y--;
-                }
+	void move_rup()
+	{
+		x++;
+		y--;
+	}
 
-        void move_right()
-                {
-                        x++;
-                }
+	void move_right()
+	{
+		x++;
+	}
 
-        void move_rdown()
-                {
-                        x++;
-                        y++;
-                }
+	void move_rdown()
+	{
+		x++;
+		y++;
+	}
 
-        void move_down()
-                {
-                        y++;
-                }
+	void move_down()
+	{
+		y++;
+	}
 
-        void move_ldown()
-                {
-                        x--;
-                        y++;
-                }void move_left()
+	void move_ldown()
+	{
+		x--;
+		y++;
+	}
+	void move_left()
 	{
 		x--;
 	}
@@ -795,6 +792,10 @@ class Plan {
 		this->d2 = d2;
 	}
 
+	Plan()
+	{
+	}
+
 	u64 encode_hash()
 	{
 		u64 hash = 0;
@@ -804,7 +805,13 @@ class Plan {
 		return hash;
 	}
 
-	Plan decode_hash(u64 hash)
+	void draw()
+	{
+		std::cout << "[" << direction_to_str(d1) << ", "
+			  << direction_to_str(d2) << "]" << std::endl;
+	}
+
+	static Plan decode_hash(u64 hash)
 	{
 		Direction d1, d2;
 		d2 = int_to_direction(hash & 0x0f);
@@ -812,6 +819,16 @@ class Plan {
 		d1 = int_to_direction(hash & 0x0f);
 
 		return Plan(d1, d2);
+	}
+
+	Direction get_d1()
+	{
+		return d1;
+	}
+
+	Direction get_d2()
+	{
+		return d2;
 	}
 
 	std::pair<Direction, Direction> get_direction()
