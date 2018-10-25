@@ -68,6 +68,11 @@ int main(int argc, char **argv)
         return 0;
 }
 
+void multi_thread_carlo()
+{
+        
+}
+
 void write_learning_data(const Node *before, const Node *after)
 {
         std::ofstream ofs("learning.dat", std::ios::app);
