@@ -5,9 +5,12 @@
 #include <vector>
 #include <fstream>
 #include <cstring>
+#include <future>
 #include "types.hpp"
 #include "learn.hpp"
 #include <unordered_map>
+
+constexpr u8 MT_NUM_OF_THREAD = 3;
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
 void command_switching(int argc, char **argv);
@@ -105,6 +108,49 @@ void write_log_file(const Node *node)
         ofs << direction_to_str(d2);
 }
 
+
+Plan montecarlo_process(const char *name, u8 turn)
+{
+        Node *json_node = new Node(name);
+        Montecarlo monte;
+        u8 d = MONTE_DEPTH - turn;
+        const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
+        ans->draw();
+        //write_learning_data(json_node, ans);
+        return Plan(ans->get_last_action(0), ans->get_last_action(1));
+}
+
+void multi_thread_carlo(const char *json_name, u8 turn)
+{
+        std::vector<std::future<Plan>> plans;
+        std::vector<Plan> debug_voting;
+        VoteBox<u64> box;
+        
+        std::cout << "**Multi Threading Montecarlo**\nNUMBER OF THREAD ==> " << (int)MT_NUM_OF_THREAD << std::endl;
+
+        for(int i = 0;i < MT_NUM_OF_THREAD;i++){
+                plans.push_back(std::async(std::launch::async, montecarlo_process, json_name, turn));
+        }
+
+        for(auto &plan : plans){
+                Plan tmp = plan.get();
+                box.vote(tmp.encode_hash());
+                debug_voting.push_back(tmp);
+        }
+
+        for(Plan p : debug_voting){
+                p.draw();
+        }
+
+        auto [d1, d2] = Plan::decode_hash(box.select()).get_direction();
+        
+        Plan(d1, d2).draw();
+
+        std::ofstream ofs("direction.dat");
+        ofs << direction_to_str(d1) << " ";
+        ofs << direction_to_str(d2);
+}
+
 void command_switching(int argc, char **argv)
 {
         if(argc >= 5 && std::string(argv[4]).find(".bin") != std::string::npos){
@@ -163,6 +209,8 @@ void command_switching(int argc, char **argv)
                 //write_learning_data(json_node, ans);
                 delete ans;
                 delete json_node;
+        }else if(!strcmp(argv[1], "mt")){
+                multi_thread_carlo(argv[2], std::atoi(argv[3]));
         }else if(!strcmp(argv[1], "greedy")){
                 Node *json_node = new Node(argv[2]);
                 json_node->evaluate();
