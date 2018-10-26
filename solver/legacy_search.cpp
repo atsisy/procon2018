@@ -19,10 +19,10 @@
  * 味方のエージェントの位置ふたつめ
  */
 Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
-        : my_agent1(agent1.width, agent1.height, generate_agent_meta(MINE_ATTR)),
-          my_agent2(agent2.width, agent2.height, generate_agent_meta(MINE_ATTR)),
-          enemy_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
-          enemy_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
+        : enemy_agent1(agent1.width, agent1.height, generate_agent_meta(ENEMY_ATTR)),
+          enemy_agent2(agent2.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
+          my_agent1(agent1.width, agent2.height, generate_agent_meta(MINE_ATTR)),
+          my_agent2(agent2.width, agent1.height, generate_agent_meta(MINE_ATTR))
 {
         /*
          * ルートノードのために渡すからクローンを作る必要はない。
