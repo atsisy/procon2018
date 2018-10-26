@@ -56,6 +56,7 @@ private:
          * ルートノード生成用のコンストラクタ
          */
         Node(Field *field, Rect<i16> agent1, Rect<i16> agent2);
+        std::vector<std::pair<Direction, Direction>> listup_my_direction_greedy(u8 rank, u8 turn);
 
         /*
          * ターンによりノードの展開方法が異なるため、この２つのメソッドを使い分けよう！

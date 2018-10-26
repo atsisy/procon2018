@@ -482,6 +482,61 @@ void Node::expand()
         }
 }
 
+
+
+std::vector<std::pair<Direction, Direction>> Node::listup_my_direction_greedy(u8 rank, u8 turn)
+{
+        std::vector<std::pair<std::pair<Direction, Direction>, i16>> dirs_and_score;
+        std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
+        std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
+        
+        for(const Direction dir1 : directions1){
+                for(const Direction dir2 : directions2){
+
+                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
+                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
+                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
+                                continue;
+                        }
+                        
+                        Node *clone = new Node(this);
+                        clone->first_step_mine(dir1, dir2);
+                        clone->evaluate();
+                        dirs_and_score.push_back(std::make_pair(std::make_pair(dir1, dir2), clone->get_score()));
+                        delete clone;
+                }
+        }
+        
+        std::vector<std::pair<Direction, Direction>> result;
+
+        if(IS_MYTURN(turn)){
+                std::sort(std::begin(dirs_and_score), std::end(dirs_and_score),
+                          [](std::pair<std::pair<Direction, Direction>, i16> &n1, std::pair<std::pair<Direction, Direction>, i16> &n2){
+                                  return n1.second > n2.second;
+                          });
+        }else{
+                std::sort(std::begin(dirs_and_score), std::end(dirs_and_score),
+                          [](std::pair<std::pair<Direction, Direction>, i16> &n1, std::pair<std::pair<Direction, Direction>, i16> &n2){
+                                  return n1.second < n2.second;
+                          });
+        }
+
+        i64 max_score = dirs_and_score.at(0).second;
+        for(auto [d_pair, score] : dirs_and_score){
+                if(max_score != score){
+                        max_score = score;
+                        if(!--rank){
+                                break;
+                        }
+                }
+                result.push_back(d_pair);
+        }
+
+        return result;
+}
+        
 std::array<Direction, 4> check_direction_legality_static(Node *node, std::array<Direction, 4> dirs)
 {
         Direction m1, m2, e1, e2;
@@ -510,248 +565,246 @@ std::array<Direction, 4> check_direction_legality_static(Node *node, std::array<
 
 void Node::douji_expand()
 {
-        std::vector<Direction> &&my_directions1 = my_agent1.movable_direction(this->field);
-        std::vector<Direction> &&my_directions2 = my_agent2.movable_direction(this->field);
+        std::vector<std::pair<Direction, Direction>> &&my_directions = listup_my_direction_greedy(2, MY_TURN);
         std::vector<Direction> &&enemy_directions1 = enemy_agent1.movable_direction(this->field);
         std::vector<Direction> &&enemy_directions2 = enemy_agent2.movable_direction(this->field);
 
         
-        for(const Direction my_dir1 : my_directions1){
-                for(const Direction my_dir2 : my_directions2){
-                        for(const Direction enemy_dir1 : enemy_directions1){
-                                for(const Direction enemy_dir2 : enemy_directions2){
-                                        auto &&array = check_direction_legality_static(this, {my_dir1, my_dir2, enemy_dir1, enemy_dir2});
-                                        Node *clone = new Node(this);
-                                        clone->first_step_mine(array[0], array[1]);
-                                        clone->first_step_enemy(array[2], array[4]);
-                                        children.push_back(clone);
+        for(const auto [my_dir1, my_dir2] : my_directions){
+                for(const Direction enemy_dir1 : enemy_directions1){
+                        for(const Direction enemy_dir2 : enemy_directions2){
+                                auto &&array = check_direction_legality_static(this, {my_dir1, my_dir2, enemy_dir1, enemy_dir2});
+                                Node *clone = new Node(this);
+                                clone->first_step_mine(array[0], array[1]);
+                                clone->first_step_enemy(array[2], array[4]);
+                                children.push_back(clone);
+                                
+                        }
+                }
+        }
+}
+
+        Node *Node::get_specific_child(Direction agent1, Direction agent2)
+        {
+                Node *clone = new Node(this);
+                if(IS_MYTURN(turn)){
+                        clone->my_agent1.move(clone->field, agent1);
+                        clone->my_agent2.move(clone->field, agent2);
+                }else{
+                        clone->enemy_agent1.move(clone->field, agent1);
+                        clone->enemy_agent2.move(clone->field, agent2);  
+                }
+                return clone;
+        }
+
+        std::vector<Node *> Node::expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
+        {
+                std::vector<Node *> nodes;
+                nodes.reserve(36);
+        
+                for(const Direction dir1 : for_a1){
+                        for(const Direction dir2 : for_a2){
+
+                                if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
+                                   this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
+                                   this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
+                                   this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
+                                   this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
+                                        continue;
                                 }
+
+                                Node *clone = new Node(this);
+                                clone->first_step_mine(dir1, dir2);
+                                nodes.push_back(clone);
                         }
                 }
+
+                return nodes;
         }
-}
 
-Node *Node::get_specific_child(Direction agent1, Direction agent2)
-{
-        Node *clone = new Node(this);
-        if(IS_MYTURN(turn)){
-                clone->my_agent1.move(clone->field, agent1);
-                clone->my_agent2.move(clone->field, agent2);
-        }else{
-                clone->enemy_agent1.move(clone->field, agent1);
-                clone->enemy_agent2.move(clone->field, agent2);  
-        }
-        return clone;
-}
+        std::vector<Node *> Node::expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
+        {
+                std::vector<Node *> nodes;
+                nodes.reserve(36);
 
-std::vector<Node *> Node::expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
-{
-        std::vector<Node *> nodes;
-        nodes.reserve(36);
-        
-        for(const Direction dir1 : for_a1){
-                for(const Direction dir2 : for_a2){
+                for(const Direction dir1 : for_a1){
+                        for(const Direction dir2 : for_a2){
 
-                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
-                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
-                                continue;
+                                if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
+                                   this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
+                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
+                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
+                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
+                                        continue;
+                                }
+
+                                Node *clone = new Node(this);
+                                clone->first_step_enemy(dir1, dir2);
+                                nodes.push_back(clone);
                         }
-
-                        Node *clone = new Node(this);
-                        clone->first_step_mine(dir1, dir2);
-                        nodes.push_back(clone);
                 }
+
+                return nodes;
         }
 
-        return nodes;
-}
-
-std::vector<Node *> Node::expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
-{
-        std::vector<Node *> nodes;
-        nodes.reserve(36);
-
-        for(const Direction dir1 : for_a1){
-                for(const Direction dir2 : for_a2){
-
-                        if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
-                           this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
-                                continue;
-                        }
-
-                        Node *clone = new Node(this);
-                        clone->first_step_enemy(dir1, dir2);
-                        nodes.push_back(clone);
+        std::vector<Node *> Node::expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2)
+        {
+                if(IS_MYTURN(turn)){
+                        return expand_my_specific_children(for_a1, for_a2);
+                }else{
+                        return expand_enemy_specific_children(for_a1, for_a2);
                 }
         }
 
-        return nodes;
-}
+        i16 Node::evaluate()
+        {
+                static FieldEvaluater evaluater;
 
-std::vector<Node *> Node::expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2)
-{
-        if(IS_MYTURN(turn)){
-                return expand_my_specific_children(for_a1, for_a2);
-        }else{
-                return expand_enemy_specific_children(for_a1, for_a2);
+                /*
+                 * 初期化
+                 */
+                score = 0;
+        
+                /*
+                 * FIXME
+                 * 一発でenemyとmineか判定したい
+                 */
+                evaluater.set_target(MINE_ATTR);
+                score += evaluater.calc_local_area(field);
+                evaluater.set_target(ENEMY_ATTR);
+                score -= evaluater.calc_local_area(field);
+
+                /*
+                 * 愚直なやつ
+                 */
+                score += this->field->calc_sumpanel_score();
+        
+                return score;
         }
-}
 
-i16 Node::evaluate()
-{
-        static FieldEvaluater evaluater;
-
-        /*
-         * 初期化
-         */
-        score = 0;
-        
-        /*
-         * FIXME
-         * 一発でenemyとmineか判定したい
-         */
-        evaluater.set_target(MINE_ATTR);
-        score += evaluater.calc_local_area(field);
-        evaluater.set_target(ENEMY_ATTR);
-        score -= evaluater.calc_local_area(field);
-
-        /*
-         * 愚直なやつ
-         */
-        score += this->field->calc_sumpanel_score();
-        
-        return score;
-}
-
-void Node::put_score_info()
-{
-        puts("** SCORE INFORMATION **");
-        std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
-        std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-        std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
-        std::cout << "*Total*: " << evaluate() << std::endl;
-}
+        void Node::put_score_info()
+        {
+                puts("** SCORE INFORMATION **");
+                std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
+                std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
+                std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
+                std::cout << "*Total*: " << evaluate() << std::endl;
+        }
 
 /*
   ab探索法
   擬似言語
- function alphabeta(node, depth, α, β)
- if node が終端ノード or depth = 0
- return node の評価値
- foreach child of node
- α := max(α, -alphabeta(child, depth-1, -β, -α))
- if α ≥ β
- return α // カット
- return α
- */
-i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
-{
-        if(!depth){
-                return node->evaluate();
-        }
-
-        node->expand();
-
-        for(Node *child : node->ref_children()){
-                child->set_score(ab_min(child, depth - 1, a, b));
-                if(child->get_score() >= b){
-                        delete node;
-                        return node->get_score();
+  function alphabeta(node, depth, α, β)
+  if node が終端ノード or depth = 0
+  return node の評価値
+  foreach child of node
+  α := max(α, -alphabeta(child, depth-1, -β, -α))
+  if α ≥ β
+  return α // カット
+  return α
+*/
+        i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
+        {
+                if(!depth){
+                        return node->evaluate();
                 }
-                if(child->get_score() > a){
-                        // better one
-                        a = child->get_score();
+
+                node->expand();
+
+                for(Node *child : node->ref_children()){
+                        child->set_score(ab_min(child, depth - 1, a, b));
+                        if(child->get_score() >= b){
+                                delete node;
+                                return node->get_score();
+                        }
+                        if(child->get_score() > a){
+                                // better one
+                                a = child->get_score();
+                        }
                 }
+
+                return a;
         }
 
-        return a;
-}
-
-i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
-{
-        if(!depth){
-                return node->evaluate();
-        }
+        i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
+        {
+                if(!depth){
+                        return node->evaluate();
+                }
         
-        node->expand();
+                node->expand();
 
-        for(Node *child : node->ref_children()){
-                child->set_score(ab_min(child, depth - 1, a, b));
-                if(child->get_score() <= a){
-                        delete node;
-                        return child->get_score();
+                for(Node *child : node->ref_children()){
+                        child->set_score(ab_min(child, depth - 1, a, b));
+                        if(child->get_score() <= a){
+                                delete node;
+                                return child->get_score();
+                        }
+
+                        if(child->get_score() < b){
+                                //better one
+                                b = child->get_score();
+                        }
                 }
 
-                if(child->get_score() < b){
-                        //better one
-                        b = child->get_score();
-                }
+                return b;
         }
 
-        return b;
-}
-
-i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
+        i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
 	
-	int ds = -10000;
-	int tmp;
-	std::vector<i8> discore(4,0);			// up, right, down, left
+                int ds = -10000;
+                int tmp;
+                std::vector<i8> discore(4,0);			// up, right, down, left
 	
-	if(depth == 0) {
-		// Up
-		tmp = agent.get_blockscore(field, UP);
-		if(ds < tmp) ds = tmp;
+                if(depth == 0) {
+                        // Up
+                        tmp = agent.get_blockscore(field, UP);
+                        if(ds < tmp) ds = tmp;
 		
-		// Right
-		tmp = agent.get_blockscore(field, RIGHT);
-		if(ds < tmp) ds = tmp;
+                        // Right
+                        tmp = agent.get_blockscore(field, RIGHT);
+                        if(ds < tmp) ds = tmp;
 		
-		// Down
-		tmp = agent.get_blockscore(field, DOWN);
-		if(ds < tmp) ds = tmp;	
+                        // Down
+                        tmp = agent.get_blockscore(field, DOWN);
+                        if(ds < tmp) ds = tmp;	
 		
-		// Left
-		tmp = agent.get_blockscore(field, LEFT);
-		if(ds < tmp) ds = tmp;
+                        // Left
+                        tmp = agent.get_blockscore(field, LEFT);
+                        if(ds < tmp) ds = tmp;
 	
-		return tmp;
-	}
+                        return tmp;
+                }
 	
-	Direction weast;
-	discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
-	discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
-	discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
-	discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
+                Direction weast;
+                discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
+                discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
+                discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
+                discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
 	
-	i8 max = *std::max_element(discore.begin(), discore.end());
+                i8 max = *std::max_element(discore.begin(), discore.end());
 	
-	for(int i=0;i<4; i++)
-		if(discore[i] == max) *result = (Direction)(i*2); 
+                for(int i=0;i<4; i++)
+                        if(discore[i] == max) *result = (Direction)(i*2); 
 	
-	return max;
-}
+                return max;
+        }
 
-Node *Search::absearch(Node *root)
-{
-        ab_max(root, 4, -10000, 10000);
-        std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
-        std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
-        /*
-         * FIXME
-         * 先頭に必ずぶっ壊れたデータが入っている
-         */
-        return root->ref_children().at(1);
-}
+        Node *Search::absearch(Node *root)
+        {
+                ab_max(root, 4, -10000, 10000);
+                std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
+                std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
+                /*
+                 * FIXME
+                 * 先頭に必ずぶっ壊れたデータが入っている
+                 */
+                return root->ref_children().at(1);
+        }
 
-i8 Search::slantsearch(Agent agent, Field & field) {
-	Direction ret;
-	slant(agent, field, 1, &ret);
+        i8 Search::slantsearch(Agent agent, Field & field) {
+                Direction ret;
+                slant(agent, field, 1, &ret);
 	
-	return ret;
-}
+                return ret;
+        }
