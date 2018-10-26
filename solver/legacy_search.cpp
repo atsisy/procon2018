@@ -567,15 +567,24 @@ i16 Node::evaluate()
          * FIXME
          * 一発でenemyとmineか判定したい
          */
+
+        /*
         evaluater.set_target(MINE_ATTR);
         score += evaluater.calc_local_area(field);
         evaluater.set_target(ENEMY_ATTR);
         score -= evaluater.calc_local_area(field);
+        */
 
+        
         /*
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
+
+        std::unordered_map<int, std::vector<int>> pureterritoryMine = field->makePureTerritory(field->makePureTreeMine());
+        std::unordered_map<int, std::vector<int>> pureterritoryEnemy = field->makePureTerritory(field->makePureTreeEnemy());
+        score += field->calcMineScore(pureterritoryMine);
+        score -= field->calcEnemyScore(pureterritoryEnemy);
 
         return score;
 }
