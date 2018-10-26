@@ -20,21 +20,20 @@ mv db.bin cdb.bin
 wait_user
 
 turn=0
-for i in `seq 1 14`
+for i in `seq 1 $1`
 do
-    ./bin.d/bin db ./cdump.json 50 27000 > /dev/null &
 
-    for tn in `seq 1 5`
-    do
-        turn=$(($turn + 1))
-        echo ---------------------------------------------
-        echo turn $turn
-        ./bin.d/bin continue ./jdump.json $turn ./cdb.bin 
-
-        wait_user
+    if test $((i % 5)) -eq 0 ; then
+        nice -n 13 ./bin.d/bin db ./cdump.json 50 30000 > /dev/null &
+    fi
+    turn=$(($turn + 1))
+    echo ---------------------------------------------
+    echo turn $turn
+    ./bin.d/bin continue ./jdump.json $turn ./cdb.bin 
         
-        ./bin.d/bin gnuscore ./jdump.json $turn  >> score.dat
-    done
+    wait_user
+        
+    ./bin.d/bin gnuscore ./jdump.json $turn  >> score.dat
 
     mv db.bin cdb.bin
     
