@@ -19,41 +19,45 @@
  * 味方のエージェントの位置ふたつめ
  */
 Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
-        : my_agent1(agent1.width, agent1.height, generate_agent_meta(MINE_ATTR)),
-          my_agent2(agent2.width, agent2.height, generate_agent_meta(MINE_ATTR)),
-          enemy_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
-          enemy_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
+	: my_agent1(agent1.width, agent1.height,
+		    generate_agent_meta(MINE_ATTR)),
+	  my_agent2(agent2.width, agent2.height,
+		    generate_agent_meta(MINE_ATTR)),
+	  enemy_agent1(agent1.width, agent2.height,
+		       generate_agent_meta(ENEMY_ATTR)),
+	  enemy_agent2(agent2.width, agent1.height,
+		       generate_agent_meta(ENEMY_ATTR))
 {
-        /*
+	/*
          * ルートノードのために渡すからクローンを作る必要はない。
          */
-        this->field = field;
+	this->field = field;
 
-        /*
+	/*
          * 自分のエージェントを配置
          */
-        field->make_at(my_agent1.x, my_agent1.y, MINE_ATTR);
-        field->make_at(my_agent2.x, my_agent2.y, MINE_ATTR);
+	field->make_at(my_agent1.x, my_agent1.y, MINE_ATTR);
+	field->make_at(my_agent2.x, my_agent2.y, MINE_ATTR);
 
-        /*
+	/*
          * 敵のエージェントを配置
          */
-        field->make_at(enemy_agent1.x, enemy_agent1.y, ENEMY_ATTR);
-        field->make_at(enemy_agent2.x, enemy_agent2.y, ENEMY_ATTR);
+	field->make_at(enemy_agent1.x, enemy_agent1.y, ENEMY_ATTR);
+	field->make_at(enemy_agent2.x, enemy_agent2.y, ENEMY_ATTR);
 
-        /*
+	/*
          * ルートのノードは敵(デフォルト)
          */
 #ifdef I_AM_ENEMY
-        turn = ENEMY_TURN;
+	turn = ENEMY_TURN;
 #endif
 #ifdef I_AM_ME
-        turn = MY_TURN;
+	turn = MY_TURN;
 #endif
 
-        parent = NULL;
-        
-        score = 0;
+	parent = NULL;
+
+	score = 0;
 }
 
 /*
@@ -67,294 +71,314 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
  * 
  */
 Node::Node(const Node *parent)
-        : my_agent1(parent->my_agent1),
-          my_agent2(parent->my_agent2),
-          enemy_agent1(parent->enemy_agent1),
-          enemy_agent2(parent->enemy_agent2)
+	: my_agent1(parent->my_agent1), my_agent2(parent->my_agent2),
+	  enemy_agent1(parent->enemy_agent1), enemy_agent2(parent->enemy_agent2)
 {
-        /*
+	/*
          * クローン生成して即代入
          */
-        this->field = parent->field->clone();
-        score = -10000;
-        turn = parent->toggled_turn();
-        this->parent = parent;
+	this->field = parent->field->clone();
+	score = -10000;
+	turn = parent->toggled_turn();
+	this->parent = parent;
 }
 
 Node::Node(const char *json_path)
-        : my_agent1(MINE_ATTR), my_agent2(MINE_ATTR),
-          enemy_agent1(ENEMY_ATTR), enemy_agent2(ENEMY_ATTR)
+	: my_agent1(MINE_ATTR), my_agent2(MINE_ATTR), enemy_agent1(ENEMY_ATTR),
+	  enemy_agent2(ENEMY_ATTR)
 {
-        std::ifstream ifs(json_path, std::ios::in);
-        if (ifs.fail()) {
-                std::cerr << "failed to read json file" << std::endl;
-                exit(1);
-        }
-        const std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-        ifs.close();
+	std::ifstream ifs(json_path, std::ios::in);
+	if (ifs.fail()) {
+		std::cerr << "failed to read json file" << std::endl;
+		exit(1);
+	}
+	const std::string json((std::istreambuf_iterator<char>(ifs)),
+			       std::istreambuf_iterator<char>());
+	ifs.close();
 
-        picojson::value v;
-        const std::string err = picojson::parse(v, json);
-        if (err.empty() == false) {
-                std::cerr << err << std::endl;
-                exit(1);
-        }
-        
-        picojson::object& obj = v.get<picojson::object>();
-        my_agent1.x = (int)obj["agent_m1_x"].get<double>();
-        my_agent1.y = (int)obj["agent_m1_y"].get<double>();
-        my_agent2.x = (int)obj["agent_m2_x"].get<double>();
-        my_agent2.y = (int)obj["agent_m2_y"].get<double>();
-        enemy_agent1.x = (int)obj["agent_e1_x"].get<double>();
-        enemy_agent1.y = (int)obj["agent_e1_y"].get<double>();
-        enemy_agent2.x = (int)obj["agent_e2_x"].get<double>();
-        enemy_agent2.y = (int)obj["agent_e2_y"].get<double>();
+	picojson::value v;
+	const std::string err = picojson::parse(v, json);
+	if (err.empty() == false) {
+		std::cerr << err << std::endl;
+		exit(1);
+	}
 
-        picojson::array& array = obj["Field"].get<picojson::array>();
-        FieldBuilder builer((i32)obj["width"].get<double>(), (i32)obj["height"].get<double>());
-        field = new Field();
-        
-        for(picojson::value &e : array){
-                picojson::object &object = e.get<picojson::object>();
-                field->set_score_at(object["x"].get<double>(), object["y"].get<double>(), object["score"].get<double>());
-                field->make_at(object["x"].get<double>(), object["y"].get<double>(), [](std::string key){
-                                                                                                  if(key == "P")
-                                                                                                          return PURE_ATTR;
-                                                                                                  else if(key == "M")
-                                                                                                          return MINE_ATTR;
-                                                                                                  else
-                                                                                                          return ENEMY_ATTR;
-                                                                                          }(object["attribute"].get<std::string>()));
-        }
+	picojson::object &obj = v.get<picojson::object>();
+	my_agent1.x = (int)obj["agent_m1_x"].get<double>();
+	my_agent1.y = (int)obj["agent_m1_y"].get<double>();
+	my_agent2.x = (int)obj["agent_m2_x"].get<double>();
+	my_agent2.y = (int)obj["agent_m2_y"].get<double>();
+	enemy_agent1.x = (int)obj["agent_e1_x"].get<double>();
+	enemy_agent1.y = (int)obj["agent_e1_y"].get<double>();
+	enemy_agent2.x = (int)obj["agent_e2_x"].get<double>();
+	enemy_agent2.y = (int)obj["agent_e2_y"].get<double>();
+
+	picojson::array &array = obj["Field"].get<picojson::array>();
+	FieldBuilder builer((i32)obj["width"].get<double>(),
+			    (i32)obj["height"].get<double>());
+	field = new Field();
+
+	for (picojson::value &e : array) {
+		picojson::object &object = e.get<picojson::object>();
+		field->set_score_at(object["x"].get<double>(),
+				    object["y"].get<double>(),
+				    object["score"].get<double>());
+		field->make_at(object["x"].get<double>(),
+			       object["y"].get<double>(), [](std::string key) {
+				       if (key == "P")
+					       return PURE_ATTR;
+				       else if (key == "M")
+					       return MINE_ATTR;
+				       else
+					       return ENEMY_ATTR;
+			       }(object["attribute"].get<std::string>()));
+	}
 #ifdef I_AM_ENEMY
-        turn = ENEMY_TURN;
+	turn = ENEMY_TURN;
 #endif
 #ifdef I_AM_ME
-        turn = MY_TURN;
+	turn = MY_TURN;
 #endif
 }
 
 void Node::first_step_enemy(Direction dir1, Direction dir2)
 {
-        last_action[0] = dir1;
-        last_action[1] = dir2;
+	last_action[0] = dir1;
+	last_action[1] = dir2;
 
-        enemy_agent1.protected_move(this->field, (Direction)dir1);
-        enemy_agent2.protected_move(this->field, (Direction)dir2);
+	enemy_agent1.protected_move(this->field, (Direction)dir1);
+	enemy_agent2.protected_move(this->field, (Direction)dir2);
 }
-
 
 void Node::first_step_mine(Direction dir1, Direction dir2)
 {
-        last_action[0] = dir1;
-        last_action[1] = dir2;
+	last_action[0] = dir1;
+	last_action[1] = dir2;
 
-        my_agent1.protected_move(this->field, (Direction)dir1);
-        my_agent2.protected_move(this->field, (Direction)dir2);
+	my_agent1.protected_move(this->field, (Direction)dir1);
+	my_agent2.protected_move(this->field, (Direction)dir2);
 }
 
 void Node::draw() const
 {
-        puts("Field Info");
-        field->Draw();
-        field->draw_status();
-        puts("Agent Info");
-        puts("Node::my_agent1");
-        my_agent1.draw();
-        puts("Node::my_agent2");
-        my_agent2.draw();
-        puts("Node::enemy_agent1");
-        enemy_agent1.draw();
-        puts("Node::enemy_agent2");
-        enemy_agent2.draw();
+	puts("Field Info");
+	field->Draw();
+	field->draw_status();
+	puts("Agent Info");
+	puts("Node::my_agent1");
+	my_agent1.draw();
+	puts("Node::my_agent2");
+	my_agent2.draw();
+	puts("Node::enemy_agent1");
+	enemy_agent1.draw();
+	puts("Node::enemy_agent2");
+	enemy_agent2.draw();
 }
 
 void Node::play(std::array<Direction, 4> dirs)
 {
-        my_agent1.protected_move(this->field, dirs[0]);
-        my_agent2.protected_move(this->field, dirs[1]);
-        enemy_agent1.protected_move(this->field, dirs[2]);
-        enemy_agent2.protected_move(this->field, dirs[3]);
+	my_agent1.protected_move(this->field, dirs[0]);
+	my_agent2.protected_move(this->field, dirs[1]);
+	enemy_agent1.protected_move(this->field, dirs[2]);
+	enemy_agent2.protected_move(this->field, dirs[3]);
 }
 
 void Node::play_half(Direction d1, Direction d2, u8 turn)
 {
-        if(IS_MYTURN(turn)){
-                my_agent1.protected_move(this->field, d1);
-                my_agent2.protected_move(this->field, d2);
-        }else{
-                enemy_agent1.protected_move(this->field, d1);
-                enemy_agent2.protected_move(this->field, d2);
-        }
+	if (IS_MYTURN(turn)) {
+		my_agent1.protected_move(this->field, d1);
+		my_agent2.protected_move(this->field, d2);
+	} else {
+		enemy_agent1.protected_move(this->field, d1);
+		enemy_agent2.protected_move(this->field, d2);
+	}
 }
 
 i8 Node::check_panel_score(Direction d, Agent agent)
 {
-        agent.just_move(d);
-        return field->at(agent.x, agent.y).get_score_value();
+	agent.just_move(d);
+	return field->at(agent.x, agent.y).get_score_value();
 }
 
 std::string Node::dump_json() const
 {
-        picojson::object root;
-        picojson::array array;
+	picojson::object root;
+	picojson::array array;
 
-        root.insert(std::make_pair("width", picojson::value((double)Field::field_size_x)));
-        root.insert(std::make_pair("height", picojson::value((double)Field::field_size_y)));
-        std::cout << (double)get_score() << std::endl;
-        root.insert(std::make_pair("total_score", picojson::value((double)get_score())));
-        
+	root.insert(std::make_pair(
+		"width", picojson::value((double)Field::field_size_x)));
+	root.insert(std::make_pair(
+		"height", picojson::value((double)Field::field_size_y)));
+	std::cout << (double)get_score() << std::endl;
+	root.insert(std::make_pair("total_score",
+				   picojson::value((double)get_score())));
 
-        for(u8 y = 0;y < Field::field_size_y;y++){
-                for(u8 x = 0;x < Field::field_size_x;x++){
-                        picojson::object data;
-                        data.insert(std::make_pair("x", picojson::value((double)x)));
-                        data.insert(std::make_pair("y", picojson::value((double)y)));
-                        data.insert(std::make_pair("score", picojson::value(
-                                                           (double)(field->at(x, y).get_score_value()))));
-                        data.insert(std::make_pair("attribute", [](const Panel panel)
-                                                                        {
-                                                                                if(panel.are_you(MINE_ATTR))
-                                                                                        return "M";
-                                                                                else if(panel.are_you(ENEMY_ATTR))
-                                                                                        return "E";
-                                                                                else
-                                                                                        return "P";
-                                                                        }(field->at(x, y))));
-                        array.push_back(picojson::value(data));
-                }
-        }
+	for (u8 y = 0; y < Field::field_size_y; y++) {
+		for (u8 x = 0; x < Field::field_size_x; x++) {
+			picojson::object data;
+			data.insert(std::make_pair("x",
+						   picojson::value((double)x)));
+			data.insert(std::make_pair("y",
+						   picojson::value((double)y)));
+			data.insert(std::make_pair(
+				"score",
+				picojson::value(
+					(double)(field->at(x, y)
+							 .get_score_value()))));
+			data.insert(std::make_pair(
+				"attribute", [](const Panel panel) {
+					if (panel.are_you(MINE_ATTR))
+						return "M";
+					else if (panel.are_you(ENEMY_ATTR))
+						return "E";
+					else
+						return "P";
+				}(field->at(x, y))));
+			array.push_back(picojson::value(data));
+		}
+	}
 
-        root.insert(std::make_pair("agent_m1_x", picojson::value((double)my_agent1.x)));
-        root.insert(std::make_pair("agent_m1_y", picojson::value((double)my_agent1.y)));
-        root.insert(std::make_pair("agent_m2_x", picojson::value((double)my_agent2.x)));
-        root.insert(std::make_pair("agent_m2_y", picojson::value((double)my_agent2.y)));
-        root.insert(std::make_pair("agent_e1_x", picojson::value((double)enemy_agent1.x)));
-        root.insert(std::make_pair("agent_e1_y", picojson::value((double)enemy_agent1.y)));
-        root.insert(std::make_pair("agent_e2_x", picojson::value((double)enemy_agent2.x)));
-        root.insert(std::make_pair("agent_e2_y", picojson::value((double)enemy_agent2.y)));
-        root.insert(std::make_pair("turn", picojson::value((double)turn)));
+	root.insert(std::make_pair("agent_m1_x",
+				   picojson::value((double)my_agent1.x)));
+	root.insert(std::make_pair("agent_m1_y",
+				   picojson::value((double)my_agent1.y)));
+	root.insert(std::make_pair("agent_m2_x",
+				   picojson::value((double)my_agent2.x)));
+	root.insert(std::make_pair("agent_m2_y",
+				   picojson::value((double)my_agent2.y)));
+	root.insert(std::make_pair("agent_e1_x",
+				   picojson::value((double)enemy_agent1.x)));
+	root.insert(std::make_pair("agent_e1_y",
+				   picojson::value((double)enemy_agent1.y)));
+	root.insert(std::make_pair("agent_e2_x",
+				   picojson::value((double)enemy_agent2.x)));
+	root.insert(std::make_pair("agent_e2_y",
+				   picojson::value((double)enemy_agent2.y)));
+	root.insert(std::make_pair("turn", picojson::value((double)turn)));
 
-        root.insert(std::make_pair("Field", picojson::value(array)));
-        return picojson::value(root).serialize();
+	root.insert(std::make_pair("Field", picojson::value(array)));
+	return picojson::value(root).serialize();
 }
 
 void Node::dump_json_file(const char *file_name) const
 {
-        std::ofstream f(file_name);
-        f << dump_json();
+	std::ofstream f(file_name);
+	f << dump_json();
 }
 
 bool Node::nobody(i8 x, i8 y) const
 {
-        return !my_agent1.same_location(x, y) && !my_agent2.same_location(x, y) &&
-                !enemy_agent1.same_location(x, y) && !enemy_agent2.same_location(x, y);
+	return !my_agent1.same_location(x, y) &&
+	       !my_agent2.same_location(x, y) &&
+	       !enemy_agent1.same_location(x, y) &&
+	       !enemy_agent2.same_location(x, y);
 }
 
 std::array<Direction, 4> Node::agent_diff(const Node *node) const
 {
-        std::array<Direction, 4> ret;
-        std::pair<i8, i8> tmp;
+	std::array<Direction, 4> ret;
+	std::pair<i8, i8> tmp;
 
-        tmp = my_agent1.diff(node->my_agent1);
-        ret[0] = which_direction(tmp.first, tmp.second);
-        tmp = my_agent2.diff(node->my_agent2);
-        ret[1] = which_direction(tmp.first, tmp.second);
-        tmp = enemy_agent1.diff(node->enemy_agent1);
-        ret[2] = which_direction(tmp.first, tmp.second);
-        tmp = enemy_agent2.diff(node->enemy_agent2);
-        ret[3] = which_direction(tmp.first, tmp.second);
-        
-        return ret;
+	tmp = my_agent1.diff(node->my_agent1);
+	ret[0] = which_direction(tmp.first, tmp.second);
+	tmp = my_agent2.diff(node->my_agent2);
+	ret[1] = which_direction(tmp.first, tmp.second);
+	tmp = enemy_agent1.diff(node->enemy_agent1);
+	ret[2] = which_direction(tmp.first, tmp.second);
+	tmp = enemy_agent2.diff(node->enemy_agent2);
+	ret[3] = which_direction(tmp.first, tmp.second);
+
+	return ret;
 }
 
 std::vector<action> Node::__generate_state_hash(std::vector<Agent> agents) const
 {
-        i8 x, y, pos_avg, neg_avg;
-        std::vector<action> ret;
+	i8 x, y, pos_avg, neg_avg;
+	std::vector<action> ret;
 
-        pos_avg = field->get_field_score_avg(POSITIVE_ONLY);
-        neg_avg = field->get_field_score_avg(NEGATIVE_ONLY);
+	pos_avg = field->get_field_score_avg(POSITIVE_ONLY);
+	neg_avg = field->get_field_score_avg(NEGATIVE_ONLY);
 
-        for(Agent agent : agents){
-                u64 hash = 0;
-                for(x = agent.x - 1;x <= agent.x + 1;x++){
-                        for(y = agent.y - 1;y <= agent.y + 1;y++){
-                                hash <<= PANEL_SIMPLIFIED_HASH_SIZE;
-                                if(!field->is_within(x, y))
-                                        continue;
-                                u64 tmp_hash = field->at(x, y).simplified_hash(pos_avg, neg_avg, agent.extract_player_info(), !nobody(x, y));
-                                hash |= tmp_hash;
-                        }
-                }
-                ret.emplace_back(hash);
-        }
+	for (Agent agent : agents) {
+		u64 hash = 0;
+		for (x = agent.x - 1; x <= agent.x + 1; x++) {
+			for (y = agent.y - 1; y <= agent.y + 1; y++) {
+				hash <<= PANEL_SIMPLIFIED_HASH_SIZE;
+				if (!field->is_within(x, y))
+					continue;
+				u64 tmp_hash = field->at(x, y).simplified_hash(
+					pos_avg, neg_avg,
+					agent.extract_player_info(),
+					!nobody(x, y));
+				hash |= tmp_hash;
+			}
+		}
+		ret.emplace_back(hash);
+	}
 
-        return ret;
+	return ret;
 }
 std::pair<Direction, Direction> Node::find_greedy(u8 turn)
 {
-        xor128 rand;
-        if(IS_MYTURN(turn)){
-                return std::make_pair(
-                        __find_greedy(my_agent1, rand()),
-                        __find_greedy(my_agent2, rand()));
-        }else{
-                return std::make_pair(
-                        __find_greedy(enemy_agent1, rand()),
-                        __find_greedy(enemy_agent2, rand()));
-        }
+	xor128 rand;
+	if (IS_MYTURN(turn)) {
+		return std::make_pair(__find_greedy(my_agent1, rand()),
+				      __find_greedy(my_agent2, rand()));
+	} else {
+		return std::make_pair(__find_greedy(enemy_agent1, rand()),
+				      __find_greedy(enemy_agent2, rand()));
+	}
 }
-
 
 Direction Node::__find_greedy(Agent agent, u32 rand)
 {
-        std::vector<Direction> ret;
-        i64 max = -100;
+	std::vector<Direction> ret;
+	i64 max = -100;
 
-        i8 x, y;
-        Panel panel;
-        
-        for(x = agent.x - 1;x <= agent.x + 1;x++){
-                for(y = agent.y - 1;y <= agent.y + 1;y++){
-                        if(!field->is_within(x, y))
-                                continue;
-                        panel = field->at(x, y);
-                        if(!nobody(x, y)){
-                                score = -100;
-                        }else if(panel.are_you(agent.extract_player_info())){
-                                score = 0;
-                        }else{
-                                score = field->at(x, y).get_score_value();
-                        }
+	i8 x, y;
+	Panel panel;
 
-                        //std::cout << "x : y = " << (int)x << " : " << (int)y << " score: " << score << std::endl;
-                        
-                        if(max < score){
-                                max = score;
-                        }
-                }
-        }
+	for (x = agent.x - 1; x <= agent.x + 1; x++) {
+		for (y = agent.y - 1; y <= agent.y + 1; y++) {
+			if (!field->is_within(x, y))
+				continue;
+			panel = field->at(x, y);
+			if (!nobody(x, y)) {
+				score = -100;
+			} else if (panel.are_you(agent.extract_player_info())) {
+				score = 0;
+			} else {
+				score = field->at(x, y).get_score_value();
+			}
 
-        for(x = agent.x - 1;x <= agent.x + 1;x++){
-                for(y = agent.y - 1;y <= agent.y + 1;y++){
-                        if(!field->is_within(x, y))
-                                continue;
-                        panel = field->at(x, y);
-                        if(!nobody(x, y)){
-                                score = -100;
-                        }else if(panel.are_you(agent.extract_player_info())){
-                                score = 0;
-                        }else{
-                                score = field->at(x, y).get_score_value();
-                        }
-                        
-                        if(max == score)
-                                ret.push_back(which_direction(x - agent.x, y - agent.y));
-                }
-        }
+			//std::cout << "x : y = " << (int)x << " : " << (int)y << " score: " << score << std::endl;
 
-        /*
+			if (max < score) {
+				max = score;
+			}
+		}
+	}
+
+	for (x = agent.x - 1; x <= agent.x + 1; x++) {
+		for (y = agent.y - 1; y <= agent.y + 1; y++) {
+			if (!field->is_within(x, y))
+				continue;
+			panel = field->at(x, y);
+			if (!nobody(x, y)) {
+				score = -100;
+			} else if (panel.are_you(agent.extract_player_info())) {
+				score = 0;
+			} else {
+				score = field->at(x, y).get_score_value();
+			}
+
+			if (max == score)
+				ret.push_back(which_direction(x - agent.x,
+							      y - agent.y));
+		}
+	}
+
+	/*
         dump_json_file("debug.json");
         agent.draw();
         puts("candidates");
@@ -363,9 +387,9 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
         }
         getchar();
         */
-        
-        Direction ans = ret.at(rand % ret.size());
-        /*
+
+	Direction ans = ret.at(rand % ret.size());
+	/*
         if(ans == STOP){
                 agent.draw();
                 puts("now, stoped");
@@ -376,320 +400,395 @@ Direction Node::__find_greedy(Agent agent, u32 rand)
                 getchar();
         }
         */
-        
-        return ans;
-}
 
+	return ans;
+}
 
 std::vector<action> Node::generate_state_hash(u8 turn) const
 {
-        std::vector<Agent> agents;
-        
-        if(IS_MYTURN(turn)){
-                agents.push_back(my_agent1);
-                agents.push_back(my_agent2);
-        }else{
-                agents.push_back(enemy_agent1);
-                agents.push_back(enemy_agent2);
-        }
+	std::vector<Agent> agents;
 
-        return __generate_state_hash(agents);
+	if (IS_MYTURN(turn)) {
+		agents.push_back(my_agent1);
+		agents.push_back(my_agent2);
+	} else {
+		agents.push_back(enemy_agent1);
+		agents.push_back(enemy_agent2);
+	}
+
+	return __generate_state_hash(agents);
 }
 
 std::vector<action> Node::generate_state_hash() const
 {
-        return __generate_state_hash({ my_agent1, my_agent2, enemy_agent1, enemy_agent2 });
+	return __generate_state_hash(
+		{ my_agent1, my_agent2, enemy_agent1, enemy_agent2 });
 }
 
 void Node::expand_enemy_node()
 {
-        //children.reserve(81);
-        std::vector<Direction> &&directions1 = enemy_agent1.movable_direction(this->field);
-        std::vector<Direction> &&directions2 = enemy_agent2.movable_direction(this->field);
-        
-        for(const Direction dir1 : directions1){
-                for(const Direction dir2 : directions2){
+	//children.reserve(81);
+	std::vector<Direction> &&directions1 =
+		enemy_agent1.movable_direction(this->field);
+	std::vector<Direction> &&directions2 =
+		enemy_agent2.movable_direction(this->field);
 
-                        if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
-                           this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
-                           this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
-                                continue;
-                        }
+	for (const Direction dir1 : directions1) {
+		for (const Direction dir2 : directions2) {
+			if (this->enemy_agent1.check_conflict(
+				    ((Direction)dir1), this->my_agent1, STOP) ||
+			    this->enemy_agent1.check_conflict(
+				    ((Direction)dir1), this->my_agent2, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->my_agent1, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->my_agent2, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->enemy_agent1,
+				    (Direction)dir1)) {
+				continue;
+			}
 
-                        /** FIXME
+			/** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
-                        Node *clone = new Node(this);
-                        clone->first_step_enemy(dir1, dir2);
-                        children.push_back(clone);
-                }
-        }
+			Node *clone = new Node(this);
+			clone->first_step_enemy(dir1, dir2);
+			children.push_back(clone);
+		}
+	}
 }
 
 bool Node::has_same_pos(const Node *node)
 {
-        return
-                this->my_agent1.same_location(node->my_agent1) &&
-                this->my_agent2.same_location(node->my_agent2) &&
-                this->enemy_agent1.same_location(node->enemy_agent1) &&
-                this->enemy_agent2.same_location(node->enemy_agent2);
-                
+	return this->my_agent1.same_location(node->my_agent1) &&
+	       this->my_agent2.same_location(node->my_agent2) &&
+	       this->enemy_agent1.same_location(node->enemy_agent1) &&
+	       this->enemy_agent2.same_location(node->enemy_agent2);
 }
 
 void Node::expand_my_node()
 {
-        std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
-        std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
-        
-        for(const Direction dir1 : directions1){
-                for(const Direction dir2 : directions2){
+	std::vector<Direction> &&directions1 =
+		my_agent1.movable_direction(this->field);
+	std::vector<Direction> &&directions2 =
+		my_agent2.movable_direction(this->field);
 
-                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
-                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
-                                continue;
-                        }
-                        
-                        /** FIXME
+	for (const Direction dir1 : directions1) {
+		for (const Direction dir2 : directions2) {
+			if (this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->my_agent1,
+							   (Direction)dir1)) {
+				continue;
+			}
+
+			/** FIXME
                          * fieldがポインタ参照になってる。
                          * moveメソッドに直接fieldのポインタを渡したい
                          */
-                        Node *clone = new Node(this);
-                        clone->first_step_mine(dir1, dir2);
-                        children.push_back(clone);
-                }
-        }
+			Node *clone = new Node(this);
+			clone->first_step_mine(dir1, dir2);
+			children.push_back(clone);
+		}
+	}
 }
 
 void Node::expand()
 {
-        this->children.reserve(81);
-        if(turn){
-                /*
+	this->children.reserve(81);
+	if (turn) {
+		/*
                  * 敵のノードを展開
                  */
-                expand_enemy_node();
-        }else{
-                /*
+		expand_enemy_node();
+	} else {
+		/*
                  * 味方のノードを展開
                  */
-                expand_my_node();
-        }
+		expand_my_node();
+	}
 }
 
-
-
-std::vector<std::pair<Direction, Direction>> Node::listup_my_direction_greedy(u8 rank, u8 turn)
+std::vector<std::pair<Direction, Direction> >
+Node::listup_my_direction_greedy(u8 rank, u8 turn)
 {
-        std::vector<std::pair<std::pair<Direction, Direction>, i16>> dirs_and_score;
-        std::vector<Direction> &&directions1 = my_agent1.movable_direction(this->field);
-        std::vector<Direction> &&directions2 = my_agent2.movable_direction(this->field);
-        
-        for(const Direction dir1 : directions1){
-                for(const Direction dir2 : directions2){
+	std::vector<std::pair<std::pair<Direction, Direction>, i16> >
+		dirs_and_score;
+	std::vector<Direction> &&directions1 =
+		my_agent1.movable_direction(this->field);
+	std::vector<Direction> &&directions2 =
+		my_agent2.movable_direction(this->field);
 
-                        if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
-                           this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
-                           this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
-                                continue;
-                        }
-                        
-                        Node *clone = new Node(this);
-                        clone->first_step_mine(dir1, dir2);
-                        clone->evaluate();
-                        dirs_and_score.push_back(std::make_pair(std::make_pair(dir1, dir2), clone->get_score()));
-                        delete clone;
-                }
-        }
-        
-        std::vector<std::pair<Direction, Direction>> result;
+	for (const Direction dir1 : directions1) {
+		for (const Direction dir2 : directions2) {
+			if (this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->my_agent1,
+							   (Direction)dir1)) {
+				continue;
+			}
 
-        if(IS_MYTURN(turn)){
-                std::sort(std::begin(dirs_and_score), std::end(dirs_and_score),
-                          [](std::pair<std::pair<Direction, Direction>, i16> &n1, std::pair<std::pair<Direction, Direction>, i16> &n2){
-                                  return n1.second > n2.second;
-                          });
-        }else{
-                std::sort(std::begin(dirs_and_score), std::end(dirs_and_score),
-                          [](std::pair<std::pair<Direction, Direction>, i16> &n1, std::pair<std::pair<Direction, Direction>, i16> &n2){
-                                  return n1.second < n2.second;
-                          });
-        }
+			Node *clone = new Node(this);
+			clone->first_step_mine(dir1, dir2);
+			clone->evaluate();
+			dirs_and_score.push_back(
+				std::make_pair(std::make_pair(dir1, dir2),
+					       clone->get_score()));
+			delete clone;
+		}
+	}
 
-        i64 max_score = dirs_and_score.at(0).second;
-        for(auto [d_pair, score] : dirs_and_score){
-                if(max_score != score){
-                        max_score = score;
-                        if(!--rank){
-                                break;
-                        }
-                }
-                result.push_back(d_pair);
-        }
+	std::vector<std::pair<Direction, Direction> > result;
 
-        return result;
+	if (IS_MYTURN(turn)) {
+		std::sort(
+			std::begin(dirs_and_score), std::end(dirs_and_score),
+			[](std::pair<std::pair<Direction, Direction>, i16> &n1,
+			   std::pair<std::pair<Direction, Direction>, i16> &n2) {
+				return n1.second > n2.second;
+			});
+	} else {
+		std::sort(
+			std::begin(dirs_and_score), std::end(dirs_and_score),
+			[](std::pair<std::pair<Direction, Direction>, i16> &n1,
+			   std::pair<std::pair<Direction, Direction>, i16> &n2) {
+				return n1.second < n2.second;
+			});
+	}
+
+	i64 max_score = dirs_and_score.at(0).second;
+	for (auto [d_pair, score] : dirs_and_score) {
+		if (max_score != score) {
+			max_score = score;
+			if (!--rank) {
+				break;
+			}
+		}
+		result.push_back(d_pair);
+	}
+
+	return result;
 }
-        
-std::array<Direction, 4> check_direction_legality_static(Node *node, std::array<Direction, 4> dirs)
+
+std::array<Direction, 4>
+check_direction_legality_static(Node *node, std::array<Direction, 4> dirs)
 {
-        Direction m1, m2, e1, e2;
+	Direction m1, m2, e1, e2;
 
-        m1 = dirs[0];
-        m2 = dirs[1];
-        e1 = dirs[2];
-        e2 = dirs[3];
+	m1 = dirs[0];
+	m2 = dirs[1];
+	e1 = dirs[2];
+	e2 = dirs[3];
 
-        if(node->my_agent1.check_conflict(dirs[0], node->my_agent2, dirs[1]))
-                m1 = m2 = STOP;
-        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent1, dirs[2]))
-                m1 = e1 = STOP;
-        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent2, dirs[3]))
-                m1 = e2 = STOP;
-        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent1, dirs[2]))
-                m2 = e1 = STOP;
-        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent2, dirs[3]))
-                m2 = e2 = STOP;
-        if(node->enemy_agent1.check_conflict(dirs[2], node->enemy_agent2, dirs[3]))
-                e1 = e2 = STOP;
+	if (node->my_agent1.check_conflict(dirs[0], node->my_agent2, dirs[1]))
+		m1 = m2 = STOP;
+	if (node->my_agent1.check_conflict(dirs[0], node->enemy_agent1, dirs[2]))
+		m1 = e1 = STOP;
+	if (node->my_agent1.check_conflict(dirs[0], node->enemy_agent2,
+					   dirs[3]))
+		m1 = e2 = STOP;
+	if (node->my_agent2.check_conflict(dirs[1], node->enemy_agent1,
+					   dirs[2]))
+		m2 = e1 = STOP;
+	if (node->my_agent2.check_conflict(dirs[1], node->enemy_agent2,
+					   dirs[3]))
+		m2 = e2 = STOP;
+	if (node->enemy_agent1.check_conflict(dirs[2], node->enemy_agent2,
+					      dirs[3]))
+		e1 = e2 = STOP;
 
-        return {m1, m2, e1, e2};
+	return { m1, m2, e1, e2 };
 }
-
 
 void Node::douji_expand()
 {
-        std::vector<std::pair<Direction, Direction>> &&my_directions = listup_my_direction_greedy(2, MY_TURN);
-        std::vector<Direction> &&enemy_directions1 = enemy_agent1.movable_direction(this->field);
-        std::vector<Direction> &&enemy_directions2 = enemy_agent2.movable_direction(this->field);
+	std::vector<std::pair<Direction, Direction> > &&my_directions =
+		listup_my_direction_greedy(1, MY_TURN);
 
+        /*
+        for(auto [d1, d2] : my_directions)
+                std::cout << "[" << direction_to_str(d1) << ", " << direction_to_str(d2) << "]" << std::endl;
+        */
         
-        for(const auto [my_dir1, my_dir2] : my_directions){
-                for(const Direction enemy_dir1 : enemy_directions1){
-                        for(const Direction enemy_dir2 : enemy_directions2){
-                                auto &&array = check_direction_legality_static(this, {my_dir1, my_dir2, enemy_dir1, enemy_dir2});
-                                Node *clone = new Node(this);
-                                clone->first_step_mine(array[0], array[1]);
-                                clone->first_step_enemy(array[2], array[4]);
-                                children.push_back(clone);
-                                
-                        }
-                }
-        }
+	std::vector<Direction> &&enemy_directions1 =
+		enemy_agent1.movable_direction(this->field);
+	std::vector<Direction> &&enemy_directions2 =
+		enemy_agent2.movable_direction(this->field);
+
+	for (const auto [my_dir1, my_dir2] : my_directions) {
+		for (const Direction enemy_dir1 : enemy_directions1) {
+			for (const Direction enemy_dir2 : enemy_directions2) {
+				auto &&array = check_direction_legality_static(
+					this, { my_dir1, my_dir2, enemy_dir1,
+						enemy_dir2 });
+				Node *clone = new Node(this);
+
+                                /*
+                                std::cout << "[" << direction_to_str(array[0]) << ", " << direction_to_str(array[1]) << "]" ;
+                                std::cout << "[" << direction_to_str(array[2]) << ", " << direction_to_str(array[3]) << "]" << std::endl;
+                                */
+				clone->first_step_mine(array[0], array[1]);
+				clone->first_step_enemy(array[2], array[3]);
+                                clone->last_action[0] = enemy_dir1;
+                                clone->last_action[1] = enemy_dir2;
+				children.push_back(clone);
+			}
+		}
+	}
 }
 
-        Node *Node::get_specific_child(Direction agent1, Direction agent2)
-        {
-                Node *clone = new Node(this);
-                if(IS_MYTURN(turn)){
-                        clone->my_agent1.move(clone->field, agent1);
-                        clone->my_agent2.move(clone->field, agent2);
-                }else{
-                        clone->enemy_agent1.move(clone->field, agent1);
-                        clone->enemy_agent2.move(clone->field, agent2);  
-                }
-                return clone;
-        }
+Node *Node::get_specific_child(Direction agent1, Direction agent2)
+{
+	Node *clone = new Node(this);
+	if (IS_MYTURN(turn)) {
+		clone->my_agent1.move(clone->field, agent1);
+		clone->my_agent2.move(clone->field, agent2);
+	} else {
+		clone->enemy_agent1.move(clone->field, agent1);
+		clone->enemy_agent2.move(clone->field, agent2);
+	}
+	return clone;
+}
 
-        std::vector<Node *> Node::expand_my_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
-        {
-                std::vector<Node *> nodes;
-                nodes.reserve(36);
-        
-                for(const Direction dir1 : for_a1){
-                        for(const Direction dir2 : for_a2){
+std::vector<Node *>
+Node::expand_my_specific_children(std::vector<Direction> &for_a1,
+				  std::vector<Direction> &for_a2)
+{
+	std::vector<Node *> nodes;
+	nodes.reserve(36);
 
-                                if(this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent1, STOP) ||
-                                   this->my_agent1.check_conflict(((Direction)dir1), this->enemy_agent2, STOP) ||
-                                   this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, STOP) ||
-                                   this->my_agent2.check_conflict(((Direction)dir2), this->enemy_agent2, STOP) ||
-                                   this->my_agent2.check_conflict(((Direction)dir2), this->my_agent1, (Direction)dir1)){
-                                        continue;
-                                }
+	for (const Direction dir1 : for_a1) {
+		for (const Direction dir2 : for_a2) {
+			if (this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent1.check_conflict(((Direction)dir1),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent1,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->enemy_agent2,
+							   STOP) ||
+			    this->my_agent2.check_conflict(((Direction)dir2),
+							   this->my_agent1,
+							   (Direction)dir1)) {
+				continue;
+			}
 
-                                Node *clone = new Node(this);
-                                clone->first_step_mine(dir1, dir2);
-                                nodes.push_back(clone);
-                        }
-                }
+			Node *clone = new Node(this);
+			clone->first_step_mine(dir1, dir2);
+			nodes.push_back(clone);
+		}
+	}
 
-                return nodes;
-        }
+	return nodes;
+}
 
-        std::vector<Node *> Node::expand_enemy_specific_children(std::vector<Direction> &for_a1, std::vector<Direction> &for_a2)
-        {
-                std::vector<Node *> nodes;
-                nodes.reserve(36);
+std::vector<Node *>
+Node::expand_enemy_specific_children(std::vector<Direction> &for_a1,
+				     std::vector<Direction> &for_a2)
+{
+	std::vector<Node *> nodes;
+	nodes.reserve(36);
 
-                for(const Direction dir1 : for_a1){
-                        for(const Direction dir2 : for_a2){
+	for (const Direction dir1 : for_a1) {
+		for (const Direction dir2 : for_a2) {
+			if (this->enemy_agent1.check_conflict(
+				    ((Direction)dir1), this->my_agent1, STOP) ||
+			    this->enemy_agent1.check_conflict(
+				    ((Direction)dir1), this->my_agent2, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->my_agent1, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->my_agent2, STOP) ||
+			    this->enemy_agent2.check_conflict(
+				    ((Direction)dir2), this->enemy_agent1,
+				    (Direction)dir1)) {
+				continue;
+			}
 
-                                if(this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent1, STOP) ||
-                                   this->enemy_agent1.check_conflict(((Direction)dir1), this->my_agent2, STOP) ||
-                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent1, STOP) ||
-                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->my_agent2, STOP) ||
-                                   this->enemy_agent2.check_conflict(((Direction)dir2), this->enemy_agent1, (Direction)dir1)){
-                                        continue;
-                                }
+			Node *clone = new Node(this);
+			clone->first_step_enemy(dir1, dir2);
+			nodes.push_back(clone);
+		}
+	}
 
-                                Node *clone = new Node(this);
-                                clone->first_step_enemy(dir1, dir2);
-                                nodes.push_back(clone);
-                        }
-                }
+	return nodes;
+}
 
-                return nodes;
-        }
+std::vector<Node *>
+Node::expand_specific_children(std::vector<Direction> &&for_a1,
+			       std::vector<Direction> &&for_a2)
+{
+	if (IS_MYTURN(turn)) {
+		return expand_my_specific_children(for_a1, for_a2);
+	} else {
+		return expand_enemy_specific_children(for_a1, for_a2);
+	}
+}
 
-        std::vector<Node *> Node::expand_specific_children(std::vector<Direction> &&for_a1, std::vector<Direction> &&for_a2)
-        {
-                if(IS_MYTURN(turn)){
-                        return expand_my_specific_children(for_a1, for_a2);
-                }else{
-                        return expand_enemy_specific_children(for_a1, for_a2);
-                }
-        }
+i16 Node::evaluate()
+{
+	static FieldEvaluater evaluater;
 
-        i16 Node::evaluate()
-        {
-                static FieldEvaluater evaluater;
-
-                /*
+	/*
                  * 初期化
                  */
-                score = 0;
-        
-                /*
+	score = 0;
+
+	/*
                  * FIXME
                  * 一発でenemyとmineか判定したい
                  */
-                evaluater.set_target(MINE_ATTR);
-                score += evaluater.calc_local_area(field);
-                evaluater.set_target(ENEMY_ATTR);
-                score -= evaluater.calc_local_area(field);
+	evaluater.set_target(MINE_ATTR);
+	score += evaluater.calc_local_area(field);
+	evaluater.set_target(ENEMY_ATTR);
+	score -= evaluater.calc_local_area(field);
 
-                /*
+	/*
                  * 愚直なやつ
                  */
-                score += this->field->calc_sumpanel_score();
-        
-                return score;
-        }
+	score += this->field->calc_sumpanel_score();
 
-        void Node::put_score_info()
-        {
-                puts("** SCORE INFORMATION **");
-                std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
-                std::cout << "*E Field*: " << field->calc_enemypanels_score() << std::endl;
-                std::cout << "*Panel Field*: " << field->calc_sumpanel_score() << std::endl;      
-                std::cout << "*Total*: " << evaluate() << std::endl;
-        }
+	return score;
+}
+
+void Node::put_score_info()
+{
+	puts("** SCORE INFORMATION **");
+	std::cout << "*M Field*: " << field->calc_mypanels_score() << std::endl;
+	std::cout << "*E Field*: " << field->calc_enemypanels_score()
+		  << std::endl;
+	std::cout << "*Panel Field*: " << field->calc_sumpanel_score()
+		  << std::endl;
+	std::cout << "*Total*: " << evaluate() << std::endl;
+}
 
 /*
   ab探索法
@@ -703,108 +802,124 @@ void Node::douji_expand()
   return α // カット
   return α
 */
-        i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
-        {
-                if(!depth){
-                        return node->evaluate();
-                }
+i64 Search::ab_max(Node *node, u8 depth, i16 a, i16 b)
+{
+	if (!depth) {
+		return node->evaluate();
+	}
 
-                node->expand();
+	node->expand();
 
-                for(Node *child : node->ref_children()){
-                        child->set_score(ab_min(child, depth - 1, a, b));
-                        if(child->get_score() >= b){
-                                delete node;
-                                return node->get_score();
-                        }
-                        if(child->get_score() > a){
-                                // better one
-                                a = child->get_score();
-                        }
-                }
+	for (Node *child : node->ref_children()) {
+		child->set_score(ab_min(child, depth - 1, a, b));
+		if (child->get_score() >= b) {
+			delete node;
+			return node->get_score();
+		}
+		if (child->get_score() > a) {
+			// better one
+			a = child->get_score();
+		}
+	}
 
-                return a;
-        }
+	return a;
+}
 
-        i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
-        {
-                if(!depth){
-                        return node->evaluate();
-                }
-        
-                node->expand();
+i64 Search::ab_min(Node *node, u8 depth, i16 a, i16 b)
+{
+	if (!depth) {
+		return node->evaluate();
+	}
 
-                for(Node *child : node->ref_children()){
-                        child->set_score(ab_min(child, depth - 1, a, b));
-                        if(child->get_score() <= a){
-                                delete node;
-                                return child->get_score();
-                        }
+	node->expand();
 
-                        if(child->get_score() < b){
-                                //better one
-                                b = child->get_score();
-                        }
-                }
+	for (Node *child : node->ref_children()) {
+		child->set_score(ab_min(child, depth - 1, a, b));
+		if (child->get_score() <= a) {
+			delete node;
+			return child->get_score();
+		}
 
-                return b;
-        }
+		if (child->get_score() < b) {
+			//better one
+			b = child->get_score();
+		}
+	}
 
-        i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result) {
-	
-                int ds = -10000;
-                int tmp;
-                std::vector<i8> discore(4,0);			// up, right, down, left
-	
-                if(depth == 0) {
-                        // Up
-                        tmp = agent.get_blockscore(field, UP);
-                        if(ds < tmp) ds = tmp;
-		
-                        // Right
-                        tmp = agent.get_blockscore(field, RIGHT);
-                        if(ds < tmp) ds = tmp;
-		
-                        // Down
-                        tmp = agent.get_blockscore(field, DOWN);
-                        if(ds < tmp) ds = tmp;	
-		
-                        // Left
-                        tmp = agent.get_blockscore(field, LEFT);
-                        if(ds < tmp) ds = tmp;
-	
-                        return tmp;
-                }
-	
-                Direction weast;
-                discore[0] += slant(agent.aftermove_agent(1, -1), field, depth-1, &weast);
-                discore[1] += slant(agent.aftermove_agent(1, 1), field, depth-1, &weast);
-                discore[2] += slant(agent.aftermove_agent(-1, 1), field, depth-1, &weast);
-                discore[3] += slant(agent.aftermove_agent(-1, -1), field, depth-1, &weast);
-	
-                i8 max = *std::max_element(discore.begin(), discore.end());
-	
-                for(int i=0;i<4; i++)
-                        if(discore[i] == max) *result = (Direction)(i*2); 
-	
-                return max;
-        }
+	return b;
+}
 
-        Node *Search::absearch(Node *root)
-        {
-                ab_max(root, 4, -10000, 10000);
-                std::sort(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n1, const Node *n2){ return n1->get_score() > n2->get_score();});
-                std::for_each(std::begin(root->ref_children()), std::end(root->ref_children()), [](const Node *n){printf("%d\n", n->get_score());});
-                /*
+i8 Search::slant(Agent agent, Field &field, u8 depth, Direction *result)
+{
+	int ds = -10000;
+	int tmp;
+	std::vector<i8> discore(4, 0); // up, right, down, left
+
+	if (depth == 0) {
+		// Up
+		tmp = agent.get_blockscore(field, UP);
+		if (ds < tmp)
+			ds = tmp;
+
+		// Right
+		tmp = agent.get_blockscore(field, RIGHT);
+		if (ds < tmp)
+			ds = tmp;
+
+		// Down
+		tmp = agent.get_blockscore(field, DOWN);
+		if (ds < tmp)
+			ds = tmp;
+
+		// Left
+		tmp = agent.get_blockscore(field, LEFT);
+		if (ds < tmp)
+			ds = tmp;
+
+		return tmp;
+	}
+
+	Direction weast;
+	discore[0] +=
+		slant(agent.aftermove_agent(1, -1), field, depth - 1, &weast);
+	discore[1] +=
+		slant(agent.aftermove_agent(1, 1), field, depth - 1, &weast);
+	discore[2] +=
+		slant(agent.aftermove_agent(-1, 1), field, depth - 1, &weast);
+	discore[3] +=
+		slant(agent.aftermove_agent(-1, -1), field, depth - 1, &weast);
+
+	i8 max = *std::max_element(discore.begin(), discore.end());
+
+	for (int i = 0; i < 4; i++)
+		if (discore[i] == max)
+			*result = (Direction)(i * 2);
+
+	return max;
+}
+
+Node *Search::absearch(Node *root)
+{
+	ab_max(root, 4, -10000, 10000);
+	std::sort(std::begin(root->ref_children()),
+		  std::end(root->ref_children()),
+		  [](const Node *n1, const Node *n2) {
+			  return n1->get_score() > n2->get_score();
+		  });
+	std::for_each(std::begin(root->ref_children()),
+		      std::end(root->ref_children()),
+		      [](const Node *n) { printf("%d\n", n->get_score()); });
+	/*
                  * FIXME
                  * 先頭に必ずぶっ壊れたデータが入っている
                  */
-                return root->ref_children().at(1);
-        }
+	return root->ref_children().at(1);
+}
 
-        i8 Search::slantsearch(Agent agent, Field & field) {
-                Direction ret;
-                slant(agent, field, 1, &ret);
-	
-                return ret;
-        }
+i8 Search::slantsearch(Agent agent, Field &field)
+{
+	Direction ret;
+	slant(agent, field, 1, &ret);
+
+	return ret;
+}

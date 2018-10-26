@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr double MONTE_TIME_LIMIT = 12000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 constexpr double MONTE_PROGRESSIVE_BIAS = 15;
 i16 current_eval = 0;
@@ -82,39 +82,18 @@ void Montecarlo::expand_node(Node *node, std::function<void(Node *)> apply_child
 
 void Montecarlo::expand_not_ai_turn(Node *node, std::function<void(Node *)> apply_child)
 {
-        /*
-        auto &&actions = node->generate_state_hash(node->turn);
-        try{
-#ifdef I_AM_ME
-                auto &&good_nodes = node->expand_specific_children(
-                        learning_map.at(actions[0].state_hash)->get_filtered_list(node->field, node->enemy_agent1),
-                        learning_map.at(actions[1].state_hash)->get_filtered_list(node->field, node->enemy_agent2));
-#endif
-#ifdef I_AM_ENEMY
-                auto &&good_nodes = node->expand_specific_children(
-                        learning_map.at(actions[0].state_hash)->get_filtered_list(node->field, node->my_agent1),
-                        learning_map.at(actions[1].state_hash)->get_filtered_list(node->field, node->my_agent2));
-#endif
-for(Node *child : good_nodes){
-                        node->dump_json_file("before.json");
-                        child->expand();
-w                        child->dump_json_file("after.json");
-                        getchar();
-
-                        std::for_each(std::begin(child->ref_children()), std::end(child->ref_children()), apply_child);
-                }
-        }catch(const std::out_of_range &e){
-        */
-
-                auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
-                for(Node *child : good_nodes){
-                        //child->expand();
-                        auto &&vec = listup_node_greedy(child, 3);
-                        std::for_each(std::begin(vec), std::end(vec), apply_child);
-                }
-                /*
+        node->douji_expand();
+        for(Node *child : node->ref_children()){
+                apply_child(child);
         }
-                */
+        /*
+        auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
+        for(Node *child : good_nodes){
+                //child->expand();
+                auto &&vec = listup_node_greedy(child, 3);
+                std::for_each(std::begin(vec), std::end(vec), apply_child);
+        }
+        */
 }
 
 static void synchronized_adding(std::vector<PlayoutResult *> &dst, std::vector<PlayoutResult *> &data)
@@ -552,8 +531,14 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
 
         Node *nodesave(node);
         // 一個下のノードを展開
-        nodesave->expand();
-        node->expand();
+        node->douji_expand();
+/*
+        for(Node *child : node->ref_children()){
+                child->dump_json_file("debug.json");
+                child->draw();
+                getchar();
+        }
+*/
 
         // progressib widening
         for(Node *child : node->ref_children())
@@ -1122,15 +1107,17 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         /*
          * ここで一回ランダムに片方が行う必要がある
          */
+        /*
         if(random_half_play(current, node->turn) == -1)
                 return LOSE;
+        */
         /*
         std::cout << "not found case: " << learning_not_found << std::endl;
         current->dump_json_file("debug.json");
         getchar();
         */
         while(depth--){
-                if(depth & 7)
+                if(depth & 1)
                         current->play(get_learning_direction(current));
                 else
                         current->play(find_random_legal_direction(current));

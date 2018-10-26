@@ -16,7 +16,7 @@ rm db.bin cdb.bin
 mv db.bin cdb.bin
 
 ./bin.d/bin convert sample_qrformat.dat 0 ./cdb.bin
-./bin.d/bin mt ./cdump.json 0 ./cdb.bin
+./bin.d/bin continue ./cdump.json 0 ./cdb.bin
 
 wait_user
 
@@ -30,7 +30,7 @@ do
         turn=$(($turn + 1))
         echo ---------------------------------------------
         echo turn $turn
-        ./bin.d/bin mt ./jdump.json $turn ./cdb.bin 
+        ./bin.d/bin continue ./jdump.json $turn ./cdb.bin 
 
         wait_user
         
