@@ -501,8 +501,10 @@ bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
         std::vector<float> ucbList;
 
         for(PlayoutResult *prin: pr) {
-                if(prin->ucb >= 0) ucbList.push_back(prin->ucb);
+                ucbList.push_back(prin->percentage() * 100);
         }
+
+        ucbList.resize(ucbList.size() >> 1);
 
         // ucbListの平均
         sum = 0;
@@ -635,9 +637,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
 #endif
-        std::for_each(std::begin(original) + 1, std::end(original),
-                      [](PlayoutResult *r){ delete r->node; delete r; });
-
         // 各ノードのUCBの値を見て貪欲法に切り替える
         if(isbadPlayoutResult(original)) {
                 // greedy_original
@@ -654,6 +653,11 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 nodesave->ref_children().at(0)->evaluate();
                 return nodesave->ref_children().at(0);
         }
+
+        std::for_each(std::begin(original) + 1, std::end(original),
+                      [](PlayoutResult *r){ delete r->node; delete r; });
+
+        
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
