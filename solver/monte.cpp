@@ -12,6 +12,7 @@ constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
 constexpr double MONTE_TIME_LIMIT = 10000;
 constexpr u8 MONTE_MT_LIMIT = 25;
+constexpr double MONTE_PROGRESSIVE_BIAS = 15;
 i16 current_eval = 0;
 
 #define MOD_RANDOM(val) (val & 7)
@@ -108,7 +109,7 @@ w                        child->dump_json_file("after.json");
                 auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
                 for(Node *child : good_nodes){
                         //child->expand();
-                        auto &&vec = listup_node_greedy(child, 4);
+                        auto &&vec = listup_node_greedy(child, 3);
                         std::for_each(std::begin(vec), std::end(vec), apply_child);
                 }
                 /*
@@ -501,7 +502,7 @@ bool Montecarlo::isbadPlayoutResult(std::vector<PlayoutResult *> pr) {
         std::vector<float> ucbList;
 
         for(PlayoutResult *prin: pr) {
-                if(prin->ucb >= 0) ucbList.push_back(prin->ucb);
+                ucbList.push_back(prin->percentage() * 100.0);
         }
 
         // ucbListの平均
@@ -581,7 +582,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 }
         }
 
-        total_trying += 700 * original.size();
+        total_trying += 70 * original.size();
 
         puts("stage1 finished");
         result.push_back(original.at(index++));
@@ -589,7 +590,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 各ノードに対してシュミレーションを行う
         printf("thinking");
         double cntlim = 0;
-        cntlim += (15*std::pow(1.01, index));
+        cntlim += (MONTE_PROGRESSIVE_BIAS * std::pow(1.01, index));
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
                 counter++;
                 //update_ucb_c();
@@ -598,7 +599,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                                 continue;
                         }
                         result.push_back(original.at(index++));
-                        cntlim += (15*std::pow(1.01, index));
+                        cntlim += (MONTE_PROGRESSIVE_BIAS * std::pow(1.01, index));
 //                        std::cout << "result_size = " << result.size() << std::endl;
 //                        std::cout << "cntlim = " << cntlim << std::endl;
                         counter = 0;
@@ -635,9 +636,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         std::for_each(std::begin(original), std::end(original),
                       [](PlayoutResult *r){ r->draw(); });
 #endif
-        std::for_each(std::begin(original) + 1, std::end(original),
-                      [](PlayoutResult *r){ delete r->node; delete r; });
-
         // 各ノードのUCBの値を見て貪欲法に切り替える
         if(isbadPlayoutResult(original)) {
                 // greedy_original
@@ -654,6 +652,10 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 nodesave->ref_children().at(0)->evaluate();
                 return nodesave->ref_children().at(0);
         }
+
+        std::for_each(std::begin(original) + 1, std::end(original),
+                      [](PlayoutResult *r){ delete r->node; delete r; });
+
         // 一番いい勝率のやつを返す
         printf("***TOTAL TRYING***  ========>  %ld\n", total_trying);
         original.at(0)->node->evaluate();
@@ -1090,14 +1092,15 @@ Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
                         current->play(get_learning_direction(current));
         }
 
-        if((current->evaluate()) < 0){
+        current->evaluate();
+        if((current->get_score()) < 0){
 #ifdef I_AM_ENEMY
                 result = WIN;
 #endif
 #ifdef I_AM_ME
                 result = LOSE;
 #endif
-        }else if(current->evaluate() > 0){
+        }else if(current->get_score() > 0){
 #ifdef I_AM_ENEMY
                 result = LOSE;
 #endif
@@ -1133,14 +1136,16 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
                         current->play(find_random_legal_direction(current));
         }
 
-        if((current->evaluate()) < 0){
+        current->evaluate();
+
+        if(current->get_score() < 0){
 #ifdef I_AM_ENEMY
                 result = WIN;
 #endif
 #ifdef I_AM_ME
                 result = LOSE;
 #endif
-        }else if(current->evaluate() > 0){
+        }else if(current->get_score() > 0){
 #ifdef I_AM_ENEMY
                 result = LOSE;
 #endif
