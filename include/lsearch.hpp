@@ -20,6 +20,7 @@ class Montecarlo;
 constexpr u8 MY_TURN = 0;
 constexpr u8 ENEMY_TURN = !MY_TURN;
 #define IS_MYTURN(turn) (!turn)
+
 /*
  * 古典的探索法に見られるノードを表すクラス
  */
@@ -28,6 +29,8 @@ class Node {
         friend FieldEvaluater;
         friend Search;
         friend Montecarlo;
+
+        friend std::array<Direction, 4> check_direction_legality_static(Node *node, std::array<Direction, 4> dirs);
 private:
         // フィールド
         Field *field;
@@ -81,6 +84,7 @@ private:
         Direction __find_greedy(Agent agent, u32 rand);
         std::pair<Direction, Direction> find_greedy(u8 turn);
 
+        void douji_expand();
 public:
         /*
          * 普通に使ってほしいコンストラクタ

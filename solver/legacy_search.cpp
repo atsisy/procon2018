@@ -482,6 +482,55 @@ void Node::expand()
         }
 }
 
+std::array<Direction, 4> check_direction_legality_static(Node *node, std::array<Direction, 4> dirs)
+{
+        Direction m1, m2, e1, e2;
+
+        m1 = dirs[0];
+        m2 = dirs[1];
+        e1 = dirs[2];
+        e2 = dirs[3];
+
+        if(node->my_agent1.check_conflict(dirs[0], node->my_agent2, dirs[1]))
+                m1 = m2 = STOP;
+        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent1, dirs[2]))
+                m1 = e1 = STOP;
+        if(node->my_agent1.check_conflict(dirs[0], node->enemy_agent2, dirs[3]))
+                m1 = e2 = STOP;
+        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent1, dirs[2]))
+                m2 = e1 = STOP;
+        if(node->my_agent2.check_conflict(dirs[1], node->enemy_agent2, dirs[3]))
+                m2 = e2 = STOP;
+        if(node->enemy_agent1.check_conflict(dirs[2], node->enemy_agent2, dirs[3]))
+                e1 = e2 = STOP;
+
+        return {m1, m2, e1, e2};
+}
+
+
+void Node::douji_expand()
+{
+        std::vector<Direction> &&my_directions1 = my_agent1.movable_direction(this->field);
+        std::vector<Direction> &&my_directions2 = my_agent2.movable_direction(this->field);
+        std::vector<Direction> &&enemy_directions1 = enemy_agent1.movable_direction(this->field);
+        std::vector<Direction> &&enemy_directions2 = enemy_agent2.movable_direction(this->field);
+
+        
+        for(const Direction my_dir1 : my_directions1){
+                for(const Direction my_dir2 : my_directions2){
+                        for(const Direction enemy_dir1 : enemy_directions1){
+                                for(const Direction enemy_dir2 : enemy_directions2){
+                                        auto &&array = check_direction_legality_static(this, {my_dir1, my_dir2, enemy_dir1, enemy_dir2});
+                                        Node *clone = new Node(this);
+                                        clone->first_step_mine(array[0], array[1]);
+                                        clone->first_step_enemy(array[2], array[4]);
+                                        children.push_back(clone);
+                                }
+                        }
+                }
+        }
+}
+
 Node *Node::get_specific_child(Direction agent1, Direction agent2)
 {
         Node *clone = new Node(this);

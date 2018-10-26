@@ -95,7 +95,7 @@ void Montecarlo::expand_not_ai_turn(Node *node, std::function<void(Node *)> appl
                         learning_map.at(actions[0].state_hash)->get_filtered_list(node->field, node->my_agent1),
                         learning_map.at(actions[1].state_hash)->get_filtered_list(node->field, node->my_agent2));
 #endif
-                for(Node *child : good_nodes){
+for(Node *child : good_nodes){
                         node->dump_json_file("before.json");
                         child->expand();
 w                        child->dump_json_file("after.json");
