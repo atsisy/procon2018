@@ -114,7 +114,7 @@ Plan montecarlo_process(const char *name, u8 turn)
         Node *json_node = new Node(name);
         Montecarlo monte;
         u8 d = MONTE_DEPTH - turn;
-        const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
+        const Node *ans = monte.let_me_monte(json_node, d >= 20 ? 20 : d);
         ans->draw();
         //write_learning_data(json_node, ans);
         return Plan(ans->get_last_action(0), ans->get_last_action(1));
@@ -204,7 +204,7 @@ void command_switching(int argc, char **argv)
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■
-                const Node *ans = monte.let_me_monte(json_node, d >= 40 ? 40 : d);
+                const Node *ans = monte.let_me_monte(json_node, d >= 20 ? 20 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
