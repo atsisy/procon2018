@@ -9,7 +9,7 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 700;
+constexpr u32 MONTE_EXPAND_LIMIT = 500;
 constexpr double MONTE_TIME_LIMIT = 6000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
@@ -547,8 +547,8 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u64 counter = 0, index = 0;
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
-        this->upper_cut_off_score = node->evaluate() - node->field;
-        this->lower_cut_off_score = node->evaluate() + 6; 
+        this->upper_cut_off_score = node->evaluate() - (node->field->max_score() << 1);
+        this->lower_cut_off_score = node->evaluate() + (node->field->max_score() << 1); 
         
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -1143,14 +1143,15 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 	
         while(depth--){
                 if(depth & 1){
-                        if(depth & 3){
+                        // コミ のやつ
+                        /*if(depth & 3){
                                 i16 score = current->evaluate();
                                 if(score < this->upper_cut_off_score){
                                         return WIN;
                                 }else if(score > this->lower_cut_off_score){
                                         return LOSE;
                                 }
-                        }
+                        }*/
                         current->play(get_learning_direction(current));
                 }else{
                         current->play(find_random_legal_direction(current));
