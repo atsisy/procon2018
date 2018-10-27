@@ -339,6 +339,8 @@ public:
 
         void dump_json_file(const char *file_name);
 
+        i64 max_score();
+
 	// フィールドの描画関数
 	void Draw();
 
