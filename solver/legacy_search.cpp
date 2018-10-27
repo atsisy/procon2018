@@ -21,8 +21,8 @@
 Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         : enemy_agent1(agent1.width, agent1.height, generate_agent_meta(ENEMY_ATTR)),
           enemy_agent2(agent2.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
-	   my_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
-          my_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
+          my_agent1(agent1.width, agent2.height, generate_agent_meta(MINE_ATTR)),
+          my_agent2(agent2.width, agent1.height, generate_agent_meta(MINE_ATTR))
 {
         /*
          * ルートノードのために渡すからクローンを作る必要はない。
@@ -64,6 +64,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         parent = NULL;
 
         score = 0;
+        generation = 0;
 }
 
 /*
@@ -89,6 +90,7 @@ Node::Node(const Node *parent)
         score = -10000;
         turn = parent->toggled_turn();
         this->parent = parent;
+        this->generation = parent->generation + 1;
 }
 
 Node::Node(const char *json_path)
@@ -590,7 +592,6 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-
         std::unordered_map<int, std::vector<int>> pureterritoryMine = field->makePureTerritory(field->makePureTreeMine());
         std::unordered_map<int, std::vector<int>> pureterritoryEnemy = field->makePureTerritory(field->makePureTreeEnemy());
         score += field->calcMineScore(pureterritoryMine);
