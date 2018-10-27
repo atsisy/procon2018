@@ -204,7 +204,7 @@ void command_switching(int argc, char **argv)
                 u8 d = MONTE_DEPTH - std::atoi(argv[3]);
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 読む深さの調整 ■■■■■■■■■■■■■■■
-                const Node *ans = monte.let_me_monte(json_node, d >= 20 ? 20 : d);
+                const Node *ans = monte.let_me_monte(json_node, d >= 15 ? 15 : d);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
