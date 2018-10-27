@@ -679,7 +679,7 @@ private:
 
     public:
 	Agent(u8 x, u8 y, u8 meta);
-	Agent(u8 meta);
+  Agent(u8 meta);
 
 	void move(Field *field, Direction direction);
 

@@ -9,7 +9,7 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 575;
+constexpr u32 MONTE_EXPAND_LIMIT = 700;
 constexpr double MONTE_TIME_LIMIT = 6000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
@@ -327,8 +327,11 @@ Node *Montecarlo::random_greedy(Node *node, u8 rank)
                 result.push_back(n);
         }
 
-        xor128 rand;
-        return result.at(rand() % result.size());
+// >>>>>>>>>>>>>>>>>>>>>>> 非愚直な貪欲
+//        xor128 rand;
+//        return result.at(rand() % result.size());
+// >>>>>>>>>>>>>>>>>>>>>>> 愚直な貪欲
+	return result.at(0);
 }
 
 std::vector<Node *> Montecarlo::listup_node_greedy_turn(Node *node, u8 rank, u8 turn)
