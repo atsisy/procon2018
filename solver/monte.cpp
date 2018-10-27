@@ -9,8 +9,8 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr u32 MONTE_EXPAND_LIMIT = 575;
+constexpr double MONTE_TIME_LIMIT = 6000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -105,7 +105,7 @@ w                        child->dump_json_file("after.json");
         }catch(const std::out_of_range &e){
         */
 
-                auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
+                auto &&good_nodes = listup_node_greedy_turn(node, 1, MY_TURN);
                 for(Node *child : good_nodes){
                         //child->expand();
                         auto &&vec = listup_node_greedy(child, 4);
@@ -577,7 +577,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         {
                 ThreadPool tp(2, 100);
                 for(PlayoutResult *p : original){
-                        while(!tp.add(std::make_shared<initial_playout>(this, p, 70))){
+                        while(!tp.add(std::make_shared<initial_playout>(this, p, 50))){
                                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                         }
                 }
@@ -1131,12 +1131,13 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         current->dump_json_file("debug.json");
         getchar();
         */
+	
         while(depth--){
-                if(depth & 7)
-                        current->play(get_learning_direction(current));
-                else
-                        current->play(find_random_legal_direction(current));
-        }
+	      if(depth & 1)
+	              current->play(get_learning_direction(current));
+	        else
+		      current->play(find_random_legal_direction(current));
+	     }
 
         current->evaluate();
 
