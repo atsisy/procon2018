@@ -221,6 +221,7 @@ void command_switching(int argc, char **argv)
                 ans->dump_json_file("cdump.json");
                 write_learning_data(json_node, ans);
                 write_log_file(ans);
+		ans->draw_unko();
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "random")){

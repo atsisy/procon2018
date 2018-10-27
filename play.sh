@@ -9,36 +9,27 @@ function wait_user(){
 
 echo 0 0 > score.dat
 
-rm db.bin cdb.bin 
-
-./bin.d/bin db ./sample_qrformat.dat 25 15000
-
-mv db.bin cdb.bin
-
 
 ./bin.d/bin convert sample_qrformat.dat
-time ./bin.d/bin greedy ./cdump.json 0 ./cdb.bin
+time ./bin.d/bin greedy ./cdump.json 0
 
 wait_user
 
 turn=0
-for i in `seq 1 4`
+for i in `seq 1 8`
 do
-    ./bin.d/bin db ./jdump.json 25 27000 > /dev/null &
 
     for tn in `seq 1 5`
     do
         turn=$(($turn + 1))
         echo ---------------------------------------------
         echo turn $turn
-        time ./bin.d/bin mt ./jdump.json $turn ./cdb.bin 
+        time ./bin.d/bin greedy ./jdump.json $turn 
 
         wait_user
         
         ./bin.d/bin gnuscore ./jdump.json $turn  >> score.dat
     done
-
-    mv db.bin cdb.bin
     
 done
 

@@ -870,8 +870,8 @@ class Plan {
 
 	void draw()
 	{
-		std::cout << "[" << direction_to_str(d1) << ", "
-			  << direction_to_str(d2) << "]" << std::endl;
+	  std::cout << "[" << direction_to_str(d1) <<  "_" << (int)d1 << ", "
+		    << direction_to_str(d2) << "_" << (int)d2 << "]" << std::endl;
 	}
 
 	static Plan decode_hash(u64 hash)

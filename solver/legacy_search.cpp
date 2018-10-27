@@ -19,15 +19,25 @@
  * 味方のエージェントの位置ふたつめ
  */
 Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
-        : enemy_agent1(agent1.width, agent1.height, generate_agent_meta(MINE_ATTR)),
-          enemy_agent2(agent2.width, agent2.height, generate_agent_meta(MINE_ATTR)),
-          my_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
+        : enemy_agent1(agent1.width, agent1.height, generate_agent_meta(ENEMY_ATTR)),
+          enemy_agent2(agent2.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
+	   my_agent1(agent1.width, agent2.height, generate_agent_meta(ENEMY_ATTR)),
           my_agent2(agent2.width, agent1.height, generate_agent_meta(ENEMY_ATTR))
 {
         /*
          * ルートノードのために渡すからクローンを作る必要はない。
          */
         this->field = field;
+
+	if(enemy_agent1.y == enemy_agent2.y){
+	  my_agent1 = Agent(enemy_agent1.x, Field::field_size_y - enemy_agent1.y - 1, generate_agent_meta(MINE_ATTR));
+	  my_agent2 = Agent(enemy_agent2.x, Field::field_size_y - enemy_agent1.y - 1, generate_agent_meta(MINE_ATTR));
+	}else if(enemy_agent1.x == enemy_agent2.x){
+	  my_agent1 = Agent(Field::field_size_x - enemy_agent1.x - 1, enemy_agent2.y, generate_agent_meta(MINE_ATTR));
+	  my_agent2 = Agent(Field::field_size_x - enemy_agent1.x - 1, enemy_agent1.y, generate_agent_meta(MINE_ATTR));
+	}
+      
+       
 
         /*
          * 自分のエージェントを配置
