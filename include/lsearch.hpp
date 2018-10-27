@@ -116,6 +116,11 @@ public:
 
         void put_score_info();
 
+  void draw_unko() const
+  {
+    Plan(last_action[0], last_action[1]).draw();
+  }
+
         /*
          * 展開するやつ
          */
