@@ -545,7 +545,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
         this->upper_cut_off_score = node->evaluate() - 6;
-        this->upper_cut_off_score = node->evaluate() + 5; 
+        this->lower_cut_off_score = node->evaluate() + 6; 
         
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -1138,16 +1138,18 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         getchar();
         */
         while(depth--){
-                if(depth & 7){
-                        current->play(find_random_legal_direction(current));
-                }else{
-                        i16 score = current->evaluate();
-                        if(score < this->upper_cut_off_score){
-                                return WIN;
-                        }else if(score > this->lower_cut_off_score){
-                                return LOSE;
+                if(depth & 1){
+                        if(depth & 3){
+                                i16 score = current->evaluate();
+                                if(score < this->upper_cut_off_score){
+                                        return WIN;
+                                }else if(score > this->lower_cut_off_score){
+                                        return LOSE;
+                                }
                         }
                         current->play(get_learning_direction(current));
+                }else{
+                        current->play(find_random_legal_direction(current));
                 }
         }
 

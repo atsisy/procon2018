@@ -582,7 +582,6 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-
         std::unordered_map<int, std::vector<int>> pureterritoryMine = field->makePureTerritory(field->makePureTreeMine());
         std::unordered_map<int, std::vector<int>> pureterritoryEnemy = field->makePureTerritory(field->makePureTreeEnemy());
         score += field->calcMineScore(pureterritoryMine);
