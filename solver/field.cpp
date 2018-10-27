@@ -85,6 +85,22 @@ Field *Field::clone() const
         return clone;
 }
 
+i64 Field::max_score()
+{
+        i64 max = -100, score;
+
+        for(u8 x = 0;x < field_size_x;x++){
+                for(u8 y = 0;y < field_size_y;y++){
+                        score = at(x, y).get_score_value();
+                        if(score > max){
+                                max = score;
+                        }
+                }
+        }
+
+        return max;
+}
+
 FieldBuilder::FieldBuilder(QRFormatParser *parser)
 {
         double tmp;
