@@ -544,8 +544,8 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u64 counter = 0, index = 0;
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
-        this->upper_cut_off_score = node->evaluate() - 6;
-        this->lower_cut_off_score = node->evaluate() + 6; 
+        this->upper_cut_off_score = node->evaluate() - (node->field->max_score() << 1);
+        this->lower_cut_off_score = node->evaluate() + (node->field->max_score() << 1); 
         
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
