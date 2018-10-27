@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr double MONTE_TIME_LIMIT = 5000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
