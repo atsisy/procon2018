@@ -175,7 +175,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = std::sqrt(2);
+constexpr float UCB_C = 0;
 struct PlayoutResult {
 
         Node *node;
