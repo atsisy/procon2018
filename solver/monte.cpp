@@ -9,8 +9,8 @@
 
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
-constexpr u32 MONTE_EXPAND_LIMIT = 700;
-constexpr double MONTE_TIME_LIMIT = 10000;
+constexpr u32 MONTE_EXPAND_LIMIT = 550;
+constexpr double MONTE_TIME_LIMIT = 11000;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -105,7 +105,7 @@ w                        child->dump_json_file("after.json");
         }catch(const std::out_of_range &e){
         */
 
-                auto &&good_nodes = listup_node_greedy_turn(node, 2, MY_TURN);
+                auto &&good_nodes = listup_node_greedy_turn(node, 1, MY_TURN);
                 for(Node *child : good_nodes){
                         //child->expand();
                         auto &&vec = listup_node_greedy(child, 4);
@@ -544,10 +544,13 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         u64 counter = 0, index = 0;
         this->depth = depth;
         this->limit = MONTE_MIN_TIMES;
+        this->upper_cut_off_score = node->evaluate() - 6;
+        this->upper_cut_off_score = node->evaluate() + 5; 
+        
         const std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
         learning_not_found = learning_found = 0;
-
+        
         if(!depth)
                 return select_final(node);
 
@@ -574,6 +577,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 original.push_back(tmp);
         }
 
+        /*
         {
                 ThreadPool tp(2, 100);
                 for(PlayoutResult *p : original){
@@ -582,8 +586,9 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                         }
                 }
         }
+        */
 
-        total_trying += 700 * original.size();
+        total_trying += 600 * original.size();
 
         puts("stage1 finished");
         result.push_back(original.at(index++));
@@ -591,16 +596,16 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         // 各ノードに対してシュミレーションを行う
         printf("thinking");
         double cntlim = 0;
-        cntlim += (15*std::pow(1.01, index));
+        cntlim += (5*std::pow(1.01, index));
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() <= MONTE_TIME_LIMIT){
+                update_ucb_c();
                 counter++;
-                //update_ucb_c();
                 if(counter == (u64)cntlim){
                         if(original.size() <= index){
                                 continue;
                         }
                         result.push_back(original.at(index++));
-                        cntlim += (15*std::pow(1.01, index));
+                        cntlim += (5*std::pow(1.01, index));
 //                        std::cout << "result_size = " << result.size() << std::endl;
 //                        std::cout << "cntlim = " << cntlim << std::endl;
                         counter = 0;
@@ -608,7 +613,7 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
                 //printf("%ldnodes\n", result.
                 //put_dot();
                 std::for_each(std::begin(result), std::end(result),
-                              [total_trying](PlayoutResult *p){ p->calc_ucb(total_trying);});
+                              [total_trying, this](PlayoutResult *p){ p->calc_ucb(total_trying);});
 
                 // UCBでソート
                 std::sort(std::begin(result), std::end(result),
@@ -703,7 +708,7 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         for(PlayoutResult *p : original){
                 put_dot();
-                dbbuild_playout_process(p, 800);
+                dbbuild_playout_process(p, 1000);
         }
         printf("\n");
 
@@ -1118,6 +1123,7 @@ Judge Montecarlo::dbbuild_playout(Node *node, u8 depth)
 
 Judge Montecarlo::faster_playout(Node *node, u8 depth)
 {
+        depth -= (node->generation >> 1);
         Node *current = new Node(node);
         Judge result;
 
@@ -1132,10 +1138,17 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
         getchar();
         */
         while(depth--){
-                if(depth & 7)
-                        current->play(get_learning_direction(current));
-                else
+                if(depth & 7){
                         current->play(find_random_legal_direction(current));
+                }else{
+                        i16 score = current->evaluate();
+                        if(score < this->upper_cut_off_score){
+                                return WIN;
+                        }else if(score > this->lower_cut_off_score){
+                                return LOSE;
+                        }
+                        current->play(get_learning_direction(current));
+                }
         }
 
         current->evaluate();
