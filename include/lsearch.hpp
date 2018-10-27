@@ -175,7 +175,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = std::sqrt(2);
+constexpr float UCB_C = 0.18;
 struct PlayoutResult {
 
         Node *node;
@@ -267,7 +267,7 @@ struct LocalPlayoutResult {
 
 class initial_playout;
 
-constexpr u8 MONTE_DEPTH = 70;
+constexpr u8 MONTE_DEPTH = 40;
 class Montecarlo {
 
         friend initial_playout;

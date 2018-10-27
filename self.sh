@@ -2,7 +2,7 @@
 
 rm db.bin cdb.bin 
 
-./bin.d/bin db ./sample_qrformat.dat 50 16000
+./bin.d/bin db ./sample_qrformat.dat 30 16000
 
 mv db.bin cdb.bin
 
@@ -12,7 +12,7 @@ mv db.bin cdb.bin
 echo 0 0 > score.dat
 
 turn=0
-for i in `seq 1 14`
+for i in `seq 1 4`
 do
     ./bin.d/bin db ./cdump.json 35 25000 ./cdb.bin > /dev/null &
 

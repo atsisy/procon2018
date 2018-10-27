@@ -10,7 +10,7 @@
 #include "learn.hpp"
 #include <unordered_map>
 
-constexpr u8 MT_NUM_OF_THREAD = 3;
+constexpr u8 MT_NUM_OF_THREAD = 7;
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
 void command_switching(int argc, char **argv);
