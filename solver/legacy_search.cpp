@@ -54,6 +54,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         parent = NULL;
 
         score = 0;
+        generation = 0;
 }
 
 /*
@@ -79,6 +80,7 @@ Node::Node(const Node *parent)
         score = -10000;
         turn = parent->toggled_turn();
         this->parent = parent;
+        this->generation = parent->generation + 1;
 }
 
 Node::Node(const char *json_path)
