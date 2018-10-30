@@ -11,11 +11,12 @@ echo 0 0 > score.dat
 
 rm db.bin cdb.bin 
 
-./bin.d/bin db ./sample_qrformat.dat 50 17000
+#./bin.d/bin db ./sample_qrformat.dat 50 17000
+./bin.d/bin db ./cdump.json 15 6000
 
 mv db.bin cdb.bin
 
-./bin.d/bin init ./sample_qrformat.dat 0 ./cdb.bin
+./bin.d/bin continue ./cdump.json 0 ./cdb.bin
 
 wait_user
 
@@ -39,6 +40,6 @@ do
     
 done
 
-./bin.d/bin score ./cdump.json 0 ./learning.dat 
+./bin.d/bin score ./cdump.json 0 ./learning.dat
 
-#/usr/java/default/bin/java -jar ~/IdeaProjects/simple_viewer/out/artifacts/simple_viewer_jar/simple_viewer.jar ./cdump.json
+

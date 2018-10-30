@@ -10,7 +10,7 @@
 #include "learn.hpp"
 #include <unordered_map>
 
-constexpr u8 MT_NUM_OF_THREAD = 3;
+constexpr u8 MT_NUM_OF_THREAD = 7;
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
 void command_switching(int argc, char **argv);
@@ -114,7 +114,7 @@ Plan montecarlo_process(const char *name, u8 turn)
         Node *json_node = new Node(name);
         Montecarlo monte;
         u8 d = MONTE_DEPTH - turn;
-        const Node *ans = monte.let_me_monte(json_node, d >= 2 ? 2 : d);
+        const Node *ans = monte.let_me_monte(json_node, d >= 20 ? 20 : d);
         ans->draw();
         //write_learning_data(json_node, ans);
         return Plan(ans->get_last_action(0), ans->get_last_action(1));
@@ -167,7 +167,7 @@ void command_switching(int argc, char **argv)
                 node->draw();
                 Montecarlo monte;
 		u8 d = MONTE_DEPTH - std::atoi(argv[3]);
-                const Node *ans = monte.let_me_monte(node, 20);
+                const Node *ans = monte.let_me_monte(node, 7);
                 ans->draw();
                 ans->dump_json_file("cdump.json");
                 write_log_file(ans);
@@ -221,6 +221,7 @@ void command_switching(int argc, char **argv)
                 ans->dump_json_file("cdump.json");
                 write_learning_data(json_node, ans);
                 write_log_file(ans);
+		ans->draw_unko();
                 delete ans;
                 delete json_node;
         }else if(!strcmp(argv[1], "random")){

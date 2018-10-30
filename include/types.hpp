@@ -339,6 +339,8 @@ public:
 
         void dump_json_file(const char *file_name);
 
+        i64 max_score();
+
 	// フィールドの描画関数
 	void Draw();
 
@@ -679,7 +681,7 @@ private:
 
     public:
 	Agent(u8 x, u8 y, u8 meta);
-	Agent(u8 meta);
+  Agent(u8 meta);
 
 	void move(Field *field, Direction direction);
 
@@ -870,8 +872,8 @@ class Plan {
 
 	void draw()
 	{
-		std::cout << "[" << direction_to_str(d1) << ", "
-			  << direction_to_str(d2) << "]" << std::endl;
+	  std::cout << "[" << direction_to_str(d1) <<  "_" << (int)d1 << ", "
+		    << direction_to_str(d2) << "_" << (int)d2 << "]" << std::endl;
 	}
 
 	static Plan decode_hash(u64 hash)
