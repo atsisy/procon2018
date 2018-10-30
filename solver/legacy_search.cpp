@@ -29,6 +29,16 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
          */
         this->field = field;
 
+	if(enemy_agent1.y == enemy_agent2.y){
+	  my_agent1 = Agent(enemy_agent1.x, Field::field_size_y - enemy_agent1.y - 1, generate_agent_meta(MINE_ATTR));
+	  my_agent2 = Agent(enemy_agent2.x, Field::field_size_y - enemy_agent1.y - 1, generate_agent_meta(MINE_ATTR));
+	}else if(enemy_agent1.x == enemy_agent2.x){
+	  my_agent1 = Agent(Field::field_size_x - enemy_agent1.x - 1, enemy_agent2.y, generate_agent_meta(MINE_ATTR));
+	  my_agent2 = Agent(Field::field_size_x - enemy_agent1.x - 1, enemy_agent1.y, generate_agent_meta(MINE_ATTR));
+	}
+      
+       
+
         /*
          * 自分のエージェントを配置
          */
@@ -54,6 +64,7 @@ Node::Node(Field *field, Rect<i16> agent1, Rect<i16> agent2)
         parent = NULL;
 
         score = 0;
+        generation = 0;
 }
 
 /*
@@ -79,6 +90,7 @@ Node::Node(const Node *parent)
         score = -10000;
         turn = parent->toggled_turn();
         this->parent = parent;
+        this->generation = parent->generation + 1;
 }
 
 Node::Node(const char *json_path)
@@ -580,7 +592,6 @@ i16 Node::evaluate()
          * 愚直なやつ
          */
         score += this->field->calc_sumpanel_score();
-
         std::unordered_map<int, std::vector<int>> pureterritoryMine = field->makePureTerritory(field->makePureTreeMine());
         std::unordered_map<int, std::vector<int>> pureterritoryEnemy = field->makePureTerritory(field->makePureTreeEnemy());
         score += field->calcMineScore(pureterritoryMine);
