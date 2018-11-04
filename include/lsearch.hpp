@@ -118,6 +118,9 @@ public:
 
         void put_score_info();
 
+        i16 get_green_score();
+        i16 get_red_score();
+
   void draw_unko() const
   {
     Plan(last_action[0], last_action[1]).draw();
@@ -182,7 +185,7 @@ enum Judge {
         DRAW = 2,
 };
 
-constexpr float UCB_C = 0;
+constexpr float UCB_C = 0.2;
 struct PlayoutResult {
 
         Node *node;

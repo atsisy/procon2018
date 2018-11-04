@@ -10,7 +10,7 @@
 #include "learn.hpp"
 #include <unordered_map>
 
-constexpr u8 MT_NUM_OF_THREAD = 7;
+constexpr u8 MT_NUM_OF_THREAD = 4;
 
 std::unordered_map<u64, te_list *> analyze_learning_data(const char *file);
 void command_switching(int argc, char **argv);
@@ -240,6 +240,11 @@ void command_switching(int argc, char **argv)
         }else if(!strcmp(argv[1], "final-score")){
                 Node *json_node = new Node(argv[2]);
                 std::cout << json_node->evaluate() << std::endl;
+                delete json_node;
+        }else if(!strcmp(argv[1], "game-score")){
+                Node *json_node = new Node(argv[2]);
+                std::cout << json_node->get_green_score() << " ";
+                std::cout << json_node->get_red_score() << std::endl;
                 delete json_node;
         }else if(!strcmp(argv[1], "gnuscore")){
                 Node *json_node = new Node(argv[2]);

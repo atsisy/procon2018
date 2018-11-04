@@ -10,7 +10,7 @@
 constexpr u32 MONTE_INITIAL_TIMES = 2;
 constexpr u32 MONTE_MIN_TIMES = 2;
 constexpr u32 MONTE_EXPAND_LIMIT = 500;
-constexpr double MONTE_TIME_LIMIT = 6000;
+constexpr double MONTE_TIME_LIMIT = 12500;
 constexpr u8 MONTE_MT_LIMIT = 25;
 i16 current_eval = 0;
 
@@ -591,8 +591,6 @@ const Node *Montecarlo::let_me_monte(Node *node, u8 depth)
         }
         */
 
-        total_trying += 600 * original.size();
-
         puts("stage1 finished");
         result.push_back(original.at(index++));
 
@@ -711,11 +709,11 @@ void Montecarlo::create_database(Node *node, i64 timelimit, u8 depth)
 
         for(PlayoutResult *p : original){
                 put_dot();
-                dbbuild_playout_process(p, 1000);
+                dbbuild_playout_process(p, 700);
         }
         printf("\n");
 
-        total_trying += 600 * original.size();
+        total_trying += 700 * original.size();
 
         std::cout << "Stage1 was finished." << std::endl;
         std::cout << "Entering stage2..." << std::endl;
@@ -1143,15 +1141,14 @@ Judge Montecarlo::faster_playout(Node *node, u8 depth)
 	
         while(depth--){
                 if(depth & 1){
-                        // コミ のやつ
-                        /*if(depth & 3){
+                        if(depth & 3){
                                 i16 score = current->evaluate();
                                 if(score < this->upper_cut_off_score){
                                         return WIN;
                                 }else if(score > this->lower_cut_off_score){
                                         return LOSE;
                                 }
-                        }*/
+                        }
                         current->play(get_learning_direction(current));
                 }else{
                         current->play(find_random_legal_direction(current));
