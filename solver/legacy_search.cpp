@@ -600,6 +600,28 @@ i16 Node::evaluate()
         return score;
 }
 
+i16 Node::get_green_score()
+{
+        i16 score = 0;
+
+        score += this->field->calc_mypanels_score();
+        std::unordered_map<int, std::vector<int>> pureterritoryMine = field->makePureTerritory(field->makePureTreeMine());
+        score += field->calcMineScore(pureterritoryMine);
+
+        return score;
+}
+
+i16 Node::get_red_score()
+{
+        i16 score = 0;
+
+        score += this->field->calc_enemypanels_score();
+        std::unordered_map<int, std::vector<int>> pureterritoryEnemy = field->makePureTerritory(field->makePureTreeEnemy());
+        score += field->calcEnemyScore(pureterritoryEnemy);
+
+        return score;
+}
+
 void Node::put_score_info()
 {
         puts("** SCORE INFORMATION **");
